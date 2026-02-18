@@ -1,65 +1,86 @@
+/**
+ * DUNGEON DECK: Living Root Sanctuary
+ * Identity: Nurturing, protective, trust-building
+ * Combo lines: Test → Offer pipeline (build trust through vulnerability)
+ *              Protective Thorns (defensive Strike that punishes aggression)
+ *              Calming Presence → trust-scaled healing
+ */
 module.exports = [
-  // ═══ LIVING ROOT SANCTUARY — Nurturing dungeon room ═══
-  // Identity: Safe haven that builds trust. Tests are the primary Bond path.
-  // Template: 4E / 2S / 1Em / 1Co / 2Re / 3Of / 1Te / 1Rsh = 15
+  // ── ENERGY (4) ──
+  { name: 'Root Cradle', category: 'Energy', type: 'Environmental', cost: 0,
+    description: 'The sanctuary\'s embrace generates gentle warmth.' },
+  { name: 'Gentle Pulse', category: 'Energy', type: 'Environmental', cost: 0,
+    description: 'A steady rhythm of life-sustaining energy.' },
+  { name: 'Shelter Core', category: 'Energy', type: 'Environmental', cost: 0,
+    description: 'The heart of the sanctuary pulses with protective force.' },
+  { name: 'Trust Seed', category: 'Energy', type: 'Social', cost: 0,
+    description: 'A seed that grows only in willing soil.' },
 
-  // ENERGY (4)
-  { name: 'Root Cradle',     category: 'Energy', type: 'Physical',      cost: 0, energyGain: 1 },
-  { name: 'Gentle Pulse',    category: 'Energy', type: 'Environmental', cost: 0, energyGain: 1 },
-  { name: 'Shelter Core',    category: 'Energy', type: 'Physical',      cost: 0, energyGain: 1 },
-  { name: 'Trust Seed',      category: 'Energy', type: 'Social',        cost: 0, energyGain: 1 },
+  // ── STRIKES (2) — Defensive/warning, not aggressive ──
+  { name: 'Protective Thorns', category: 'Strike', type: 'Environmental', cost: 1,
+    power: 2, target: 'vitality',
+    trigger: { condition: { type: 'resource_above', target: 'self', resource: 'rapport' }, bonus: -1,
+      description: 'If rapport high, -1 Power (reluctant force)' },
+    description: 'Thorns extend to ward off threats. Deal 2 vitality. If rapport > 3, deal only 1 (reluctant).' },
+  { name: 'Warning Tremor', category: 'Strike', type: 'Environmental', cost: 1,
+    power: 1, target: 'nerve', keywords: ['Erode'],
+    description: 'A gentle shake to discourage aggression. Deal 1 nerve. Erode 1.' },
 
-  // STRIKES (2) — gentle deterrents, suppressed during cooperation
-  { name: 'Protective Thorns', category: 'Strike', type: 'Physical', cost: 1, power: 2,
-    target: 'vitality', keywords: [] },
-  { name: 'Warning Tremor', category: 'Strike', type: 'Environmental', cost: 1, power: 2,
-    target: 'nerve', keywords: [] },
-
-  // EMPOWER (1)
+  // ── EMPOWER (1) — Trust-based scaling ──
   { name: 'Calming Presence', category: 'Empower', type: 'Social', cost: 1,
-    empowerEffect: { advantage: true, powerBonus: 0 }, target: null, power: 0, keywords: [] },
+    empowerEffect: { advantage: false, powerBonus: 1, addKeyword: 'Ward' },
+    description: 'Project safety. Next action gains +1 Power and Ward (+1 structure defense, 1 round).' },
 
-  // COUNTER (1)
-  { name: 'Gentle Redirection', category: 'Counter', type: 'Physical', cost: 1,
-    counterDamage: null,
-    target: null, power: 0, keywords: [] },
+  // ── COUNTER (1) — Gentle redirection ──
+  { name: 'Gentle Redirection', category: 'Counter', type: 'Social', cost: 1,
+    counterDamage: { resource: 'vitality', amount: 0 },
+    counterEffect: { applyFortify: 1, fortifyResource: 'structure' },
+    description: 'Guide the energy elsewhere without harm. Remove condition. Fortify structure 1. No chip damage.' },
 
-  // REACT (2) — sanctuary protects itself
+  // ── REACTS (2) — Protective ──
   { name: 'Sheltering Canopy', category: 'React', type: 'Environmental', cost: 0, power: 2,
-    target: null, keywords: [] },
-  { name: 'Root Buffer', category: 'React', type: 'Physical', cost: 0, power: 1,
-    target: null, keywords: [] },
+    description: 'Branches weave overhead to intercept. Contest with Power 2.' },
+  { name: 'Root Buffer', category: 'React', type: 'Environmental', cost: 0, power: 1,
+    reactEffect: { alwaysFortify: 1 },
+    description: 'Roots form a cushion beneath. Contest Power 1. Gain Fortify 1 regardless.' },
 
-  // TEST (1) — prisoner's dilemma. The core Bond-building interaction.
+  // ── TEST (1) — Prisoner's dilemma ──
   { name: 'Trust Trial', category: 'Test', type: 'Social', cost: 1,
+    target: 'trust',
     testReward: { trust: 2, rapport: 2 },
     defectPenalty: { trustCrash: 0.5, powerGain: 2 },
     exposureCost: { resource: 'structure', amount: 1 },
-    target: 'trust', power: 0, keywords: [] },
+    description: 'Open yourself to vulnerability. Cooperate: +2 trust, +2 rapport, lose 1 structure. Defect: trust crashes, defector gains +2P.' },
 
-  // OFFERS (3) — reduced payloads. Supplement Tests, don't replace them.
+  // ── OFFERS (3) — Each heals different things ──
   { name: 'Healing Sap', category: 'Offer', type: 'Environmental', cost: 1,
+    target: 'trust',
     offerPayload: [
       { resource: 'vitality', amount: 2, target: 'opponent' },
       { resource: 'trust', amount: 1, target: 'opponent' },
       { resource: 'rapport', amount: 1, target: 'self' },
-    ], target: 'trust', power: 0, keywords: [] },
-  { name: 'Sheltering Roots', category: 'Offer', type: 'Physical', cost: 1,
+    ],
+    description: 'Amber sap with restorative properties. Accept: heal 2 vitality, build trust.' },
+  { name: 'Sheltering Roots', category: 'Offer', type: 'Environmental', cost: 1,
+    target: 'trust',
     offerPayload: [
       { resource: 'trust', amount: 1, target: 'opponent' },
       { resource: 'rapport', amount: 1, target: 'self' },
-    ], target: 'trust', power: 0, keywords: [] },
-  { name: 'Luminous Gift', category: 'Offer', type: 'Mystical', cost: 2,
+    ],
+    description: 'An invitation to rest within protective coils. Accept: build mutual trust.' },
+  { name: 'Luminous Gift', category: 'Offer', type: 'Social', cost: 2,
+    target: 'trust',
     offerPayload: [
       { resource: 'trust', amount: 1, target: 'opponent' },
       { resource: 'rapport', amount: 1, target: 'self' },
       { resource: 'nerve', amount: 1, target: 'opponent' },
-    ], target: 'trust', power: 0, keywords: [] },
+    ],
+    description: 'A glowing offering that soothes fear. Accept: build trust, heal 1 nerve. Cost 2.' },
 
-  // RESHAPE (1) — heal and fortify the sanctuary
+  // ── RESHAPE (1) — Dual heal ──
   { name: 'Open the Way', category: 'Reshape', type: 'Environmental', cost: 2,
     reshapeEffect: {
       heal: [{ resource: 'structure', amount: 2 }, { resource: 'presence', amount: 2 }],
     },
-    target: null, power: 0, keywords: [] },
+    description: 'Reshape the sanctuary to welcome. Heal 2 structure and 2 presence.' },
 ];

@@ -1,35 +1,62 @@
+/**
+ * VISITOR DECK: Thornback Boar
+ * Identity: Relentless physical aggression, cornered-animal danger
+ * Combo lines: Boar's Rage → Rampaging Charge (Overwhelm burst)
+ *              Desperate scaling when vitality low (+2P)
+ *              Dig In → Tusk Slash (persistent Erode pressure)
+ */
 module.exports = [
-  // ENERGY (4 — down from 5, added Disrupt)
-  { name: 'Primal Stamina',   category: 'Energy', type: 'Physical', cost: 0, energyGain: 1 },
-  { name: 'Territorial Fury', category: 'Energy', type: 'Physical', cost: 0, energyGain: 1 },
-  { name: 'Stubborn Will',    category: 'Energy', type: 'Social',   cost: 0, energyGain: 1 },
-  { name: 'Thick Hide',       category: 'Energy', type: 'Physical', cost: 0, energyGain: 1 },
-  // STRIKES (4) — multi-resource: 2 structure, 1 presence, 1 veil
-  { name: 'Gore', category: 'Strike', type: 'Physical', cost: 2, power: 2,
-    target: 'structure', keywords: [] },
-  { name: 'Rampaging Charge', category: 'Strike', type: 'Physical', cost: 2, power: 3,
-    target: 'structure', keywords: [],
-    trigger: { description: 'If Vitality < 50%: +2 Power', condition: { type: 'resource_below', resource: 'vitality' }, bonus: 2 } },
-  { name: 'Territorial Stomp', category: 'Strike', type: 'Physical', cost: 1, power: 2,
-    target: 'presence', keywords: [] },
-  { name: 'Tusk Slash', category: 'Strike', type: 'Physical', cost: 1, power: 2,
-    target: 'veil', keywords: [] },
-  // EMPOWER (2)
-  { name: "Boar's Rage", category: 'Empower', type: 'Physical', cost: 1,
-    empowerEffect: { advantage: true, powerBonus: 0 }, target: null, power: 0, keywords: [] },
+  // ── ENERGY (4) ──
+  { name: 'Primal Stamina', category: 'Energy', type: 'Physical', cost: 0,
+    description: 'Raw animal endurance fuels the fight.' },
+  { name: 'Territorial Fury', category: 'Energy', type: 'Physical', cost: 0,
+    description: 'Rage at trespass becomes usable force.' },
+  { name: 'Stubborn Will', category: 'Energy', type: 'Physical', cost: 0,
+    description: 'Too stubborn to stop, too angry to die.' },
+  { name: 'Thick Hide', category: 'Energy', type: 'Physical', cost: 0,
+    description: 'Layers of scarred hide shrug off minor threats.' },
+
+  // ── STRIKES (4) — Each mechanically distinct ──
+  { name: 'Gore', category: 'Strike', type: 'Physical', cost: 2,
+    power: 2, target: 'structure',
+    trigger: { condition: { type: 'resource_below', target: 'self', resource: 'vitality', pct: 0.5 }, bonus: 2,
+      description: 'Desperate: +2P if vitality ≤ 50%' },
+    description: 'Tusks driven by desperation. Deal 2 structure. Desperate: +2P if vitality below half.' },
+  { name: 'Rampaging Charge', category: 'Strike', type: 'Physical', cost: 2,
+    power: 3, target: 'structure', keywords: ['Overwhelm'], overwhelmTarget: 'presence',
+    description: 'Full-speed collision. Deal 3 structure. Overwhelm: excess spills to presence.' },
+  { name: 'Territorial Stomp', category: 'Strike', type: 'Physical', cost: 1,
+    power: 2, target: 'presence', keywords: ['Resonate'],
+    description: 'Stake a claim with thundering hooves. Deal 2 presence. Resonate: +1P if same type last round.' },
+  { name: 'Tusk Slash', category: 'Strike', type: 'Physical', cost: 1,
+    power: 1, target: 'veil', keywords: ['Erode'],
+    description: 'A slashing graze that won\'t stop bleeding. Deal 1 veil. Erode 1.' },
+
+  // ── EMPOWERS (2) — Advantage vs Keyword grant ──
+  { name: 'Boar\'s Rage', category: 'Empower', type: 'Physical', cost: 1,
+    empowerEffect: { advantage: true },
+    description: 'See red. Next Strike gains Advantage.' },
   { name: 'Dig In', category: 'Empower', type: 'Physical', cost: 1,
-    empowerEffect: { advantage: false, powerBonus: 2 }, target: null, power: 0, keywords: [] },
-  // DISRUPT (2 — up from 1, boar now has intimidation)
+    empowerEffect: { powerBonus: 1, addKeyword: 'Erode' },
+    description: 'Lower the head and prepare to grind. Next Strike gains +1 Power and Erode.' },
+
+  // ── DISRUPTS (2) — Disadvantage vs Thorns ──
   { name: 'Thrashing', category: 'Disrupt', type: 'Physical', cost: 1,
-    disruptEffect: { disadvantage: true }, target: null, power: 0, keywords: [] },
+    disruptEffect: { disadvantage: true },
+    description: 'Wild flailing disrupts aim. Opponent\'s next Strike has Disadvantage.' },
   { name: 'Bellowing Roar', category: 'Disrupt', type: 'Social', cost: 1,
-    disruptEffect: { disadvantage: true }, target: null, power: 0, keywords: [] },
-  // COUNTER (1)
+    disruptEffect: { disadvantage: false, onStrike: { selfDamage: { resource: 'presence', amount: 1 } } },
+    description: 'A roar that shakes the walls. Opponent takes 1 presence damage when next striking.' },
+
+  // ── COUNTER (1) — Chip + setup ──
   { name: 'Shake Free', category: 'Counter', type: 'Physical', cost: 1,
-    counterDamage: { resource: 'structure', amount: 1 }, target: null, power: 0, keywords: [] },
-  // REACT (2)
-  { name: 'Thick Bristles', category: 'React', type: 'Physical', cost: 1, power: 2,
-    target: 'structure', keywords: [] },
-  { name: 'Instinctive Dodge', category: 'React', type: 'Physical', cost: 1, power: 1,
-    target: null, keywords: [] },
+    counterDamage: { resource: 'structure', amount: 1 },
+    description: 'Thrash loose from the trap. Remove condition. Chip 1 structure.' },
+
+  // ── REACTS (2) — Block vs Desperate ──
+  { name: 'Thick Bristles', category: 'React', type: 'Physical', cost: 0, power: 2,
+    description: 'Bristled hide deflects the worst. Contest with Power 2.' },
+  { name: 'Instinctive Dodge', category: 'React', type: 'Physical', cost: 0, power: 1,
+    reactEffect: { conditionalPower: { condition: 'self_resource_below_half', resource: 'vitality', power: 3 } },
+    description: 'Survival instincts sharpen when wounded. Power 1. If vitality below half, Power 3.' },
 ];

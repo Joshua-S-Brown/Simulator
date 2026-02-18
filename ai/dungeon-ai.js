@@ -216,9 +216,51 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
         if (targetReducer.ratio > 0.8) score += 2;  // Fresh target
         if (targetReducer.ratio < 0.2 && !lethalMode) score -= 2;  // Diminishing returns
       }
-      // Bonus when opponent is out of Reacts
       if (oppAnalysis.likelyOutOfReacts) score += 2;
       if (c.target === autoResource && !targets[0]?.includes(c.target)) score -= 1;
+
+      // Keyword-aware scoring
+      const kws = c.keywords || [];
+      if (kws.includes('Entangle') && !opponent.conditions?.some(co => co.type === 'entangled')) {
+        score += 2; // Setup value: enables future Entangle combos
+      }
+      if (kws.includes('Erode')) {
+        score += 1.5; // Persistent pressure value
+      }
+      if (kws.includes('Drain')) {
+        const drainRes = c.drainTarget || 'presence';
+        const drainReducer = selfReducers.find(r => r.name === drainRes);
+        if (drainReducer && drainReducer.ratio < 0.7) score += 2; // More valuable when damaged
+      }
+      if (kws.includes('Overwhelm')) {
+        if (targetReducer && targetReducer.ratio < 0.3) score += 3; // Near-depleted → big spill
+      }
+
+      // Trigger-aware: bonus if condition is currently met
+      if (c.trigger?.condition) {
+        if (c.trigger.condition.type === 'has_condition') {
+          const hasCond = opponent.conditions?.some(co => co.type === c.trigger.condition.condition);
+          if (hasCond) score += (c.trigger.bonus || 2) * 1.5; // Trigger is active — big payoff
+        }
+        if (c.trigger.condition.type === 'resource_below' && c.trigger.condition.target === 'self') {
+          const res = c.trigger.condition.resource;
+          const val = self[res] || 0;
+          const start = self.startingValues?.[res] || 20;
+          if (val <= start * (c.trigger.condition.pct || 0.5)) {
+            score += (c.trigger.bonus || 2) * 1.5; // Desperate trigger active
+          }
+        }
+      }
+
+      // Self-cost risk: penalize unless we can afford it
+      if (c.selfCost) {
+        const costRes = self[c.selfCost.resource] || 0;
+        if (costRes <= c.selfCost.amount * 2) score -= 3; // Too risky
+        else score += 1; // Risk/reward trade worth it
+      }
+      // Exhaust: slightly penalize (one-time use is precious)
+      if (c.exhaust && !lethalMode) score -= 1;
+      if (c.exhaust && lethalMode) score += 2; // Save exhaust for lethal push
     }
 
     // ── EMPOWER SCORING ──
@@ -226,8 +268,19 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
       if (!hasStrike || bestStrikePower < 2) score *= 0.1;
       else score *= (0.5 + bestStrikePower * 0.25);
       if (history.loopDetected) score *= 0.2;
-      // Risk assessment: opponent might Counter
       if (!oppAnalysis.likelyOutOfCounters) score *= 0.7;
+      // Keyword grant bonuses
+      if (c.empowerEffect?.addKeyword) {
+        score += 1.5; // Keyword grants are more valuable than raw stats
+        // Erode grant more valuable with Strikes in hand
+        if (c.empowerEffect.addKeyword === 'Erode') score += 1;
+        // Drain grant more valuable when damaged
+        if (c.empowerEffect.addKeyword === 'Drain') {
+          const anyDamaged = selfReducers.some(r => r.ratio < 0.7);
+          if (anyDamaged) score += 1.5;
+        }
+      }
+      if (c.empowerEffect?.retarget) score += 1; // Flexibility has value
     }
 
     // ── DISRUPT SCORING ──

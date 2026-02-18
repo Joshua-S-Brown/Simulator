@@ -1,10 +1,16 @@
 /**
- * SHATTERED DUNGEON — Encounter Engine v1.4
+ * SHATTERED DUNGEON — Encounter Engine v1.5
  * 
- * CHANGES from v1.3:
- * [ADD] Restraint action: discard Strike for trust/rapport ("I choose not to hurt you")
- * [ADD] Per-round promoter gain cap (+2/round) prevents early-draw Bond avalanches
- * [FIX] Betrayal threshold raised to > 3 (no false positives on starting trust)
+ * CHANGES from v1.4:
+ * [ADD] Extended trigger system: self-state checks, discard pile counts, scaling bonuses
+ * [ADD] Drain keyword: damage dealt heals a self resource (capped at 2)
+ * [ADD] Overwhelm keyword: excess damage spills to secondary target
+ * [ADD] Empower keyword grants: Empowers can add keywords, retarget, conditional advantage
+ * [ADD] Disrupt variants: onStrike thorns, stripKeywords, randomizeTarget, suppress
+ * [ADD] Counter variants: steal Empower, punish bonus, counter+setup (entangle/fortify)
+ * [ADD] React variants: conditional power, absorb (always-fortify), reflect
+ * [ADD] Strike self-cost: risk/reward Strikes that damage yourself
+ * [ADD] Exhaust mechanic: cards removed from game instead of discarded
  */
 
 const R = require('./rules');
@@ -132,7 +138,7 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
     const firstResult = executeTurn(firstSide, sides[firstSide], firstCtx);
     sides[firstSide].hand = firstResult.remainingHand;
     for (const p of firstResult.plays) {
-      sides[firstSide].discard.push(p.card);
+      if (!p.card._exhausted) sides[firstSide].discard.push(p.card);
       if (p.card.category && cardTracker[firstSide]) cardTracker[firstSide][p.card.category] = (cardTracker[firstSide][p.card.category] || 0) + 1;
       if (firstSide === 'dungeon') stats.dCardsPlayed++; else stats.vCardsPlayed++;
     }
@@ -149,7 +155,7 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
     const secondResult = executeTurn(secondSide, sides[secondSide], secondCtx);
     sides[secondSide].hand = secondResult.remainingHand;
     for (const p of secondResult.plays) {
-      sides[secondSide].discard.push(p.card);
+      if (!p.card._exhausted) sides[secondSide].discard.push(p.card);
       if (p.card.category && cardTracker[secondSide]) cardTracker[secondSide][p.card.category] = (cardTracker[secondSide][p.card.category] || 0) + 1;
       if (secondSide === 'dungeon') stats.dCardsPlayed++; else stats.vCardsPlayed++;
     }
@@ -318,12 +324,18 @@ function executeTurn(side, sideData, ctx) {
       case 'Empower':
         self.conditions.push({ type: 'empower', effect: card.empowerEffect || {}, source: card.name, placedBy: side });
         log(`  [${side}] Empower: ${card.name}`);
+        if (card.empowerEffect?.addKeyword) log(`    Grants: ${card.empowerEffect.addKeyword} to next Strike`);
+        if (card.empowerEffect?.retarget) log(`    Redirects: next Strike → ${card.empowerEffect.retarget}`);
         checkTraps('empower_played', side, self, opp, ctx);
         break;
 
       case 'Disrupt':
         opp.conditions.push({ type: 'disrupt', effect: card.disruptEffect || {}, source: card.name, placedBy: side });
         log(`  [${side}] Disrupt: ${card.name} → debuffing ${ctx.opponentSide}`);
+        if (card.disruptEffect?.onStrike) log(`    Thorns: opponent takes ${card.disruptEffect.onStrike.selfDamage?.amount || 0} ${card.disruptEffect.onStrike.selfDamage?.resource || ''} on next Strike`);
+        if (card.disruptEffect?.stripKeywords) log(`    Strips: opponent's next Strike loses all keywords`);
+        if (card.disruptEffect?.randomizeTarget) log(`    Scrambles: opponent's next Strike hits random resource`);
+        if (card.disruptEffect?.suppress) log(`    Suppresses: opponent cannot play ${card.disruptEffect.suppress} next turn`);
         break;
 
       case 'Counter': {
@@ -332,9 +344,33 @@ function executeTurn(side, sideData, ctx) {
         if (!removed) removed = R.removeCondition(self, 'disrupt', oppSide);
         if (removed) {
           log(`  [${side}] Counter: ${card.name} removes ${removed.source}`);
+          // Standard chip damage
           if (card.counterDamage) {
-            const dmg = R.applyDamage(opp, card.counterDamage.resource, card.counterDamage.amount, 1);
+            // Punish counter: extra chip if removed an Empower
+            let chipAmt = card.counterDamage.amount;
+            if (card.counterEffect?.empowerBonus && removed.type === 'empower') {
+              chipAmt = card.counterEffect.empowerBonus.chipDamage || chipAmt;
+              log(`    Empower punish: ${chipAmt} chip instead of ${card.counterDamage.amount}`);
+            }
+            const dmg = R.applyDamage(opp, card.counterDamage.resource, chipAmt, 1);
             log(`    +chip: ${card.counterDamage.resource} -${dmg}`);
+          }
+          // Steal: take the removed Empower for yourself
+          if (card.counterEffect?.steal && removed.type === 'empower') {
+            self.conditions.push({ ...removed, placedBy: side });
+            log(`    [Steal] ${card.name} captures ${removed.source} for own use`);
+          }
+          // Counter + Setup: apply a condition after removing
+          if (card.counterEffect?.applyKeyword) {
+            opp.conditions.push({ type: card.counterEffect.applyKeyword, placedBy: side });
+            log(`    [Setup] ${card.counterEffect.applyKeyword} applied to opponent`);
+          }
+          if (card.counterEffect?.applyFortify) {
+            self.conditions.push({
+              type: 'fortify', resource: card.counterEffect.fortifyResource || 'structure',
+              reduction: card.counterEffect.applyFortify, duration: 1, source: card.name
+            });
+            log(`    [Setup] Fortify ${card.counterEffect.applyFortify} applied to self`);
           }
         } else {
           log(`  [${side}] Counter: ${card.name} → nothing to remove`);
@@ -370,18 +406,60 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   const log = ctx.log;
   const oppSide = side === 'dungeon' ? 'visitor' : 'dungeon';
   let advantage = 0, powerBonus = 0;
+  let grantedKeywords = []; // Keywords added by Empower
 
   // Consume Empower (placed by us on ourselves)
   const emp = R.removeCondition(self, 'empower', side);
   if (emp) {
     if (emp.effect.advantage) advantage += 1;
     if (emp.effect.powerBonus) powerBonus += emp.effect.powerBonus;
+    // Keyword grants: Empower can add keywords to the Strike
+    if (emp.effect.addKeyword) {
+      const kws = Array.isArray(emp.effect.addKeyword) ? emp.effect.addKeyword : [emp.effect.addKeyword];
+      grantedKeywords.push(...kws);
+    }
+    // Target redirect: Empower can change what the Strike targets
+    if (emp.effect.retarget && card.target) {
+      log(`    Empower redirect: ${card.target} → ${emp.effect.retarget}`);
+      card = { ...card, target: emp.effect.retarget }; // Clone to avoid mutating deck
+    }
+    // Conditional advantage from Empower (e.g., +Advantage if opponent has condition)
+    if (emp.effect.conditionalAdvantage) {
+      const ca = emp.effect.conditionalAdvantage;
+      if (ca.hasCondition && R.hasCondition(opp, ca.hasCondition)) {
+        advantage += 1;
+        log(`    Empower conditional: +Advantage (opponent ${ca.hasCondition})`);
+      }
+    }
   }
 
   // Consume Disrupt on self (placed by opponent on us)
   const dis = R.removeCondition(self, 'disrupt', oppSide);
   if (dis) {
     if (dis.effect.disadvantage) advantage -= 1;
+    // Punish disrupt: take damage when striking
+    if (dis.effect.onStrike) {
+      const penalty = dis.effect.onStrike;
+      if (penalty.selfDamage) {
+        const dmg = R.applyDamage(self, penalty.selfDamage.resource, penalty.selfDamage.amount, 1);
+        log(`    Disrupt penalty: ${side} ${penalty.selfDamage.resource} -${dmg} (${dis.source})`);
+      }
+    }
+    // Suppress keywords
+    if (dis.effect.stripKeywords) {
+      grantedKeywords = [];
+      card = { ...card, keywords: [] };
+      log(`    Disrupt strips all keywords (${dis.source})`);
+    }
+    // Target randomize
+    if (dis.effect.randomizeTarget && card.target) {
+      const resources = side === 'dungeon'
+        ? ['vitality', 'resolve', 'nerve']
+        : ['structure', 'veil', 'presence'];
+      const randomTarget = resources[Math.floor(Math.random() * resources.length)];
+      log(`    Disrupt randomize: ${card.target} → ${randomTarget} (${dis.source})`);
+      card = { ...card, target: randomTarget };
+    }
   }
 
   // Resonate
@@ -393,16 +471,29 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   // Modifier bonus (affects ROLL, not damage)
   const atkMod = R.getModifierBonus(card, self);
 
-  // Trigger check (affects DAMAGE)
+  // Extended trigger check with context (discard pile, round info)
+  const triggerCtx = { ...ctx, discard: sideData?.discard || [] };
   let triggerBonus = 0;
-  if (card.trigger && evaluateTrigger(card.trigger, self, opp)) {
-    triggerBonus = card.trigger.bonus || 0;
+  let triggerFired = false;
+  if (card.trigger && evaluateTrigger(card.trigger, self, opp, triggerCtx)) {
+    triggerBonus = getTriggerBonus(card.trigger, self, opp, triggerCtx);
+    triggerFired = true;
+    // Trigger can also grant keywords
+    if (card.trigger.addKeyword) {
+      const kws = Array.isArray(card.trigger.addKeyword) ? card.trigger.addKeyword : [card.trigger.addKeyword];
+      grantedKeywords.push(...kws);
+    }
+    // Trigger can grant advantage
+    if (card.trigger.grantAdvantage) advantage += 1;
   }
 
+  // Merge card keywords with granted keywords
+  const allKeywords = [...(card.keywords || []), ...grantedKeywords];
+
   // ── LOG SETUP INFO ──
-  if (emp) log(`    Empower consumed: ${emp.source}${emp.effect.advantage ? ' (Advantage)' : ''}${emp.effect.powerBonus ? ` (+${emp.effect.powerBonus} dmg)` : ''}`);
+  if (emp) log(`    Empower consumed: ${emp.source}${emp.effect.advantage ? ' (Advantage)' : ''}${emp.effect.powerBonus ? ` (+${emp.effect.powerBonus} dmg)` : ''}${grantedKeywords.length ? ` (+${grantedKeywords.join(', ')})` : ''}`);
   if (dis) log(`    Disrupt consumed: ${dis.source}${dis.effect.disadvantage ? ' (Disadvantage)' : ''}`);
-  if (triggerBonus) log(`    Trigger: ${card.trigger.description} → +${triggerBonus} dmg`);
+  if (triggerFired) log(`    Trigger: ${card.trigger.description || 'conditional'} → +${triggerBonus} dmg${card.trigger.addKeyword ? ` +${card.trigger.addKeyword}` : ''}`);
 
   // ── ATTACKER ROLL ──
   const atkRoll = R.contestedRoll(advantage);
@@ -440,13 +531,19 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   // ── APPLY DAMAGE ──
   if (result.atkMult > 0 && card.target) {
     let rawDmg = Math.floor(damagePower * result.atkMult);
-    if (damagePower > 0 && rawDmg < 1) rawDmg = 1; // min 1 damage on any non-Stalemate hit
+    if (damagePower > 0 && rawDmg < 1) rawDmg = 1;
 
     // Fortify reduction
     let fortifyReduction = 0;
     const fortifyConds = opp.conditions.filter(c => c.type === 'fortify' && c.resource === card.target);
     for (const fc of fortifyConds) {
       fortifyReduction += fc.reduction;
+    }
+
+    // Self-cost (risk/reward Strikes)
+    if (card.selfCost) {
+      const sCost = R.applyDamage(self, card.selfCost.resource, card.selfCost.amount, 1);
+      log(`    Self-cost: ${card.selfCost.resource} -${sCost}`);
     }
 
     const finalDmg = Math.max(0, rawDmg - reactMitigation - fortifyReduction);
@@ -461,7 +558,27 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
     tracker[card.target] = (tracker[card.target] || 0) + applied;
 
     if (applied > 0) {
-      R.applyKeywords(card, opp, self, { autoResource: ctx.autoResource, log, activeSide: side });
+      // Apply keywords (card's own + granted by Empower/Trigger)
+      const keywordCard = { ...card, keywords: allKeywords };
+      R.applyKeywords(keywordCard, opp, self, { autoResource: ctx.autoResource, log, activeSide: side });
+
+      // ── DRAIN: damage dealt heals a self resource ──
+      if (allKeywords.includes('Drain')) {
+        const drainTarget = card.drainTarget || (side === 'dungeon' ? 'presence' : 'vitality');
+        const healed = Math.min(applied, 2); // Cap drain at 2
+        R.applyBenefit(self, drainTarget, healed);
+        log(`    [KW] Drain: ${side} ${drainTarget} +${healed}`);
+      }
+
+      // ── OVERWHELM: excess damage spills to secondary target ──
+      if (allKeywords.includes('Overwhelm') && opp[card.target] <= 0) {
+        const spill = card.overwhelmTarget || (card.target === 'vitality' ? 'resolve' : card.target === 'nerve' ? 'resolve' : 'nerve');
+        const spillDmg = Math.abs(opp[card.target]); // Amount below 0
+        if (spillDmg > 0) {
+          const spillApplied = R.applyDamage(opp, spill, spillDmg, 1);
+          log(`    [KW] Overwhelm: excess spills → ${spill} -${spillApplied}`);
+        }
+      }
 
       // ── RALLY: attacker recovers 1 of lowest reducer on Strong/Devastating ──
       if (result.atkMult >= 1.0) {
@@ -495,6 +612,13 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   // Update last type for Resonate
   if (side === 'dungeon') ctx.stats.dLastType = card.type;
   else ctx.stats.vLastType = card.type;
+
+  // ── EXHAUST: remove from game instead of discarding ──
+  if (card.exhaust) {
+    log(`    [Exhaust] ${card.name} removed from game`);
+    // Caller handles discard — we flag the card so it won't be added to discard
+    card._exhausted = true;
+  }
 }
 
 // ═══ REACT RESOLUTION ═══
@@ -508,18 +632,50 @@ function tryReact(defenderSide, defenderHand, defenderState, attackerState, inco
   if (result.tier !== 'Strong' && result.tier !== 'Devastating') return null;
 
   const react = reactCards.sort((a, b) => (b.power || 0) - (a.power || 0))[0];
+  
+  // Conditional power: check if react has a conditional power override
+  let reactPower = react.power || 1;
+  if (react.reactEffect?.conditionalPower) {
+    const cp = react.reactEffect.conditionalPower;
+    if (cp.condition === 'self_resource_below_half') {
+      const val = defenderState[cp.resource] || 0;
+      const start = defenderState.startingValues?.[cp.resource] || 20;
+      if (val <= start * 0.5) {
+        reactPower = cp.power;
+      }
+    }
+  }
+  
   const reactRoll = R.contestedRoll(0);
   const reactMod = R.getModifierBonus(react, defenderState);
-  const reactTotal = reactRoll.total + reactMod + (react.power || 0);
+  const reactTotal = reactRoll.total + reactMod + reactPower;
   const threshold = 7;
   const success = reactTotal >= threshold;
 
+  // Absorb: gain Fortify regardless of success
+  if (react.reactEffect?.alwaysFortify) {
+    defenderState.conditions.push({
+      type: 'fortify', resource: incomingCard.target,
+      reduction: react.reactEffect.alwaysFortify, duration: 1, source: react.name
+    });
+    log(`    [${defenderSide}] React: ${react.name} → Fortify ${react.reactEffect.alwaysFortify} (${incomingCard.target})`);
+  }
+
   if (success) {
-    const mitigation = react.power || 1;
-    log(`    [${defenderSide}] React: ${react.name} → SUCCESS (2d6[${reactRoll.kept}]+${reactMod}mod+${react.power}pwr = ${reactTotal} vs ${threshold}) mitigates ${mitigation}`);
+    let mitigation = reactPower;
+    log(`    [${defenderSide}] React: ${react.name} → SUCCESS (2d6[${reactRoll.kept}]+${reactMod}mod+${reactPower}pwr = ${reactTotal} vs ${threshold}) mitigates ${mitigation}`);
+    
+    // Reflect: on devastating defense, attacker takes damage
+    if (react.reactEffect?.reflect && result.tier === 'Devastating') {
+      const reflectDmg = react.reactEffect.reflect.amount || 1;
+      const reflectTarget = react.reactEffect.reflect.resource || 'vitality';
+      const applied = R.applyDamage(attackerState, reflectTarget, reflectDmg, 1);
+      log(`    [Reflect] Attacker ${reflectTarget} -${applied}`);
+    }
+    
     return { card: react, mitigation };
   } else {
-    log(`    [${defenderSide}] React: ${react.name} → FAILED (2d6[${reactRoll.kept}]+${reactMod}mod+${react.power}pwr = ${reactTotal} vs ${threshold})`);
+    log(`    [${defenderSide}] React: ${react.name} → FAILED (2d6[${reactRoll.kept}]+${reactMod}mod+${reactPower}pwr = ${reactTotal} vs ${threshold})`);
     return { card: react, mitigation: 0 };
   }
 }
@@ -709,17 +865,58 @@ function resolveOffer(card, side, self, opp, ctx) {
 
 // ═══ TRIGGER EVALUATION ═══
 
-function evaluateTrigger(trigger, self, opponent) {
+function evaluateTrigger(trigger, self, opponent, ctx) {
   if (!trigger?.condition) return false;
   const c = trigger.condition;
-  if (c.type === 'resource_below') {
-    const val = opponent[c.resource];
-    const threshold = c.value !== undefined ? c.value : Math.floor(opponent.startingValues[c.resource] / 2);
-    return val <= threshold;
+  
+  // Target selection: 'self' or 'opponent' (default opponent for backward compat)
+  const target = c.target === 'self' ? self : opponent;
+  
+  switch (c.type) {
+    case 'resource_below': {
+      const val = target[c.resource];
+      const threshold = c.value !== undefined ? c.value 
+        : Math.floor((target.startingValues?.[c.resource] || 20) * (c.pct || 0.5));
+      return val <= threshold;
+    }
+    case 'resource_above':
+      return (target[c.resource] || 0) >= c.value;
+    case 'has_condition':
+      return R.hasCondition(target, c.condition);
+    case 'no_condition':
+      return !R.hasCondition(target, c.condition);
+    case 'discard_count': {
+      // Count cards of a category in own discard pile
+      const discard = ctx?.discard || [];
+      const count = discard.filter(card => card.category === c.category).length;
+      return count >= (c.min || 1);
+    }
+    case 'discard_count_value': {
+      // Return the count as the trigger bonus (used for scaling)
+      const discard = ctx?.discard || [];
+      return discard.filter(card => card.category === c.category).length > 0;
+    }
+    case 'round_threshold':
+      return (ctx?.round || 1) >= (c.value || 1);
+    default:
+      return false;
   }
-  if (c.type === 'resource_above') return (opponent[c.resource] || 0) >= c.value;
-  if (c.type === 'has_condition') return R.hasCondition(opponent, c.condition);
-  return false;
+}
+
+// Get the numeric bonus from a trigger (for scaling effects)
+function getTriggerBonus(trigger, self, opponent, ctx) {
+  if (!trigger) return 0;
+  const c = trigger.condition;
+  
+  // Scaling triggers: bonus = count * multiplier
+  if (c?.type === 'discard_count_value') {
+    const discard = ctx?.discard || [];
+    const count = discard.filter(card => card.category === c.category).length;
+    return Math.min(count * (trigger.bonusPerCount || 1), trigger.maxBonus || 4);
+  }
+  
+  // Standard triggers: flat bonus
+  return trigger.bonus || 0;
 }
 
 module.exports = { runEncounter };

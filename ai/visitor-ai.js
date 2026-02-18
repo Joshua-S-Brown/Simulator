@@ -207,13 +207,51 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
         if (targetReducer.ratio > 0.8) score += 2;
         if (targetReducer.ratio < 0.2 && !lethalMode) score -= 2;
       }
-      // Bonus when dungeon is out of Reacts
       if (oppAnalysis.likelyOutOfReacts) score += 2;
-      // Penalty if dungeon has Fortify on this resource
       if (oppAnalysis.hasFortify && opponent.conditions.some(co =>
         co.type === 'fortify' && co.resource === c.target)) {
         score -= 2;
       }
+
+      // Keyword-aware scoring
+      const kws = c.keywords || [];
+      if (kws.includes('Entangle') && !opponent.conditions?.some(co => co.type === 'entangled')) {
+        score += 2;
+      }
+      if (kws.includes('Erode')) score += 1.5;
+      if (kws.includes('Drain')) {
+        const drainRes = c.drainTarget || 'vitality';
+        const drainReducer = selfReducers.find(r => r.name === drainRes);
+        if (drainReducer && drainReducer.ratio < 0.7) score += 2;
+      }
+      if (kws.includes('Overwhelm')) {
+        if (targetReducer && targetReducer.ratio < 0.3) score += 3;
+      }
+
+      // Trigger-aware
+      if (c.trigger?.condition) {
+        if (c.trigger.condition.type === 'has_condition') {
+          if (opponent.conditions?.some(co => co.type === c.trigger.condition.condition)) {
+            score += (c.trigger.bonus || 2) * 1.5;
+          }
+        }
+        if (c.trigger.condition.type === 'resource_below' && c.trigger.condition.target === 'self') {
+          const res = c.trigger.condition.resource;
+          const val = self[res] || 0;
+          const start = self.startingValues?.[res] || 20;
+          if (val <= start * (c.trigger.condition.pct || 0.5)) {
+            score += (c.trigger.bonus || 2) * 1.5;
+          }
+        }
+      }
+
+      if (c.selfCost) {
+        const costRes = self[c.selfCost.resource] || 0;
+        if (costRes <= c.selfCost.amount * 2) score -= 3;
+        else score += 1;
+      }
+      if (c.exhaust && !lethalMode) score -= 1;
+      if (c.exhaust && lethalMode) score += 2;
     }
 
     // ── EMPOWER SCORING ──
@@ -222,6 +260,13 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
       else score *= (0.5 + bestStrikePower * 0.25);
       if (history.loopDetected) score *= 0.2;
       if (!oppAnalysis.likelyOutOfCounters) score *= 0.7;
+      if (c.empowerEffect?.addKeyword) {
+        score += 1.5;
+        if (c.empowerEffect.addKeyword === 'Erode') score += 1;
+        if (c.empowerEffect.addKeyword === 'Drain') {
+          if (selfReducers.some(r => r.ratio < 0.7)) score += 1.5;
+        }
+      }
     }
 
     // ── DISRUPT SCORING ──
