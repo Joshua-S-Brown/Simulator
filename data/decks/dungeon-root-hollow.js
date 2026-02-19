@@ -1,18 +1,20 @@
 /**
- * DUNGEON DECK: Root Hollow (v2.2)
+ * DUNGEON DECK: Root Hollow (v2.3)
  * Identity: Crushing earth, ensnaring roots, slow decay
- * Combo lines: Entangle → Crushing Grip (+2P conditional)
- *              Erode attrition via Tremor Slam
- *              Drain sustain via Soul Leech (cost 3 — premium)
+ * Combo lines: Entangle → Crushing Grip (+2P conditional) — now targets resolve (Break path)
+ *              Erode attrition via Tremor Slam (buffed P2)
+ *              Drain sustain via Soul Leech (cost 2 — accessible)
  * 
- * ENERGY CHANGES (v2.2):
- *   - 3 → 5 Energy cards (28% of 18-card deck)
- *   - Resonant Core redesigned as Attune (Environmental)
- *   - Added Predatory Surge (Surge) and Root Siphon (Siphon: Entangle)
+ * v2.3 BALANCE CHANGES:
+ *   - Crushing Grip: target vitality → resolve (opens Break path in Room 1)
+ *   - Tremor Slam: power 1 → 2 (meaningful nerve pressure)
+ *   - Soul Leech: cost 3 → 2 (affordable nerve+drain)
+ *   Strike targeting now: vitality×1, resolve×1, nerve×2
  * 
- * COST CHANGES (v2.2):
- *   - Soul Leech: 2 → 3 (deals damage AND heals — premium action)
- *   - Predatory Stance: 1 → 2 (conditional double-advantage is strong)
+ * v2.2 ENERGY CHANGES (preserved):
+ *   - 5 Energy cards (28% of 18-card deck)
+ *   - Resonant Core as Attune (Environmental)
+ *   - Predatory Surge (Surge) and Root Siphon (Siphon: Entangle)
  */
 module.exports = [
   // ── ENERGY (5) ──
@@ -39,21 +41,26 @@ module.exports = [
     description: 'Roots drink deeper when prey cannot flee. +1 permanent if opponent Entangled, else +1 temp.' },
 
   // ── STRIKES (4) — Each mechanically distinct ──
+  // v2.3: targeting spread is now vitality×1, resolve×1, nerve×2
+
   { name: 'Entombing Grasp', category: 'Strike', type: 'Environmental', cost: 2,
     power: 2, target: 'vitality', keywords: ['Entangle'],
     description: 'Roots erupt to pin the intruder. Deal 2 vitality damage. Entangle.' },
 
+  // v2.3: RETARGETED vitality → resolve. Opens Break path in Room 1.
   { name: 'Crushing Grip', category: 'Strike', type: 'Environmental', cost: 2,
-    power: 2, target: 'vitality', keywords: ['Erode'],
+    power: 2, target: 'resolve', keywords: ['Erode'],
     trigger: { condition: { type: 'has_condition', condition: 'entangled' }, bonus: 2,
       description: 'If Entangled, +2 Power' },
-    description: 'Tighten the hold on trapped prey. Deal 2 vitality. Erode 1. If Entangled, deal 4.' },
+    description: 'Tighten the hold until resistance crumbles. Deal 2 resolve. Erode 1. If Entangled, deal 4.' },
 
+  // v2.3: BUFFED power 1 → 2. Meaningful nerve pressure.
   { name: 'Tremor Slam', category: 'Strike', type: 'Environmental', cost: 1,
-    power: 1, target: 'nerve', keywords: ['Erode'],
-    description: 'The ground shakes with malice. Deal 1 nerve damage. Erode 1.' },
+    power: 2, target: 'nerve', keywords: ['Erode'],
+    description: 'The ground shakes with malice. Deal 2 nerve damage. Erode 1.' },
 
-  { name: 'Soul Leech', category: 'Strike', type: 'Social', cost: 3,
+  // v2.3: REDUCED cost 3 → 2. Now affordable in mid-game.
+  { name: 'Soul Leech', category: 'Strike', type: 'Social', cost: 2,
     power: 2, target: 'nerve', keywords: ['Drain'], drainTarget: 'presence',
     description: 'Feed on the visitor\'s dread. Deal 2 nerve damage. Drain to presence (max 2).' },
 

@@ -10,11 +10,15 @@
 
 **Second Self Studios**
 
-**Design Document v2.1 • February 2026**
+**Design Document v2.3 • February 2026**
 
 *Set in The Shattered Veil*
 
 ---
+
+## CHANGES FROM v2.1
+
+Energy system fully implemented: mana-like resource with 4 energy card types (Standard, Surge, Attune, Siphon), energy costs on all action cards (0-3), card activation as emergency energy generation, opening hand guarantees. AI combo sequencer built: plans Surge burst turns, sequences Attune discounts, evaluates Siphon conditions, manages energy budgets for multi-card combos. Balance patch v2.3: deck card rebalancing (Root Hollow strike retargeting, cost adjustments), visitor stat calibration (Boar resolve/nerve 16→14), encounter auto-effect tuning (Root Hollow nerve drain). All three primary win conditions now hit design targets across the Boar matchup. Deck specialization philosophy established and validated through simulation.
 
 ## CHANGES FROM v2.0
 
@@ -32,7 +36,7 @@ Shattered Dungeon is a dungeon identity simulation that puts the player on the o
 
 The game combines strategic encounter architecture with round-by-round tactical card play at a depth comparable to Magic: The Gathering. During each encounter, visitors and the dungeon exchange actions in a turn-based sequence with **nine card categories**—Strike, Empower, Disrupt, Counter, React, Trap, Offer, Test, and Reshape—each serving a distinct tactical role. Cards carry keywords, triggered abilities, and activated abilities that produce emergent combos and skill-expressive decisions. The Advantage/Disadvantage system (roll 3d6 keep best or worst 2) creates dramatic swings without arithmetic stacking.
 
-Cards are mechanically distinct within categories—no two Strikes in a deck play the same way. Each card carries at least one keyword, trigger condition, or special mechanic that creates unique board states and combo possibilities. The player asks "which Strike do I play here?" based on board state, not "which Strike has the biggest number." This mechanical depth is validated through simulation across 9,000+ encounters with 15 distinct keywords and conditions firing at meaningful rates.
+Cards are mechanically distinct within categories—no two Strikes in a deck play the same way. Each card carries at least one keyword, trigger condition, or special mechanic that creates unique board states and combo possibilities. The player asks "which Strike do I play here?" based on board state, not "which Strike has the biggest number." This mechanical depth is validated through simulation across 10,000+ encounters with 15 distinct keywords and conditions firing at meaningful rates.
 
 The dungeon's card choices express identity through a **bidirectional resource system**. Both sides have three targetable reducer resources and one cooperative promoter. The dungeon targets visitor Vitality, Resolve, and Nerve while building Rapport. The visitor targets dungeon Structure, Veil, and Presence while building Trust. The direction of targeting defines what kind of dungeon you become, with seven distinct win conditions emerging from resource trajectories rather than menu selections.
 
@@ -96,11 +100,11 @@ Each side has three **reducer resources** (targeted by the opponent, depleted to
 
 ### 3.3 Simulation-Validated Starting Values
 
-Starting values have been validated across 9,000+ simulated encounters. Asymmetric visitor stats create distinct encounter profiles:
+Starting values have been validated across 10,000+ simulated encounters. Asymmetric visitor stats create distinct encounter profiles:
 
 | Creature | Vitality | Resolve | Nerve | Trust | Profile |
 |----------|:--------:|:-------:|:-----:|:-----:|---------|
-| Thornback Boar | 28 | 16 | 16 | 0 | High HP aggressor, targets structure |
+| Thornback Boar | 28 | 14 | 14 | 0 | High HP aggressor, targets structure |
 | Veil Moth | 14 | 12 | 14 | 0 | Fragile defender, targets veil |
 | Drift Symbiote | 18 | 18 | 18 | 3 | Balanced cooperator, seeks Bond |
 
@@ -153,11 +157,22 @@ The card system uses **nine categories** organized into three functional groups.
 
 ### 4.2 Energy System
 
-Action cards have Energy costs. Energy cards in the deck generate permanent Energy when played. Any action card can be **activated** (discarded) to generate 1 temporary Energy. This creates a meaningful resource management layer: you can sacrifice an action for the energy to play a better one.
+Action cards have Energy costs (0-3). Energy cards in the deck generate permanent Energy when played. Any action card can be **activated** (discarded) to generate 1 temporary Energy. This creates a meaningful resource management layer: you can sacrifice an action for the energy to play a better one.
 
 Starting hand guarantee: opening hand of 7 always contains at least 2 Energy cards and 3 action cards, with up to 3 mulligans. Target deck ratio: 30–40% Energy cards (4–5 in a 15-card deck).
 
 Energy pools are permanent and grow each round as Energy cards are played. Both sides draw 2 cards per round (minimum hand size 3). Energy refreshes each round (spent energy returns, temporary bonuses expire).
+
+**Energy Card Types:**
+
+| Type | Effect | Strategic Use |
+|------|--------|---------------|
+| Standard | +1 permanent pool | Reliable growth, always useful |
+| Surge | +N temporary energy (this turn only) | Burst turns — enables expensive combos |
+| Attune | +1 permanent + next card of specified type costs -1 | Sequencing reward — plan Attune before matching card |
+| Siphon | +1 permanent if condition met, else +1 temp fallback | Conditional growth — rewards reading board state |
+
+The AI combo sequencer (ai/combo-sequencer.js) plans energy-aware turn sequences: evaluating all energy subsets to find optimal investment, sequencing Attune before matching cards, planning Surge for burst turns, and managing budgets for multi-card combos like Empower→Strike.
 
 ### 4.3 Card Mechanical Depth
 
@@ -249,7 +264,9 @@ During a turn, a side may play multiple cards subject to Energy constraints. Pla
 
 ### 5.2 Auto-Effects
 
-Each encounter room has bidirectional auto-effects that apply environmental pressure every round (or every other round). These create the encounter's baseline difficulty and thematic identity. Example: Root Hollow applies "visitor vitality -1/round" and "dungeon structure -1/other round." The visitor slowly weakens while the dungeon's walls slowly crack.
+Each encounter room has bidirectional auto-effects that apply environmental pressure every round (or every other round). These create the encounter's baseline difficulty and thematic identity. Auto-effects are the most stable balance anchor in the system because they persist regardless of deck customization.
+
+Example: Root Hollow applies "visitor vitality -1/round," "visitor nerve -1/other round," and "dungeon structure -1/other round." The visitor weakens physically while the oppressive environment frays their courage, and the dungeon's walls slowly crack. The nerve drain creates passive Panic pressure without requiring the deck to carry nerve-targeting strikes, demonstrating how auto-effects can support secondary win conditions independent of deck composition.
 
 ### 5.3 Multi-Room Sequences
 
@@ -263,15 +280,17 @@ After round 8, both sides take escalating damage each round (starting at 1, incr
 
 ### 5.5 Simulation-Validated Encounter Pacing
 
-Across 9,000+ simulated encounters, the system produces the following pacing profiles:
+Across 10,000+ simulated encounters (validated at 1,000 iterations per configuration), the system produces the following pacing profiles:
 
 | Matchup | Avg Rounds | Avg Decisions | Dungeon Win % | Balance Assessment |
 |---------|:---:|:---:|:---:|---|
-| Boar (aggressive) | 14.7 | 56.9 | 71.5% | Dungeon-favored (intended) |
-| Moth (cautious) | 16.2 | 61.5 | 44.8% | Moth-favored (evasive identity) |
-| Symbiote (cooperative) | 12.7 | 44.2 | Bond 73% | Bond with tension (intended) |
+| Boar (aggressive) | 13.8 | 51.6 | 88.4% | Dungeon-favored (intended) |
+| Moth (cautious) | 16.7 | 59.9 | 53.5% | Slightly moth-favored (evasive identity) |
+| Symbiote (cooperative) | 12.9 | 44.7 | Bond 63% | Bond with tension (intended) |
 
-The Boar's dungeon-favored outcome reflects the design intent: aggressive creatures that lack secondary win conditions and defensive tools should be punished by experienced dungeon play. The Moth's slight visitor-favoring validates that Drain sustain and keyword-stripping create genuine evasive identity—the Moth is hard to kill but vulnerable to psychological warfare (Panic tripled from v2.0 due to Erode nerve pressure). The Symbiote's Bond rate of 73% (down from 98.5% in v1.4) confirms that card mechanical depth creates genuine tension in cooperative encounters without changing any thresholds.
+The energy system (v2.2) added meaningful resource management that increased average rounds compared to the pre-energy baseline. Combined with the balance patch (v2.3), encounter pacing targets approximately 10–15 rounds for combat and 12–14 rounds for cooperation.
+
+The Boar's dungeon-favored outcome reflects the design intent: aggressive creatures that lack secondary win conditions and defensive tools should be punished by experienced dungeon play. Importantly, the dungeon's 88% win rate includes three distinct paths (Kill 55%, Panic 22%, Break 12%) rather than concentrating on a single win condition. The Moth's evasive identity is validated by Drain sustain making it genuinely hard to kill, while the dungeon's Erode and Overwhelm mechanics drive nerve toward Panic. The Symbiote's Bond rate of 63% (down from 98.5% in v1.4) confirms that card mechanical depth creates genuine tension in cooperative encounters.
 
 ---
 
@@ -297,15 +316,15 @@ If Bond were easy or fast, it would dominate every encounter. Why risk combat wh
 
 ### 6.2 Simulation Validation
 
-| Metric | Pre-Rework (v1.0) | Post-Rework (v2.0) | Card Depth (v2.1) | Design Target |
-|--------|:---:|:---:|:---:|:---:|
-| Bond rate | 100% | 98.5% | 73.4% | 70–90% |
-| Average rounds | 2.6 | 10.4 | 12.7 | 8–12 |
-| Kill rate | 0% | 1.5% | 26.5% | 10–30% |
-| Trust at Bond trigger | 6 | 19 | 19+ | ≥ 12 |
-| Test cooperations to Bond | 0 | 2–4 | 2–4 | 2–5 |
+| Metric | Pre-Rework (v1.0) | Post-Rework (v2.0) | Card Depth (v2.1) | Energy (v2.3) | Design Target |
+|--------|:---:|:---:|:---:|:---:|:---:|
+| Bond rate | 100% | 98.5% | 73.4% | 63.2% | 65–80% |
+| Average rounds | 2.6 | 10.4 | 12.7 | 12.9 | 8–15 |
+| Kill rate | 0% | 1.5% | 26.5% | 36.8% | 10–30% |
+| Trust at Bond trigger | 6 | 19 | 19+ | 19+ | ≥ 12 |
+| Test cooperations to Bond | 0 | 2–4 | 2–4 | 2–4 | 2–5 |
 
-The v2.1 Card Depth overhaul brought Bond rate into the design target (73.4%) without changing any thresholds. The increased Kill rate (26.5%) comes from: early defection cascades destroying cooperative momentum, escalation pressure in longer games, and Erode nerve pressure from defensive Strikes during dead turns. Bond encounters now produce genuine multi-round narratives with real tension.
+The energy system further increased Kill rate (36.8%) by creating turns where cooperative cards are unaffordable, forcing Restraint or exposing the Symbiote to escalation pressure. Bond rate at 63.2% is slightly below the 65–80% target and may benefit from future tuning of the cooperative deck or Symbiote stats.
 
 ---
 
@@ -317,7 +336,9 @@ The game uses a three-tier AI architecture designed to scale from early creature
 
 Creature visitors use weighted heuristic selection with profile-specific base weights for each card category. The AI evaluates each playable card against the current board state, applying multipliers for strategic mode (aggressive/balanced/defensive/desperate based on win probability), target selection (preferred resources, lethal detection, auto-effect synergy), opponent tracking (React exhaustion, Counter history, active buffs), and combo awareness (Empower-before-Strike ordering, Trap-before-Offer combos).
 
-**Keyword-Aware Scoring (v2.1).** The AI now evaluates card keywords and triggers against current board state. Entangle Strikes are valued higher when the opponent is not already Entangled (setup value). Erode Strikes gain persistent pressure value. Drain Strikes are valued higher when the attacker is damaged (sustain value). Overwhelm Strikes gain bonus value when the target resource is near-depleted (spill potential). Triggers that are currently active (e.g., "If Entangled, +2P" when opponent IS Entangled) receive 1.5× their bonus value. Self-cost Strikes are penalized when the sacrificed resource is low, and Exhaust Strikes are saved for lethal pushes.
+**Keyword-Aware Scoring (v2.1).** The AI evaluates card keywords and triggers against current board state. Entangle Strikes are valued higher when the opponent is not already Entangled (setup value). Erode Strikes gain persistent pressure value. Drain Strikes are valued higher when the attacker is damaged (sustain value). Overwhelm Strikes gain bonus value when the target resource is near-depleted (spill potential). Triggers that are currently active (e.g., "If Entangled, +2P" when opponent IS Entangled) receive 1.5× their bonus value. Self-cost Strikes are penalized when the sacrificed resource is low, and Exhaust Strikes are saved for lethal pushes.
+
+**Energy-Aware Combo Sequencing (v2.2).** The AI combo sequencer (ai/combo-sequencer.js) plans energy-aware turn sequences for both dungeon and visitor. It evaluates all energy subsets to find optimal investment, sequences Attune before matching cards, plans Surge for burst turns, checks Siphon conditions, and manages energy budgets for multi-card combos like Empower→Strike. Both heuristic AI profiles call planTurn() through this module.
 
 Three visitor profiles are defined: Feral Aggressive (Boar—high Strike weight, targets structure/presence, desperate scaling at low vitality), Cautious Explorer (Moth—high Disrupt/Counter weight, targets veil/presence, Drain sustain), and Cooperative (Symbiote—high Offer/Test weight, targets trust, strike-suppressed during cooperation).
 
@@ -329,7 +350,7 @@ Smart AI replaces heuristic scoring with Monte Carlo evaluation. For each playab
 
 Smart AI includes a deck tracker that monitors draw probabilities, depleted categories, and opponent card history. The evaluation function assesses position based on resource health ratios, vulnerability detection (opponent's lowest reducer vs. own lowest), and time pressure from escalation.
 
-With the v2.1 card depth overhaul, Smart AI has a richer decision space—keyword combos, trigger conditions, and risk/reward tradeoffs create board states where Monte Carlo evaluation finds fundamentally different lines than heuristic play. The AI ceiling is no longer limited by flat card design.
+With the v2.1 card depth overhaul, Smart AI has a richer decision space—keyword combos, trigger conditions, and risk/reward tradeoffs create board states where Monte Carlo evaluation finds fundamentally different lines than heuristic play. The AI ceiling is no longer limited by flat card design. Smart AI does not yet use the combo sequencer (planned integration).
 
 ### 7.3 Cooperative AI Behavior
 
@@ -364,7 +385,7 @@ Each deck has a distinct mechanical identity expressed through keyword and combo
 
 | Deck | Cards | Primary Mechanic | Secondary Mechanic | Combo Lines |
 |------|:-----:|-----------------|-------------------|-------------|
-| **Root Hollow** (dungeon) | 16 | Entangle → Crush combo | Erode attrition + Drain sustain | Entombing Grasp→Crushing Grip (+2P), Tremor Slam Erode stack, Soul Leech sustain |
+| **Root Hollow** (dungeon) | 18 | Entangle → Crush combo | Erode attrition + Drain sustain | Entombing Grasp→Crushing Grip (+2P, resolve), Tremor Slam Erode nerve, Soul Leech nerve+drain |
 | **Whispering Gallery** (dungeon) | 15 | Steal Empowers + Erode resolve | Randomize targets | Absorbing Silence steals buffs, Echoing Confusion scrambles aim, Crushing Silence punishes unbuffed |
 | **Veil Breach** (dungeon) | 16 | Overwhelm burst + Exhaust alpha | Strip keywords | Fear Resonance→Nightmare Surge Overwhelm, Veil Rend 4P Exhaust, Spatial Distortion strips |
 | **Living Root Sanctuary** (dungeon) | 15 | Tests + Offers (Bond path) | Reluctant Strikes + Ward | Trust Trial→Offer pipeline, Protective Thorns weaken at high rapport, Calming Presence grants Ward |
@@ -421,29 +442,67 @@ Any action card can be activated (discarded) to generate 1 temporary Energy. Thi
 
 ## 10. Simulation-Validated Findings
 
-The following findings are derived from 9,000+ simulated encounters across three matchups, validated at 3,000 iterations for statistical stability.
+The following findings are derived from 10,000+ simulated encounters across three matchups, validated at 1,000 iterations per configuration. Numbers reflect v2.3d (energy system + combo sequencer + balance patch).
 
 ### 10.1 Encounter Pacing
 
-Target encounter length of 6–10 meaningful rounds is achieved. Average rounds range from 12.7 (cooperative Bond encounters) to 16.2 (contested multi-room combat). Average decisions per encounter range from 44 (cooperative) to 62 (combat), producing 3–4 meaningful decisions per round per side.
+Average rounds range from 12.9 (cooperative Bond encounters) to 16.7 (contested multi-room combat). Average decisions per encounter range from 45 (cooperative) to 60 (combat), producing 3–4 meaningful decisions per round per side. The energy system increased round counts by approximately 4–6 rounds compared to the pre-energy baseline due to reduced cards-per-turn throughput, but this creates richer tactical decision-making rather than padding.
 
-### 10.2 Win Condition Distribution
+### 10.2 Win Condition Distribution (Boar Matchup)
 
-All seven win conditions fire at non-trivial rates across the matchup matrix. Kill is the most common dungeon win (18–56%), with Break (3–9%) and Panic (16–27%) as viable secondary paths. Visitor outcomes include Survive (25–47%), Overcome (3–8%), Dominate (5%), and Inert (22–27% in Moth matchup). Bond triggers 73% in dedicated cooperative scenarios.
+The Boar matchup serves as the primary balance benchmark because it tests all three dungeon win conditions against an aggressive creature with asymmetric stats.
 
-### 10.3 Momentum Dynamics
+| Outcome | Pre-Energy | v2.2 (Energy) | v2.3d (Balanced) | Design Target |
+|---------|:---:|:---:|:---:|:---:|
+| Kill | 64% | 71.7% | 55.3% | 50–65% ✅ |
+| Break | 12% | 1.1% | 11.5% | 8–15% ✅ |
+| Panic | 16% | 4.8% | 21.6% | 12–25% ✅ |
+| Survive | 8% | 22.4% | 11.6% | <10% ≈ |
 
-Encounters show dynamic momentum shifts rather than one-sided domination. In the Boar matchup, the visitor leads early (rounds 1–3) before the dungeon's Entangle combos and Erode pressure pull ahead by rounds 4–6. In the Moth matchup, the visitor maintains a consistent edge through Drain sustain (Veil Siphon heals vitality from veil damage) while the dungeon's Erode and Overwhelm mechanics drive nerve toward Panic. In the Symbiote matchup, both sides remain healthy throughout (90%+ health for 8+ rounds), with resource investment going into promoters rather than reducer combat, but escalation creates genuine late-game pressure.
+Win condition diversity is achieved through room specialization rather than balanced decks. Each dungeon deck is a specialist:
 
-### 10.4 Carryover Effects
+| Room | Primary Win Condition | Rate When Reached |
+|------|----------------------|:-:|
+| Root Hollow | Kill | 35.7% |
+| Whispering Gallery | Break | 15.5% |
+| Veil Breach | Panic | 52.2% |
 
-Multi-room carryover produces dramatic narrative arcs. In validated 3-room sequences, the visitor enters the final room with single-digit stats on multiple resources after accumulated combat. Late-room encounters feel genuinely different from early-room encounters due to resource compression, creating emergent storytelling through mechanical state.
+### 10.3 Moth Matchup
 
-### 10.5 Bond System Validation
+| Outcome | v2.3d |
+|---------|:---:|
+| Survive | 46.5% |
+| Panic | 28.4% |
+| Kill | 14.7% |
+| Break | 10.4% |
 
-Bond requires genuine commitment and produces authentic tension. The cooperative matchup (Symbiote) achieves Bond 73.4% of the time (within the 70–90% design target), with 26.5% Kill as a real alternative outcome. Bond encounters average 12.7 rounds with defection setbacks, refused Offers, Restraint actions filling dead turns, and escalation creating late-game urgency.
+The Moth's Drain sustain (Veil Siphon heals vitality from veil damage) makes it genuinely hard to kill, creating a moth-favored matchup where Survive is the most common outcome. The dungeon's Erode and Overwhelm mechanics drive nerve toward Panic as the primary dungeon win path. Root Hollow's nerve auto-drain compounds in Room 3, producing 12% Panic in the final encounter.
 
-### 10.6 Card Depth Impact
+### 10.4 Momentum Dynamics
+
+Encounters show dynamic momentum shifts rather than one-sided domination. In the Boar matchup, the dungeon leads from round 1 due to auto-effects, with the advantage accelerating through mid-game as Entangle combos and Erode pressure compound. The Boar enters Whispering Gallery at roughly 55% health on average, creating genuine late-game tension. In the Moth matchup, the visitor maintains a consistent edge through Drain sustain while the dungeon applies persistent nerve pressure. In the Symbiote matchup, both sides remain healthy throughout (90%+ health for 8+ rounds), with resource investment going into promoters rather than reducer combat, but escalation creates genuine late-game pressure.
+
+### 10.5 Carryover Effects
+
+Multi-room carryover produces dramatic narrative arcs. In validated 3-room sequences, the visitor enters the final room with averaged health around 30–40%, with nerve and resolve significantly softened by earlier rooms' auto-effects and card damage. Late-room encounters feel genuinely different from early-room encounters due to resource compression, creating emergent storytelling through mechanical state.
+
+### 10.6 Bond System Validation
+
+Bond requires genuine commitment and produces authentic tension. The cooperative matchup (Symbiote) achieves Bond 63.2% of the time, with 36.8% Kill as a real alternative outcome. Bond encounters average 12.9 rounds with defection setbacks, refused Offers, Restraint actions filling dead turns, and escalation creating late-game urgency. The Bond rate is slightly below the 65–80% design target and may benefit from future tuning of the cooperative deck or Symbiote stats.
+
+### 10.7 Energy System Impact
+
+The energy system (v2.2) transformed encounter dynamics:
+
+| Metric | Pre-Energy | Post-Energy |
+|--------|:---:|:---:|
+| Cards played per turn | ~3 | ~2 |
+| Avg rounds (Boar) | 6.8 | 13.8 |
+| Strategic depth | Dump hand | Plan energy budget, sequence combos |
+
+Energy reduced raw throughput but created meaningful resource management decisions every turn: invest in permanent pool growth vs. burst with Surge, sequence Attune for discounts, evaluate Siphon conditions, decide whether to activate cards for emergency energy. The combo sequencer (ai/combo-sequencer.js) handles these decisions for AI opponents.
+
+### 10.8 Card Depth Impact
 
 The v2.1 card depth overhaul produced measurable changes across all matchups without modifying any threshold values, auto-effects, or starting resources:
 
@@ -454,6 +513,10 @@ The v2.1 card depth overhaul produced measurable changes across all matchups wit
 | Moth: Kill 43% → 18% | Moth Drain sustain (Veil Siphon heals vitality from veil damage) makes it genuinely hard to kill | Drain mechanic creating sustain loop |
 | Moth: Panic 8% → 27% | Dungeon Erode and Overwhelm drive nerve damage through new mechanical paths | Overwhelm spill to nerve |
 | Symbiote: Bond 98% → 73% | Card mechanics create real setback potential during cooperation (defections, refused offers, Erode pressure) | Card depth creating tension |
+
+### 10.9 Balance Methodology
+
+Three rounds of AI scoring changes (combo sequencer integration, energy investment scaling, target selection rewrites) produced zero movement on win condition diversity. The breakthrough came from data-level changes: deck card retargeting, cost adjustments, visitor stat calibration, and encounter auto-effects. Key learning: when AI is making correct decisions but outcomes are wrong, the problem is game data, not AI logic. Balance levers should be applied from narrowest scope (encounter auto-effects) to broadest (visitor stats), using the narrowest lever that solves the problem.
 
 ---
 
@@ -467,25 +530,33 @@ The v2.1 card depth overhaul produced measurable changes across all matchups wit
 
 **Bond Pacing:** Resolved through threshold increase, Test cards, Betrayal mechanic, Offer payload reduction, per-round promoter cap (+4), and Restraint action. Bond is now the slowest win condition as intended.
 
-**Energy System (Design Committed).** Mana-like resource with deck-integrated Energy cards, Energy costs on all action cards, activation as emergency energy, and opening hand guarantees. Design is locked. Simulation currently uses a simplified 2-card-per-round model and does not yet enforce Energy costs or pool management. Full Energy implementation is folded into the AI combo sequencing work (see 11.3).
-
 ### 11.2 Resolved from v2.0
 
 **Card Design Depth.** All 7 decks redesigned with mechanically distinct cards. Every card passes the Description Test (no two cards in the same category share a description). 15 keywords and conditions defined. Triggers, keyword grants, Disrupt variants, Counter variants, and React variants create distinct combo lines per deck. Validated through simulation—card depth directly impacted win condition distributions without changing any threshold values.
 
 **Symbiote Tension.** Bond rate dropped from 98.5% to 73.4% purely through card mechanical depth creating genuine setback potential during cooperation. No threshold adjustments needed.
 
-### 11.3 Remaining Open Questions
+### 11.3 Resolved from v2.1
 
-**AI Combo Sequencing & Energy Implementation (Priority).** The AI scores cards independently and does not sequence combos—it may play a triggered Strike before its setup card, wasting the trigger bonus. The card depth overhaul only produces its intended tactical variety if plays get ordered correctly. This work also includes implementing the Energy cost system in the simulation: replacing the 2-card-per-round simplification with actual Energy pool management, Energy card plays, and activation decisions. Both touch the same card-selection logic and should ship together.
+**Energy System.** Fully implemented with 4 energy card types (Standard, Surge, Attune, Siphon), costs 0–3 on all action cards, card activation as emergency energy, and opening hand guarantees (2+ Energy cards in hand of 7). Energy creates meaningful resource management decisions without paralyzing play. Pool starts at 2, grows through Energy card plays.
+
+**AI Combo Sequencing.** The combo sequencer (ai/combo-sequencer.js) plans energy-aware turn sequences for both dungeon and visitor AI. It evaluates all energy subsets to find optimal investment, sequences Attune before matching cards, plans Surge for burst turns, checks Siphon conditions, and manages energy budgets for multi-card combos like Empower→Strike. Both heuristic AI profiles call planTurn() through this module.
+
+**Win Condition Diversity.** The energy system initially collapsed secondary win conditions (Break 12%→1.1%, Panic 16%→4.8%) by reducing card throughput while auto-effects still favored vitality damage. Three rounds of AI tuning produced zero improvement, identifying this as a game data problem, not an AI problem. The balance patch (v2.3) resolved it through: deck card retargeting (Crushing Grip→resolve), cost reductions (Soul Leech cost 3→2, Crushing Silence cost 3→2), visitor stat calibration (Boar resolve/nerve 16→14), and encounter auto-effect tuning (Root Hollow nerve -1/other round). All three primary win conditions now hit design targets.
+
+### 11.4 Remaining Open Questions
+
+**Deception Path Testing.** The deceptive dungeon profile (Trust-then-betray, Offer-Trap combos) exists in AI profiles but has not been validated through dedicated scenario testing. Needs a deceptive encounter scenario and potentially a new deceptive dungeon deck.
+
+**Smart AI + Combo Sequencer Integration.** The Monte Carlo AI (ai/smart-ai.js) exists but does not yet use the combo sequencer. Integration would provide the strongest possible opponent AI and establish a performance ceiling for the card system's tactical depth.
+
+**Expanded Creature Content.** The GDD targets 5 creature visitors for Phase 2. Currently 3 are implemented (Boar, Moth, Symbiote). 2 more visitors with different stat profiles would validate that the balance framework generalizes beyond the initial matchups.
 
 **Symbiote Parasitism Mechanic.** The Symbiote's cooperation currently has no hidden cost. Adding a corruption or parasitism mechanic where Symbiote cooperation slowly drains a dungeon resource would create genuine cost/benefit tension during Bond-building. Design needed, not yet prototyped.
 
-**Cooperative Deck Diversity.** Restraint fills some dead turns during cooperation, but Rounds 3–4 can still have minimal activity when waiting for Offer/Test cards to cycle from discard. Connected to card design—adding 2–3 cards per cooperative deck that aren't Offers/Tests but contribute to Bond (e.g., Commune category for low-cost trust building) would address this.
+**Cooperative Deck Diversity.** Restraint fills some dead turns during cooperation, but mid-game can still have minimal activity when waiting for Offer/Test cards to cycle from discard. Adding 2–3 cards per cooperative deck that contribute to Bond without being Offers/Tests would address this.
 
-**Intelligent Visitor Design.** Creature-phase AI validates systems and pacing. Intelligent visitors require cards and AI that stress-test combinatorial depth: multi-encounter planning, bluffing, adaptation, and social intelligence.
-
-**Deception Path Testing.** The deceptive dungeon profile (Trust-then-betray, Offer-Trap combos) exists in AI profiles but has not been validated through dedicated scenario testing. The deceptive tree narrative from the Card Redesign Synthesis needs a full encounter simulation.
+**Intelligent Visitor Design.** Creature-phase AI validates systems and pacing. Intelligent visitors require modular deck construction, multi-encounter planning, adaptation, social intelligence, and potentially party mechanics. This is the Phase 3 milestone and the largest remaining system expansion. Key design decisions: solo vs party, deck construction model, information model, persistence, and player agency level.
 
 **Cognitive Load.** Nine card categories, multi-card turns, reaction timing, keywords, triggers, and persistent conditions are substantially complex. Progressive introduction (Strike + Empower + Energy first, then Disrupt/Counter/React, then Trap/Offer/Test/Reshape, then keywords/triggers) should mitigate this, but paper playtest must verify.
 
@@ -497,7 +568,7 @@ The v2.1 card depth overhaul produced measurable changes across all matchups wit
 
 ## 12. Scope & Development Roadmap
 
-**Phase 1 (Months 1–6): Core Loop.** Card engine with 9 categories, encounter system, turn-based resolution, Energy system, 3 base encounters, 3 creature visitors, economy, attribute growth. Simulation engine for validation. *Status: Card system validated with mechanical depth. 15 keywords/conditions, triggers, keyword grants, Disrupt/Counter/React variants designed. 7 decks with distinct combo lines. Energy system designed but not yet validated in simulation (see 11.3).*
+**Phase 1 (Months 1–6): Core Loop.** Card engine with 9 categories, encounter system, turn-based resolution, Energy system, 3 base encounters, 3 creature visitors, economy, attribute growth. Simulation engine for validation. *Status: Card system validated with mechanical depth. 15 keywords/conditions, triggers, keyword grants, Disrupt/Counter/React variants designed. 7 decks with distinct combo lines. Energy system fully implemented and validated. AI combo sequencer operational.*
 
 **Phase 2 (Months 7–12): Content & Polish.** 5 base encounters with morph paths, 5 creature visitors, companion cards, card evolution, architecture branching. Deception scenario validation. Parasitism mechanic for cooperative encounters.
 
@@ -534,3 +605,93 @@ These 15 principles guide all card and system design decisions. They are not asp
 ### 13.1 Description Test (v2.1 Addition)
 
 **A card is mechanically distinct if and only if its description cannot be written for any other card in the same category.** This test is the operational enforcement of Principle #1. Every card in the current decks passes this test. If a redesign or new card fails the Description Test, it must be revised before entering the card pool.
+
+---
+
+## 14. Deck Specialization & Balance Framework
+
+### 14.1 Core Principle
+
+Each dungeon deck specializes in one primary win condition, similar to how MTG color identities define what a deck fundamentally excels at and where it's deliberately weak. Decks are NOT designed for balanced coverage across all win conditions. Outcome diversity emerges from **multi-room sequences** where visitors encounter different specialist rooms, not from any single deck trying to do everything.
+
+### 14.2 Win Condition Ownership
+
+| Deck | Primary Win Condition | Secondary Angle | Deliberately Weak Against |
+|------|----------------------|-----------------|---------------------------|
+| **Root Hollow** | Kill (vitality depletion) | Light resolve/nerve splash | Can't close Break or Panic alone |
+| **Whispering Gallery** | Break (resolve depletion) | Nerve chip via counters | Minimal vitality pressure |
+| **Veil Breach** | Panic (nerve depletion) | Resolve via Overwhelm spill | Minimal direct vitality/resolve |
+| **Living Root Sanctuary** | Bond (trust/rapport) | Stalling via heals | Not designed to Kill/Break/Panic |
+
+### 14.3 Deck Identity Spectrum
+
+Not all decks need to be pure specialists. Deck identities exist on a spectrum:
+
+**Specialists** — Dominant in one win condition, deliberately weak in others. Root Hollow is a Kill specialist. Veil Breach is a Panic specialist. These define the extremes and form the backbone of encounter design.
+
+**Swiss Army Knives** — Not dominant in anything, but flexible across 2–3 win conditions. A swiss army knife deck might carry one vitality strike, one resolve strike, and one nerve strike — it can't focus-fire any single resource efficiently, but it adapts to whatever the board state offers. These decks trade peak effectiveness for optionality.
+
+Most decks fall somewhere between these poles. A deck with a clear primary identity and a light secondary splash (like Root Hollow's single resolve strike) is a specialist with a tool, not a generalist. Both archetypes are valid — specialists create room-specific identity, swiss army knives create adaptive encounters where AI decision-making drives outcomes more than deck composition.
+
+### 14.4 Design Implications
+
+**Individual decks should be lopsided.** A deck with 3 vitality strikes, 1 nerve strike, and 0 resolve strikes is not a problem — it's a Kill specialist doing its job. Resist the urge to "balance" each deck independently.
+
+**A secondary splash is acceptable, not required.** Root Hollow having one resolve strike (Crushing Grip) gives the AI a tactical option when the Entangle combo creates an opening. It doesn't make Root Hollow a resolve deck. Think of it like a red MTG deck splashing a single blue counterspell — it's a tool, not an identity shift.
+
+**Outcome targets are measured across full runs, not per room.** The target of 8–15% Break rate is for the entire Boar scenario (3 rooms), not for Root Hollow alone. Root Hollow producing 0% Break is fine as long as enough games reach the Whispering Gallery to produce Break there.
+
+**Room flow is the primary balance lever for outcome diversity.** If Break rates are too low, the first question is "are enough games reaching the Break-specialist room?" not "should we add more resolve cards to every deck?" Solutions include adjusting visitor HP so encounters resolve faster (more games reach later rooms), reordering rooms in the scenario (put the Break room earlier), tuning auto-effects to create time pressure, and adjusting escalation timing.
+
+**Deck card changes are for tuning the specialist's effectiveness**, not for broadening its coverage. If Whispering Gallery isn't producing enough Break when reached, the fix is making its resolve cards more effective (lower costs, higher power, better combos) — not adding resolve cards to Root Hollow.
+
+### 14.5 Balance Levers (Ordered by Scope)
+
+When tuning encounter outcomes, apply the narrowest lever that solves the problem:
+
+| Lever | Scope | What It Changes | When to Use |
+|-------|-------|----------------|-------------|
+| **Encounter auto-effects** | Single room | Passive resource pressure, pacing | First lever — lowest blast radius |
+| **Dungeon deck cards** | Single room | Card power, costs, targets, keywords | Tuning a specialist's effectiveness |
+| **Visitor deck cards** | All rooms | Visitor offensive/defensive capability | When visitor feels too strong/weak everywhere |
+| **Visitor starting stats** | All rooms | Resource pools, win condition thresholds | When math structurally prevents outcomes |
+| **Dungeon specialization** | All rooms (future) | Dungeon-level identity and passives | Future state — global dungeon modifiers |
+| **Visitor AI profile** | All rooms | Decision-making weights and priorities | When AI behavior doesn't match identity |
+
+### 14.6 Deck Customization & Long-Term Balance
+
+The starter decks are reference configurations, not the final state. Players will customize decks by swapping cards, and new cards will be introduced over time. This has critical implications:
+
+1. **Core systems must produce healthy outcomes across a range of deck configurations**, not just the starter decks. If balance depends on one specific card being present, it's fragile.
+
+2. **Auto-effects and encounter design are more stable balance anchors than specific cards**, since they persist regardless of deck customization. A room that passively drains nerve creates Panic pressure no matter what cards the player brings.
+
+3. **New cards require balance testing against the full encounter matrix**, not just the deck they're designed for. A new nerve strike added to Root Hollow changes the Boar matchup even if Root Hollow's identity remains Kill-focused.
+
+4. **Win condition diversity should emerge from system design** (multi-room flow, auto-effects, resource asymmetry) **rather than depending on specific deck compositions.** If removing one card from a deck collapses a win condition, the system is too card-dependent.
+
+5. **Balance is an ongoing process, not a solved state.** Each new card, visitor, encounter, or dungeon specialization is a potential balance disruption. The simulation infrastructure exists specifically to catch these regressions early.
+
+### 14.7 Visitor Stat Asymmetry
+
+Visitor starting values create the "landscape" that room specialization acts on:
+
+| Stat | Purpose | Tuning Lever |
+|------|---------|--------------|
+| High vitality | Makes Kill the slow, grinding path | Lower = faster Room 1 resolution = more room flow |
+| Lower resolve/nerve | Makes Break/Panic achievable for specialist rooms | Must be reachable within ~4–5 rounds of focused pressure |
+
+The ratio between vitality and resolve/nerve determines how much "airtime" specialist rooms get. If vitality is too high relative to resolve/nerve, games end in Kill or Survive before the Break/Panic rooms can do their work.
+
+### 14.8 Validated Example: Thornback Boar
+
+The Boar balance iteration validated the specialization framework through four iterations:
+
+| Version | Vitality | Key Change | Kill | Break | Panic | Result |
+|---------|:---:|-----------|:---:|:---:|:---:|--------|
+| v2.2 | 28 | Energy baseline | 71.7% | 1.1% | 4.8% | Secondary conditions collapsed |
+| v2.3 | 28 | Deck retargeting + stat tuning | 56.9% | 15.0% | 7.5% | Break fixed, Panic still low |
+| v2.3c | 26 | Vitality compromise | 68.8% | 9.7% | 5.1% | Satisfied nothing |
+| v2.3d | 28 | + Root Hollow nerve auto-effect | 55.3% | 11.5% | 21.6% | All targets hit ✅ |
+
+Key learning: three rounds of AI scoring changes produced zero movement on win condition diversity because the structural problem was deck/stat design, not AI decision-making. Once the data was corrected, the AI (which was already making correct decisions) produced the target outcomes immediately. The final fix used the narrowest available lever (encounter auto-effect) to solve the remaining Panic deficit without disrupting the other metrics.

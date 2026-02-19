@@ -1,14 +1,16 @@
 /**
- * DUNGEON DECK: Whispering Gallery (v2.2)
+ * DUNGEON DECK: Whispering Gallery (v2.3)
  * Identity: Echoes, psychological warfare, redirected reality
  * Combo lines: Erode resolve via whispers (persistent attrition)
  *              Redirect opponent Strikes via Spatial Distortion
  *              Steal Empowers via Absorbing Silence
  * 
- * v2.2 ENERGY CHANGES:
- *   3→5 Energy cards (2 Standard, 1 Surge, 1 Attune[Social], 1 Siphon)
- *   Crushing Silence cost 2→3 (premium no-Empower punish)
- *   15→17 cards total
+ * v2.3 BALANCE CHANGES:
+ *   Crushing Silence cost 3→2 (signature resolve card was priced out of playability)
+ * 
+ * v2.2 ENERGY CHANGES (preserved):
+ *   5 Energy cards (2 Standard, 1 Surge, 1 Attune[Social], 1 Siphon)
+ *   17 cards total
  */
 module.exports = [
   // ── ENERGY (5) ──
@@ -31,11 +33,12 @@ module.exports = [
     description: 'Feed on their preparations. +1 permanent if opponent is Empowered, else +1 temp.' },
 
   // ── STRIKES (3) — Each mechanically distinct ──
-  { name: 'Crushing Silence', category: 'Strike', type: 'Social', cost: 3,
+  // v2.3: Crushing Silence cost 3→2 (affordable with basic pool growth)
+  { name: 'Crushing Silence', category: 'Strike', type: 'Social', cost: 2,
     power: 3, target: 'resolve',
     trigger: { condition: { type: 'no_condition', target: 'opponent', condition: 'empower' }, bonus: 1,
       description: 'If opponent has no Empower, +1 Power' },
-    description: 'Absolute quiet crushes the will. Deal 3 resolve. If opponent has no active Empower, deal 4. Cost 3: requires setup.' },
+    description: 'Absolute quiet crushes the will. Deal 3 resolve. If opponent has no active Empower, deal 4.' },
   { name: 'Dread Whisper', category: 'Strike', type: 'Social', cost: 1,
     power: 2, target: 'nerve', keywords: ['Erode'],
     description: 'A voice from nowhere speaks their name. Deal 2 nerve. Erode 1.' },

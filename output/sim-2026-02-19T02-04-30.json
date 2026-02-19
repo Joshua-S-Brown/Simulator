@@ -2,39 +2,39 @@
   "scenario": "Verdant Maw vs Drift Symbiote (3-Room)",
   "iterations": 1000,
   "outcomeDistribution": {
-    "Bond": {
-      "count": 632,
-      "pct": 63.2
-    },
     "Kill": {
-      "count": 368,
-      "pct": 36.8
+      "count": 352,
+      "pct": 35.2
+    },
+    "Bond": {
+      "count": 648,
+      "pct": 64.8
     }
   },
   "avgRounds": 12.9,
-  "avgDecisions": 44.7,
+  "avgDecisions": 44.4,
   "perEncounter": {
     "Living Root Sanctuary": {
       "timesReached": 1000,
       "reachedPct": 100,
       "avgRounds": 12.7,
-      "avgDecisions": 44,
+      "avgDecisions": 43.9,
       "outcomes": {
+        "Kill": {
+          "count": 323,
+          "pct": 32.3
+        },
         "Bond": {
-          "count": 601,
-          "pct": 60.1
+          "count": 622,
+          "pct": 62.2
         },
         "Survive": {
-          "count": 51,
-          "pct": 5.1
-        },
-        "Kill": {
-          "count": 334,
-          "pct": 33.4
+          "count": 48,
+          "pct": 4.8
         },
         "Overcome": {
-          "count": 14,
-          "pct": 1.4
+          "count": 7,
+          "pct": 0.7
         }
       },
       "momentum": [
@@ -43,22 +43,22 @@
           "samples": 1000,
           "dungeonPct": 102,
           "visitorPct": 100,
-          "dungeonLeadPct": 46,
-          "visitorLeadPct": 37
+          "dungeonLeadPct": 45,
+          "visitorLeadPct": 39
         },
         {
           "round": 2,
           "samples": 1000,
-          "dungeonPct": 105,
+          "dungeonPct": 104,
           "visitorPct": 100,
-          "dungeonLeadPct": 69,
-          "visitorLeadPct": 22
+          "dungeonLeadPct": 68,
+          "visitorLeadPct": 23
         },
         {
           "round": 3,
           "samples": 1000,
           "dungeonPct": 106,
-          "visitorPct": 100,
+          "visitorPct": 99,
           "dungeonLeadPct": 79,
           "visitorLeadPct": 15
         },
@@ -66,8 +66,8 @@
           "round": 4,
           "samples": 1000,
           "dungeonPct": 107,
-          "visitorPct": 100,
-          "dungeonLeadPct": 87,
+          "visitorPct": 99,
+          "dungeonLeadPct": 86,
           "visitorLeadPct": 10
         },
         {
@@ -76,7 +76,7 @@
           "dungeonPct": 108,
           "visitorPct": 100,
           "dungeonLeadPct": 94,
-          "visitorLeadPct": 5
+          "visitorLeadPct": 4
         },
         {
           "round": 6,
@@ -96,15 +96,15 @@
         },
         {
           "round": 8,
-          "samples": 974,
+          "samples": 983,
           "dungeonPct": 113,
-          "visitorPct": 99,
-          "dungeonLeadPct": 97,
+          "visitorPct": 98,
+          "dungeonLeadPct": 98,
           "visitorLeadPct": 2
         },
         {
           "round": 9,
-          "samples": 917,
+          "samples": 918,
           "dungeonPct": 113,
           "visitorPct": 97,
           "dungeonLeadPct": 99,
@@ -112,15 +112,15 @@
         },
         {
           "round": 10,
-          "samples": 809,
+          "samples": 816,
           "dungeonPct": 111,
           "visitorPct": 93,
-          "dungeonLeadPct": 99,
-          "visitorLeadPct": 1
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
         },
         {
           "round": 11,
-          "samples": 678,
+          "samples": 680,
           "dungeonPct": 110,
           "visitorPct": 90,
           "dungeonLeadPct": 99,
@@ -128,7 +128,7 @@
         },
         {
           "round": 12,
-          "samples": 576,
+          "samples": 571,
           "dungeonPct": 106,
           "visitorPct": 85,
           "dungeonLeadPct": 99,
@@ -136,65 +136,57 @@
         },
         {
           "round": 13,
-          "samples": 481,
+          "samples": 475,
           "dungeonPct": 103,
-          "visitorPct": 79,
-          "dungeonLeadPct": 99,
-          "visitorLeadPct": 1
+          "visitorPct": 80,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
         },
         {
           "round": 14,
-          "samples": 298,
+          "samples": 291,
           "dungeonPct": 97,
           "visitorPct": 74,
-          "dungeonLeadPct": 99,
-          "visitorLeadPct": 1
-        },
-        {
-          "round": 15,
-          "samples": 51,
-          "dungeonPct": 94,
-          "visitorPct": 71,
           "dungeonLeadPct": 100,
           "visitorLeadPct": 0
         }
       ]
     },
     "Whispering Gallery": {
-      "timesReached": 65,
-      "reachedPct": 6.5,
-      "avgRounds": 3.4,
-      "avgDecisions": 10.4,
+      "timesReached": 55,
+      "reachedPct": 5.5,
+      "avgRounds": 3,
+      "avgDecisions": 9.5,
       "outcomes": {
         "Kill": {
-          "count": 34,
-          "pct": 52.3
+          "count": 29,
+          "pct": 52.7
         },
         "Bond": {
-          "count": 31,
-          "pct": 47.7
+          "count": 26,
+          "pct": 47.3
         }
       },
       "momentum": [
         {
           "round": 1,
-          "samples": 39,
-          "dungeonPct": 92,
-          "visitorPct": 72,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
+          "samples": 37,
+          "dungeonPct": 91,
+          "visitorPct": 71,
+          "dungeonLeadPct": 97,
+          "visitorLeadPct": 3
         },
         {
           "round": 2,
-          "samples": 32,
-          "dungeonPct": 93,
-          "visitorPct": 69,
+          "samples": 20,
+          "dungeonPct": 92,
+          "visitorPct": 67,
           "dungeonLeadPct": 100,
           "visitorLeadPct": 0
         },
         {
           "round": 3,
-          "samples": 28,
+          "samples": 16,
           "dungeonPct": 91,
           "visitorPct": 66,
           "dungeonLeadPct": 100,
@@ -202,25 +194,9 @@
         },
         {
           "round": 4,
-          "samples": 22,
-          "dungeonPct": 90,
-          "visitorPct": 65,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
-        },
-        {
-          "round": 5,
-          "samples": 16,
-          "dungeonPct": 89,
-          "visitorPct": 63,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
-        },
-        {
-          "round": 6,
-          "samples": 10,
-          "dungeonPct": 90,
-          "visitorPct": 61,
+          "samples": 11,
+          "dungeonPct": 92,
+          "visitorPct": 64,
           "dungeonLeadPct": 100,
           "visitorLeadPct": 0
         }

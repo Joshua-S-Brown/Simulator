@@ -1,14 +1,20 @@
 /**
- * SHATTERED DUNGEON — Visitor AI v2.0
+ * SHATTERED DUNGEON — Visitor AI v2.1 (Combo Sequencer)
  * 
- * Major upgrade: opponent tracking, win probability, strategic mode switching.
+ * v2.0: opponent tracking, win probability, strategic mode switching.
+ * v2.1: Combo sequencer integration — replaces naive energy-then-score
+ *       with strategic energy planning (Surge burst, Attune sequencing,
+ *       Siphon awareness, budget-aware combos, win condition diversification).
  * 
  * [ADD] Opponent card tracking: knows what categories dungeon has played  
  * [ADD] Win probability: estimates chance of winning based on resource trajectories
  * [ADD] Strategic modes: aggressive when winning (push advantage), defensive when losing
  * [ADD] React exhaustion awareness: strikes more confidently when dungeon out of Reacts
+ * [ADD] Combo sequencer: strategic energy + action card sequencing (v2.1)
  */
 const { getEffectiveCost } = require('./ai-utils');
+const { planTurn } = require('./combo-sequencer');
+
 const PROFILES = {
   feral_aggressive: {
     description: 'Aggressive creature. Fights dungeon directly. Boar-like.',
@@ -45,7 +51,6 @@ function createVisitorAI(profileName) {
 
 // ═══ WIN PROBABILITY ESTIMATION (from visitor perspective) ═══
 function estimateWinProbability(self, opponent, round) {
-  // Visitor wins by depleting ANY dungeon reducer. Dungeon wins by depleting ANY visitor reducer.
   const selfReducers = [
     { val: self.vitality, start: self.startingValues?.vitality || 20 },
     { val: self.resolve, start: self.startingValues?.resolve || 16 },
@@ -66,7 +71,6 @@ function estimateWinProbability(self, opponent, round) {
   const avgAdvantage = selfAvg - oppAvg;
 
   // Time pressure: auto-effects favor dungeon (visitor takes damage every round)
-  // So later rounds are worse for visitors
   const timePressure = -Math.min(round / 15, 1) * 0.1;
 
   return Math.max(0, Math.min(1, 0.5 + vulnAdvantage * 0.3 + avgAdvantage * 0.2 + timePressure));
@@ -90,7 +94,6 @@ function analyzeOpponent(opponent, cardTracker) {
 }
 
 function pickCards(hand, energy, self, opponent, ctx, p, history) {
-  const decisions = [];
   const available = [...hand];
   const energyCards = available.filter(c => c.category === 'Energy');
   const actionCards = available.filter(c => c.category !== 'Energy' && c.category !== 'React');
@@ -114,20 +117,6 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
   else history.counterCount = Math.max(0, history.counterCount - 1);
   history.loopDetected = history.counterCount >= 2;
 
-  // ── ENERGY ──
-  const bestActionCost = actionCards.length > 0 ? Math.max(...actionCards.map(c => c.cost || 0)) : 0;
-  let shouldPlayEnergy = false;
-  if (energyCards.length > 0) {
-    if (round <= 2 && energy.base < 4) shouldPlayEnergy = true;
-    else if (energy.available < bestActionCost) shouldPlayEnergy = true;
-    else if (energy.available < 3 && hasStrike) shouldPlayEnergy = true;
-  }
-  if (shouldPlayEnergy) {
-    const ec = energyCards[0];
-    decisions.push({ card: ec, action: 'energy' });
-    available.splice(available.indexOf(ec), 1);
-  }
-
   // ── RESOURCE ANALYSIS ──
   const autoResource = ctx.autoResource;
   const oppReducers = [
@@ -150,13 +139,11 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
   }
 
   // Smart targeting: go after the dungeon resource that matches their auto-damage
-  // (the room is already eroding it — pile on)
   const autoEffects = ctx.encounter?.autoEffects || [];
   const dungeonAutoTarget = autoEffects.find(ae => ae.target === 'dungeon')?.resource;
   if (dungeonAutoTarget) {
     const dungeonAutoReducer = oppReducers.find(r => r.name === dungeonAutoTarget);
     if (dungeonAutoReducer && dungeonAutoReducer.ratio < 0.7) {
-      // Room is already damaging this — pile on
       if (!targets.includes(dungeonAutoTarget)) targets = [dungeonAutoTarget, ...targets];
     }
   }
@@ -169,58 +156,58 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
     targets = [nearDeath.sort((a, b) => a.val - b.val)[0].name, ...targets];
   }
 
-  // ── SCORE CARDS ──
-  const scored = actionCards.filter(c => available.includes(c)).map(c => {
+  // ── SCORE FUNCTION (captures all strategic context for the sequencer) ──
+  const scoreFunction = (card) => {
     let score = 0;
-    const w = p.baseWeights[c.category] || 1;
+    const w = p.baseWeights[card.category] || 1;
 
-    // COOPERATIVE STRIKE SUPPRESSION: refuse to strike when building trust
-    if (c.category === 'Strike' && p.preferredTargets?.includes('trust') && (self.trust || 0) > 2) {
-      return { card: c, score: 0 }; // Hard suppress — don't betray cooperation
+    // COOPERATIVE STRIKE SUPPRESSION
+    if (card.category === 'Strike' && p.preferredTargets?.includes('trust') && (self.trust || 0) > 2) {
+      return 0;
     }
 
     // Mode adjustments
     let modeMultiplier = 1;
     if (mode === 'aggressive') {
-      if (c.category === 'Strike') modeMultiplier = 1.4;
-      if (c.category === 'Empower') modeMultiplier = 1.3;
-      if (c.category === 'Disrupt') modeMultiplier = 0.8;
+      if (card.category === 'Strike') modeMultiplier = 1.4;
+      if (card.category === 'Empower') modeMultiplier = 1.3;
+      if (card.category === 'Disrupt') modeMultiplier = 0.8;
     } else if (mode === 'defensive') {
-      if (c.category === 'Disrupt') modeMultiplier = 1.5;
-      if (c.category === 'Counter') modeMultiplier = 1.3;
-      if (c.category === 'Strike') modeMultiplier = 0.7;
+      if (card.category === 'Disrupt') modeMultiplier = 1.5;
+      if (card.category === 'Counter') modeMultiplier = 1.3;
+      if (card.category === 'Strike') modeMultiplier = 0.7;
     } else if (mode === 'desperate') {
-      if (c.category === 'Strike') modeMultiplier = 1.6;
-      if (['Disrupt', 'Counter', 'Trap'].includes(c.category)) modeMultiplier = 0.3;
+      if (card.category === 'Strike') modeMultiplier = 1.6;
+      if (['Disrupt', 'Counter', 'Trap'].includes(card.category)) modeMultiplier = 0.3;
     }
 
     score += w * 2 * modeMultiplier;
-    score += (c.power || 0) * 1.5;
-    if (c.trigger) score += 1;
-    score -= (c.cost || 0) * 0.5;
+    score += (card.power || 0) * 1.5;
+    if (card.trigger) score += 1;
+    score -= (card.cost || 0) * 0.2;
 
     // ── STRIKE SCORING ──
-    if (c.category === 'Strike' && c.target) {
-      const targetReducer = oppReducers.find(r => r.name === c.target);
-      if (targets.includes(c.target)) score += 3;
+    if (card.category === 'Strike' && card.target) {
+      const targetReducer = oppReducers.find(r => r.name === card.target);
+      if (targets.includes(card.target)) score += 3;
       if (targetReducer) {
-        if (targetReducer.ratio > 0.8) score += 2;
-        if (targetReducer.ratio < 0.2 && !lethalMode) score -= 2;
+        if (targetReducer.ratio < 0.5) score += 3;
+        if (targetReducer.ratio < 0.3) score += 2;
+        if (targetReducer.ratio > 0.9 && targets.includes(card.target)) score += 1;
       }
       if (oppAnalysis.likelyOutOfReacts) score += 2;
       if (oppAnalysis.hasFortify && opponent.conditions.some(co =>
-        co.type === 'fortify' && co.resource === c.target)) {
+        co.type === 'fortify' && co.resource === card.target)) {
         score -= 2;
       }
 
-      // Keyword-aware scoring
-      const kws = c.keywords || [];
+      const kws = card.keywords || [];
       if (kws.includes('Entangle') && !opponent.conditions?.some(co => co.type === 'entangled')) {
         score += 2;
       }
       if (kws.includes('Erode')) score += 1.5;
       if (kws.includes('Drain')) {
-        const drainRes = c.drainTarget || 'vitality';
+        const drainRes = card.drainTarget || 'vitality';
         const drainReducer = selfReducers.find(r => r.name === drainRes);
         if (drainReducer && drainReducer.ratio < 0.7) score += 2;
       }
@@ -228,55 +215,54 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
         if (targetReducer && targetReducer.ratio < 0.3) score += 3;
       }
 
-      // Trigger-aware
-      if (c.trigger?.condition) {
-        if (c.trigger.condition.type === 'has_condition') {
-          if (opponent.conditions?.some(co => co.type === c.trigger.condition.condition)) {
-            score += (c.trigger.bonus || 2) * 1.5;
+      if (card.trigger?.condition) {
+        if (card.trigger.condition.type === 'has_condition') {
+          if (opponent.conditions?.some(co => co.type === card.trigger.condition.condition)) {
+            score += (card.trigger.bonus || 2) * 1.5;
           }
         }
-        if (c.trigger.condition.type === 'resource_below' && c.trigger.condition.target === 'self') {
-          const res = c.trigger.condition.resource;
+        if (card.trigger.condition.type === 'resource_below' && card.trigger.condition.target === 'self') {
+          const res = card.trigger.condition.resource;
           const val = self[res] || 0;
           const start = self.startingValues?.[res] || 20;
-          if (val <= start * (c.trigger.condition.pct || 0.5)) {
-            score += (c.trigger.bonus || 2) * 1.5;
+          if (val <= start * (card.trigger.condition.pct || 0.5)) {
+            score += (card.trigger.bonus || 2) * 1.5;
           }
         }
       }
 
-      if (c.selfCost) {
-        const costRes = self[c.selfCost.resource] || 0;
-        if (costRes <= c.selfCost.amount * 2) score -= 3;
+      if (card.selfCost) {
+        const costRes = self[card.selfCost.resource] || 0;
+        if (costRes <= card.selfCost.amount * 2) score -= 3;
         else score += 1;
       }
-      if (c.exhaust && !lethalMode) score -= 1;
-      if (c.exhaust && lethalMode) score += 2;
+      if (card.exhaust && !lethalMode) score -= 1;
+      if (card.exhaust && lethalMode) score += 2;
     }
 
     // ── EMPOWER SCORING ──
-    if (c.category === 'Empower') {
+    if (card.category === 'Empower') {
       if (!hasStrike || bestStrikePower < 2) score *= 0.1;
       else score *= (0.5 + bestStrikePower * 0.25);
       if (history.loopDetected) score *= 0.2;
       if (!oppAnalysis.likelyOutOfCounters) score *= 0.7;
-      if (c.empowerEffect?.addKeyword) {
+      if (card.empowerEffect?.addKeyword) {
         score += 1.5;
-        if (c.empowerEffect.addKeyword === 'Erode') score += 1;
-        if (c.empowerEffect.addKeyword === 'Drain') {
+        if (card.empowerEffect.addKeyword === 'Erode') score += 1;
+        if (card.empowerEffect.addKeyword === 'Drain') {
           if (selfReducers.some(r => r.ratio < 0.7)) score += 1.5;
         }
       }
     }
 
     // ── DISRUPT SCORING ──
-    if (c.category === 'Disrupt') {
+    if (card.category === 'Disrupt') {
       if (!hasStrike) score *= 0.3;
       else score *= (0.7 + bestStrikePower * 0.1);
     }
 
     // ── COUNTER SCORING ──
-    if (c.category === 'Counter') {
+    if (card.category === 'Counter') {
       const oppHasEmpower = opponent.conditions.some(co => co.type === 'empower' && co.placedBy === 'dungeon');
       const oppHasDisruptOnUs = self.conditions.some(co => co.type === 'disrupt' && co.placedBy === 'dungeon');
       if (oppHasEmpower || oppHasDisruptOnUs) {
@@ -288,88 +274,37 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
     }
 
     // ── OFFER SCORING ──
-    if (c.category === 'Offer') {
+    if (card.category === 'Offer') {
       const trustRatio = (self.trust || 0) / (ctx.bondThreshold || 12);
       if (trustRatio > 0.3 && trustRatio < 0.9) score *= 1.3;
       if (trustRatio >= 0.9) score *= 1.5;
-      // Be wary if dungeon has set a trap
       if (oppAnalysis.hasTrapSet) score *= 0.5;
     }
 
     // ── TEST SCORING ──
-    if (c.category === 'Test') {
+    if (card.category === 'Test') {
       const trustRatio = (self.trust || 0) / (ctx.bondThreshold || 12);
-      score += 3; // Tests are inherently valuable for cooperative profiles
-      if (trustRatio > 0.3 && trustRatio < 0.8) score *= 1.4; // Sweet spot: building but not there yet
-      if (trustRatio >= 0.8) score *= 1.2; // Close to Bond — keep pushing
-      // Penalty if opponent rapport is low (might defect)
+      score += 3;
+      if (trustRatio > 0.3 && trustRatio < 0.8) score *= 1.4;
+      if (trustRatio >= 0.8) score *= 1.2;
       if ((opponent.rapport || 0) < 2) score *= 0.7;
     }
 
     // ── LETHAL OVERRIDE ──
     if (lethalMode) {
-      if (c.category === 'Strike' && targets.includes(c.target)) score *= 1.5;
-      if (['Empower', 'Trap', 'Offer'].includes(c.category)) score *= 0.3;
+      if (card.category === 'Strike' && targets.includes(card.target)) score *= 1.5;
+      if (['Empower', 'Trap', 'Offer'].includes(card.category)) score *= 0.3;
     }
 
-    return { card: c, score };
-  }).filter(s => s.score > (p.scoreThreshold || 2) && energy.available >= (getEffectiveCost(s.card, self)))
-    .sort((a, b) => b.score - a.score);
+    return score;
+  };
 
-  // ── PLAY ORDERING ──
-  // Counter first when urgent
-  const counterIdx = scored.findIndex(s => s.card.category === 'Counter' && s.score > 5);
-  if (counterIdx > 0) {
-    const [counter] = scored.splice(counterIdx, 1);
-    scored.unshift(counter);
-  }
-
-  // Empower before Strike
-  if (Math.random() < p.comboAwareness && !lethalMode && !history.loopDetected) {
-    const empIdx = scored.findIndex(s => s.card.category === 'Empower');
-    const strikeIdx = scored.findIndex(s => s.card.category === 'Strike');
-    if (empIdx >= 0 && strikeIdx >= 0 && empIdx > strikeIdx) {
-      const [emp] = scored.splice(empIdx, 1);
-      scored.splice(strikeIdx, 0, emp);
-    }
-  }
-
-  // Loop breaker
-  if (history.loopDetected && scored.length > 0) {
-    const strikeFirst = scored.findIndex(s => s.card.category === 'Strike');
-    if (strikeFirst > 0) {
-      const [strike] = scored.splice(strikeFirst, 1);
-      scored.unshift(strike);
-    }
-  }
-
-  let budget = energy.available - decisions.reduce((s, d) => s + (d.card.cost || 0), 0);
-  for (const s of scored) {
-    if ((getEffectiveCost(s.card, self)) <= budget) {
-      decisions.push({ card: s.card, action: 'play' });
-      budget -= (getEffectiveCost(s.card, self));
-    }
-  }
-
-  // RESTRAINT: Only when no Offers/Tests are available (true dead-turn filler).
-  // "I choose not to hurt you" — prevents completely empty turns.
-  if (p.preferredTargets?.includes('trust') && (self.trust || 0) > 2) {
-    const playedCards = decisions.map(d => d.card);
-    const hasCoopCards = available.some(c =>
-      (c.category === 'Offer' || c.category === 'Test') && !playedCards.includes(c)
-    );
-    if (!hasCoopCards) {
-      const unplayedStrikes = available.filter(c =>
-        c.category === 'Strike' && !playedCards.includes(c)
-      );
-      if (unplayedStrikes.length > 0) {
-        const weakest = unplayedStrikes.reduce((a, b) => (a.power || 1) <= (b.power || 1) ? a : b);
-        decisions.push({ card: weakest, action: 'restrain' });
-      }
-    }
-  }
-
-  return decisions;
+  // ── HAND OFF TO COMBO SEQUENCER ──
+  return planTurn(hand, energy, self, opponent, {
+    ...ctx,
+    scoreFunction,
+    _handHasStrike: hasStrike,
+  }, p);
 }
 
 module.exports = { createVisitorAI, PROFILES };
