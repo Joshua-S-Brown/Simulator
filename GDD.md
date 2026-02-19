@@ -274,6 +274,8 @@ A run consists of a sequence of 1–3 encounter rooms. Resource states carry ove
 
 Room progression is determined by outcome: different results in Room 1 route to different Room 2 encounters. This creates branching narrative arcs where a single run tells a complete story.
 
+**Encounter ordering is the dungeon player's primary strategic expression.** The sequence of rooms defines the dungeon's approach to each visitor: a predatory dungeon might run Root Hollow → Whispering Gallery → Veil Breach (weaken physically, then break their will, then terrify the survivors). A deceptive dungeon might run a trust-building room first followed by an aggressive closer (lull them into false safety, then strike). The rooms are the building blocks; the sequence is the strategy. Each room brings its own aligned deck, so the encounter sequence also determines which card pools the dungeon draws from across the full run (see Section 15: Dungeon Strategic Architecture).
+
 ### 5.4 Escalation
 
 After round 8, both sides take escalating damage each round (starting at 1, increasing by 1 every 2 rounds). This prevents infinite stalling and compresses late-game decisions. Combined with auto-effects and resource carryover, escalation ensures every encounter resolves within 12–15 rounds.
@@ -400,6 +402,23 @@ Opening hand of 7 cards. Must contain at least 2 Energy cards and 3 action cards
 ### 8.4 Card Activation
 
 Any action card can be activated (discarded) to generate 1 temporary Energy. This means you are never truly stuck—you can sacrifice an action you don't need for the energy to play one you do. This is a meaningful tradeoff, not a free solution. Activation makes dead cards into live energy and introduces hand management decisions: hold a situational card for later, or activate it now to power a stronger play?
+
+### 8.5 Deck Customization & the Generic Card Pool
+
+Each encounter room comes with an **aligned deck** — a default 15–18 card deck that expresses the room's mechanical identity and is optimized for its auto-effects and thematic purpose. These aligned decks are what the simulation validates and what new players use out of the box.
+
+The dungeon player customizes encounter decks by swapping cards from a **generic card pool** — a shared collection of cards not tied to any specific encounter. Generic cards are mechanically sound but not optimized for any particular room's auto-effects or combo lines. Swapping in a generic Trap card to a nurturing deck gives the player a deceptive option the default deck doesn't offer; slotting in an extra Reshape gives a combat deck more sustain than its designer intended.
+
+**Customization constraints:**
+
+- **Core slots are locked.** Each aligned deck designates a subset of cards (typically 8–10) as core to the room's identity. These cannot be swapped out. Root Hollow's Entangling Grasp and Crushing Grip form a combo line that defines the room — removing either breaks the identity.
+- **Flex slots are open.** The remaining 5–8 cards can be replaced with generic pool cards or cards from other encounter decks the dungeon has unlocked. This is where player expression lives.
+- **Deck size is fixed.** Swapping is 1-for-1 replacement, not addition. The 15–18 card deck size is tuned for draw consistency and opening hand guarantees.
+- **Energy card ratio must be maintained.** At least 3 Energy cards must remain in any customized deck to preserve the opening hand guarantee system.
+
+This model means players inherit a strong, functional default from each encounter and make targeted modifications (2–5 card swaps) to express their personal strategy. They never face a blank 16-card template. The aligned decks are the floor; customization raises the ceiling.
+
+The dungeon's full card pool across a 3-room run is the union of its three encounter decks (45–50 cards total), with flex slots allowing the player to tune each room's approach without breaking the room's core identity (see Section 15: Dungeon Strategic Architecture).
 
 ---
 
@@ -695,3 +714,91 @@ The Boar balance iteration validated the specialization framework through four i
 | v2.3d | 28 | + Root Hollow nerve auto-effect | 55.3% | 11.5% | 21.6% | All targets hit ✅ |
 
 Key learning: three rounds of AI scoring changes produced zero movement on win condition diversity because the structural problem was deck/stat design, not AI decision-making. Once the data was corrected, the AI (which was already making correct decisions) produced the target outcomes immediately. The final fix used the narrowest available lever (encounter auto-effect) to solve the remaining Panic deficit without disrupting the other metrics.
+
+---
+
+## 15. Dungeon Strategic Architecture
+
+The dungeon player's strategic identity is expressed through three layers that build on each other. The deepest, most permanent decisions are at the bottom; the most tactical, per-encounter decisions are at the top.
+
+### 15.1 The Three Strategic Layers
+
+**Layer 1: Dungeon Specialization (Macro — Permanent)**
+
+The dungeon's specialization defines its global identity through passive abilities and modifiers that apply across all encounters. A Predatory specialization might grant bonus damage on Kill conditions. A Deceptive specialization might increase Offer acceptance rates or boost Trap damage. A Nurturing specialization might accelerate trust-building or heal visitors between rooms.
+
+Specialization is the slowest-changing layer — it develops over many runs as the dungeon's identity crystallizes through accumulated decisions. It amplifies whatever encounter strategy the player builds but doesn't dictate it. A Predatory dungeon that chooses to run a nurturing first room still benefits from its specialization when the aggression comes in Room 2.
+
+*Status: Future state. Not yet implemented. Design will be informed by the encounter and deck layers being validated first.*
+
+**Layer 2: Encounter Selection & Ordering (Strategic — Per-Run)**
+
+Before each run, the dungeon player selects which encounter rooms to deploy and in what order. This is the primary strategic decision — it determines the narrative arc of the visitor's experience, which card pools are available, and which win conditions are viable.
+
+Each encounter room brings its aligned deck (15–18 cards), its auto-effects, and its thematic identity. The sequence creates emergent strategies that no single room could produce:
+
+| Strategy | Room Sequence | Arc |
+|----------|--------------|-----|
+| Grinding predator | Root Hollow → Whispering Gallery → Veil Breach | Physical attrition → psychological warfare → terror |
+| Deceptive host | Honeyed Hollow → Root Hollow | False safety → crushing betrayal |
+| Patient nurturer | Living Root Sanctuary (single room) | Sustained cooperation toward Bond |
+| Psychological horror | Veil Breach → Whispering Gallery | Terror → despair |
+| Endurance test | Root Hollow → Root Hollow variant → Root Hollow variant | Relentless physical grinding |
+
+The order matters because resource carryover means Room 1's outcome shapes Room 2's starting conditions. A trust-building Room 1 leaves the visitor psychologically open (high trust, spent resources on cooperation not defense). A combat Room 1 leaves the visitor physically weakened. The dungeon player chooses which vulnerability to create in Room 1 and which Room 2 to exploit it with.
+
+**Layer 3: Deck Customization (Tactical — Per-Encounter)**
+
+Within each encounter, the player customizes the room's aligned deck by swapping flex-slot cards from the generic card pool (see Section 8.5). This is where fine-tuning happens — the player adapts each room's deck to their specific strategy and to the visitors they expect.
+
+Examples of tactical customization:
+- Slotting a Trap into a nurturing deck to punish aggressive visitors who refuse Offers
+- Adding an extra Reshape to a combat deck for late-game sustain against tanky visitors
+- Replacing a nerve Strike with a resolve Strike in Root Hollow to create a non-standard Break angle
+- Adding Offers to an aggressive deck to open a deceptive fallback when facing cooperative visitors
+
+### 15.2 How the Layers Interact
+
+The three layers create a strategic pyramid where each level constrains and amplifies the others:
+
+**Specialization shapes encounter selection.** A deceptive specialization makes trust-then-betray encounter sequences more effective, naturally guiding the player toward room combinations that exploit the specialization's passive bonuses.
+
+**Encounter selection determines available card pools.** Choosing Root Hollow + Whispering Gallery + Veil Breach gives access to ~49 cards across three specialist decks. Choosing Living Root Sanctuary + Root Hollow gives access to ~33 cards with a cooperative-then-aggressive profile. The rooms selected define the strategic ceiling.
+
+**Deck customization fine-tunes within the strategic ceiling.** The generic card pool lets players bend each room's identity without breaking it. The core-slot/flex-slot system ensures rooms remain recognizable while allowing personal expression.
+
+### 15.3 Deception as a Cross-Room Strategy
+
+Deception illustrates why the multi-room architecture matters. A single-room deceptive deck would need to contain Offers (bait), Traps (hidden damage), AND Strikes (kill) in 16 cards — too many roles for too few slots. But across two rooms:
+
+**Room 1 (The Honeytrap):** Aligned deck heavy on Offers and Traps. Builds trust, deals hidden damage through trap triggers, creates a false sense of safety. The deck is a specialist at *seeming safe*. It doesn't need Strikes because it doesn't need to finish the visitor.
+
+**Room 2 (The Closer):** An aggressive aligned deck (Root Hollow or similar). The visitor enters with accumulated Trap damage, softened resources, and high trust that made them accept Offers readily. The aggressive deck finishes what the honeytrap started.
+
+The "betrayal" isn't a single AI switching from cooperative to aggressive mid-room — it's the *room transition itself*. The visitor's trust carried over from Room 1 is now mechanically irrelevant in a combat encounter. The dungeon didn't betray them; the dungeon was never safe. Each room's deck is a focused specialist; the deception emerges from the sequence.
+
+This is the same architectural pattern as the Verdant Maw's win condition diversity — specialist rooms creating emergent outcomes through sequencing — applied to a completely different strategic goal.
+
+### 15.4 Implications for AI Visitors
+
+When intelligent visitors arrive (Phase 3), they will need to read the dungeon's strategic layers and adapt:
+
+- **Encounter recognition:** Identifying which room they're in and what it specializes in. A visitor who recognizes a honeytrap room can refuse Offers and play defensively, denying the deceptive dungeon its setup phase.
+- **Cross-room planning:** Conserving resources in Room 1 for an expected harder Room 2. Accepting the exposure cost of a cooperative Room 1 only if they believe Room 2 will also be cooperative.
+- **Reputation reading:** Using the dungeon's accumulated history (previous visitor reports, specialization signals) to predict what the next room holds. A dungeon with a Predatory reputation running a nurturing first room should trigger suspicion.
+
+This creates an information asymmetry arms race: the dungeon designs sequences to manipulate visitor expectations, while intelligent visitors learn to read and counter those designs. The card system already supports this through face-down Traps, hidden hand contents, and Offer payloads — the multi-room architecture extends it to the strategic layer.
+
+### 15.5 Generic Card Pool Design Principles
+
+The generic card pool serves as the connective tissue between encounter-aligned decks and player customization. Cards in the generic pool should follow these principles:
+
+1. **Mechanically complete but not optimized.** A generic Strike should deal reasonable damage to any resource but not synergize with any specific room's auto-effects or combo lines. It's a tool, not a centerpiece.
+
+2. **Category coverage.** The pool should contain at least 2–3 cards in every category so that players can add any tactical verb to any deck. Want Counter capability in a room that doesn't have one? The generic pool provides it.
+
+3. **No combo enablers.** Generic cards should not create new combo lines when added to aligned decks. They fill gaps and add flexibility, not create degenerate synergies. Combo depth should come from the aligned decks that are explicitly designed and tested for it.
+
+4. **Balance-neutral by default.** Adding a generic card to any deck should not significantly shift win condition distributions. The simulation infrastructure should validate this — run each matchup with 1–2 generic swaps and confirm metrics stay within tolerance.
+
+5. **Thematically neutral.** Generic cards represent fundamental dungeon capabilities (basic strikes, simple reshapes, universal reactions) rather than room-specific phenomena. "Rumbling Strike" works in any room; "Entombing Grasp" only makes sense in Root Hollow.

@@ -40,7 +40,7 @@ const PROFILES = {
     baseWeights: { Strike: 1, Empower: 1, Disrupt: 1, Counter: 1, Trap: 3, Offer: 3, Reshape: 1, React: 1 },
     scoreThreshold: 1, preferredTargets: ['trust'],
     energyEagerness: 0.5, comboAwareness: 0.8,
-    betrayalThreshold: 4,
+    betrayalThreshold: 8,
   },
 };
 

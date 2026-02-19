@@ -1,22 +1,18 @@
 {
-  "scenario": "Deceptive Dungeon vs Drift Symbiote (2-Room)",
+  "scenario": "Deceptive Dungeon vs Drift Symbiote (3-Room)",
   "iterations": 1000,
   "outcomeDistribution": {
-    "Kill": {
-      "count": 989,
-      "pct": 98.9
-    },
     "Bond": {
-      "count": 10,
-      "pct": 1
+      "count": 734,
+      "pct": 73.4
     },
-    "Survive": {
-      "count": 1,
-      "pct": 0.1
+    "Kill": {
+      "count": 266,
+      "pct": 26.6
     }
   },
-  "avgRounds": 18,
-  "avgDecisions": 59.8,
+  "avgRounds": 14.9,
+  "avgDecisions": 48.3,
   "perEncounter": {
     "Honeyed Hollow": {
       "timesReached": 1000,
@@ -25,12 +21,12 @@
       "avgDecisions": 27,
       "outcomes": {
         "Survive": {
-          "count": 995,
-          "pct": 99.5
+          "count": 998,
+          "pct": 99.8
         },
         "Bond": {
-          "count": 5,
-          "pct": 0.5
+          "count": 2,
+          "pct": 0.2
         }
       },
       "momentum": [
@@ -38,40 +34,40 @@
           "round": 1,
           "samples": 1000,
           "dungeonPct": 99,
-          "visitorPct": 99,
-          "dungeonLeadPct": 45,
-          "visitorLeadPct": 52
+          "visitorPct": 100,
+          "dungeonLeadPct": 39,
+          "visitorLeadPct": 58
         },
         {
           "round": 2,
           "samples": 1000,
           "dungeonPct": 100,
           "visitorPct": 99,
-          "dungeonLeadPct": 58,
-          "visitorLeadPct": 39
+          "dungeonLeadPct": 54,
+          "visitorLeadPct": 43
         },
         {
           "round": 3,
           "samples": 1000,
           "dungeonPct": 98,
           "visitorPct": 99,
-          "dungeonLeadPct": 43,
-          "visitorLeadPct": 51
+          "dungeonLeadPct": 44,
+          "visitorLeadPct": 49
         },
         {
           "round": 4,
           "samples": 1000,
           "dungeonPct": 99,
           "visitorPct": 98,
-          "dungeonLeadPct": 52,
-          "visitorLeadPct": 42
+          "dungeonLeadPct": 53,
+          "visitorLeadPct": 40
         },
         {
           "round": 5,
           "samples": 1000,
           "dungeonPct": 97,
           "visitorPct": 98,
-          "dungeonLeadPct": 44,
+          "dungeonLeadPct": 45,
           "visitorLeadPct": 54
         },
         {
@@ -79,40 +75,40 @@
           "samples": 1000,
           "dungeonPct": 98,
           "visitorPct": 97,
-          "dungeonLeadPct": 62,
-          "visitorLeadPct": 37
+          "dungeonLeadPct": 65,
+          "visitorLeadPct": 35
         },
         {
           "round": 7,
           "samples": 1000,
           "dungeonPct": 97,
           "visitorPct": 96,
-          "dungeonLeadPct": 51,
-          "visitorLeadPct": 38
+          "dungeonLeadPct": 52,
+          "visitorLeadPct": 41
         },
         {
           "round": 8,
-          "samples": 995,
-          "dungeonPct": 97,
+          "samples": 998,
+          "dungeonPct": 96,
           "visitorPct": 94,
-          "dungeonLeadPct": 68,
-          "visitorLeadPct": 26
+          "dungeonLeadPct": 64,
+          "visitorLeadPct": 29
         }
       ]
     },
     "Root Hollow": {
-      "timesReached": 995,
-      "reachedPct": 99.5,
-      "avgRounds": 10,
-      "avgDecisions": 33,
+      "timesReached": 998,
+      "reachedPct": 99.8,
+      "avgRounds": 6.9,
+      "avgDecisions": 21.4,
       "outcomes": {
-        "Kill": {
-          "count": 989,
-          "pct": 99.4
-        },
         "Bond": {
-          "count": 5,
-          "pct": 0.5
+          "count": 732,
+          "pct": 73.3
+        },
+        "Kill": {
+          "count": 265,
+          "pct": 26.6
         },
         "Overcome": {
           "count": 1,
@@ -122,85 +118,98 @@
       "momentum": [
         {
           "round": 1,
-          "samples": 992,
-          "dungeonPct": 96,
-          "visitorPct": 88,
-          "dungeonLeadPct": 84,
+          "samples": 959,
+          "dungeonPct": 97,
+          "visitorPct": 90,
+          "dungeonLeadPct": 83,
           "visitorLeadPct": 14
         },
         {
           "round": 2,
-          "samples": 990,
-          "dungeonPct": 97,
-          "visitorPct": 85,
-          "dungeonLeadPct": 92,
+          "samples": 891,
+          "dungeonPct": 98,
+          "visitorPct": 88,
+          "dungeonLeadPct": 93,
           "visitorLeadPct": 6
         },
         {
           "round": 3,
-          "samples": 990,
-          "dungeonPct": 96,
-          "visitorPct": 80,
+          "samples": 826,
+          "dungeonPct": 97,
+          "visitorPct": 84,
           "dungeonLeadPct": 96,
           "visitorLeadPct": 2
         },
         {
           "round": 4,
-          "samples": 990,
-          "dungeonPct": 97,
-          "visitorPct": 77,
-          "dungeonLeadPct": 98,
+          "samples": 738,
+          "dungeonPct": 98,
+          "visitorPct": 82,
+          "dungeonLeadPct": 99,
           "visitorLeadPct": 1
         },
         {
           "round": 5,
-          "samples": 989,
-          "dungeonPct": 95,
-          "visitorPct": 72,
+          "samples": 657,
+          "dungeonPct": 97,
+          "visitorPct": 78,
           "dungeonLeadPct": 99,
-          "visitorLeadPct": 1
+          "visitorLeadPct": 0
         },
         {
           "round": 6,
-          "samples": 988,
-          "dungeonPct": 96,
-          "visitorPct": 69,
-          "dungeonLeadPct": 99,
-          "visitorLeadPct": 1
+          "samples": 565,
+          "dungeonPct": 99,
+          "visitorPct": 75,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
         },
         {
           "round": 7,
-          "samples": 979,
-          "dungeonPct": 95,
-          "visitorPct": 63,
+          "samples": 486,
+          "dungeonPct": 98,
+          "visitorPct": 71,
           "dungeonLeadPct": 100,
           "visitorLeadPct": 0
         },
         {
           "round": 8,
-          "samples": 932,
-          "dungeonPct": 95,
-          "visitorPct": 58,
+          "samples": 366,
+          "dungeonPct": 97,
+          "visitorPct": 67,
           "dungeonLeadPct": 100,
           "visitorLeadPct": 0
         },
         {
           "round": 9,
-          "samples": 796,
-          "dungeonPct": 92,
-          "visitorPct": 51,
+          "samples": 271,
+          "dungeonPct": 94,
+          "visitorPct": 61,
           "dungeonLeadPct": 100,
           "visitorLeadPct": 0
         },
         {
           "round": 10,
-          "samples": 296,
-          "dungeonPct": 89,
-          "visitorPct": 47,
+          "samples": 133,
+          "dungeonPct": 93,
+          "visitorPct": 57,
           "dungeonLeadPct": 100,
           "visitorLeadPct": 0
         }
       ]
+    },
+    "Veil Breach": {
+      "timesReached": 1,
+      "reachedPct": 0.1,
+      "avgRounds": 6,
+      "avgDecisions": 20,
+      "outcomes": {
+        "Kill": {
+          "count": 1,
+          "pct": 100
+        }
+      },
+      "momentum": []
     }
   }
 }

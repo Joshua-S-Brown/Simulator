@@ -5,6 +5,8 @@
  */
 
 const { runEncounter } = require('./encounter');
+const { createDungeonAI } = require('../ai/dungeon-ai');
+const { createVisitorAI } = require('../ai/visitor-ai');
 
 function runSequence(scenario, dungeonAI, visitorAI, config = {}) {
   const results = [];
@@ -32,10 +34,17 @@ function runSequence(scenario, dungeonAI, visitorAI, config = {}) {
       // Clear combat conditions between encounters (room-specific)
       d.conditions = [];
     }
+    const encDungeonAI = enc.config?.dungeonProfile
+      ? createDungeonAI(enc.config.dungeonProfile)
+      : dungeonAI;
+    const encVisitorAI = enc.config?.visitorProfile
+      ? createVisitorAI(enc.config.visitorProfile)
+      : visitorAI;
+
     const result = runEncounter(
       enc.encounter, enc.dungeonDeck, enc.visitorDeck,
       scenario.visitorTemplate, scenario.dungeonTemplate,
-      dungeonAI, visitorAI,
+      encDungeonAI, encVisitorAI,
       { ...config, ...enc.config }, carryover
     );
     results.push(result);
