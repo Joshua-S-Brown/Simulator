@@ -124,6 +124,79 @@ function printSummary(summary) {
     }
   }
   console.log('');
+  if (summary.qualityMetrics) printQualityMetrics(summary.qualityMetrics);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PATCH: Add this function to run.js after the existing printSummary function.
+// Then add one line at the end of printSummary:
+//   if (summary.qualityMetrics) printQualityMetrics(summary.qualityMetrics);
+// ═══════════════════════════════════════════════════════════════
+
+function printQualityMetrics(qm) {
+  console.log(`\n  ══ Encounter Quality Metrics (GDD §18) ══`);
+
+  // 1. Agency Score
+  if (qm.agency) {
+    const a = qm.agency;
+    const tag = a.assessment === 'HEALTHY' ? '✅' : '⚠️';
+    console.log(`\n  Agency Score: ${a.average} avg lead changes  ${tag} ${a.assessment}`);
+    if (a.distribution) {
+      const d = a.distribution;
+      const parts = Object.entries(d).map(([k, v]) => `${k}:${v.pct}%`).join('  ');
+      console.log(`    Distribution: ${parts}`);
+    }
+  }
+
+  // 2. Closeness at Resolution
+  if (qm.closeness && qm.closeness.average !== null) {
+    const c = qm.closeness;
+    const tag = c.assessment === 'HEALTHY' ? '✅' : '⚠️';
+    console.log(`\n  Closeness: ${c.average}% avg (median ${c.median}%)  ${tag} ${c.assessment}`);
+    console.log(`    (Losing side's nearest non-depleted resource as % of starting)`);
+  }
+
+  // 3. Outcome Diversity
+  if (qm.outcomeDiversity) {
+    const od = qm.outcomeDiversity;
+    const tag = od.assessment === 'HEALTHY' ? '✅' : '⚠️';
+    console.log(`\n  Outcome Diversity: ${od.normalized} normalized entropy (${od.raw} raw, ${od.possibleOutcomes} outcomes)  ${tag} ${od.assessment}`);
+  }
+
+  // 4. Knockout Patterns (party only)
+  if (qm.knockoutPatterns) {
+    const kp = qm.knockoutPatterns;
+    const tag = kp.assessment === 'HEALTHY' ? '✅' : '⚠️';
+    console.log(`\n  Knockout Patterns: ${kp.normalized} normalized entropy  ${tag} ${kp.assessment}`);
+    if (kp.distribution) {
+      const parts = Object.entries(kp.distribution)
+        .sort((a, b) => b[1].pct - a[1].pct)
+        .map(([k, v]) => `${k}: ${v.pct}%`)
+        .join('  ');
+      console.log(`    First KO: ${parts}`);
+    }
+  }
+
+  // 5. Attrition Curve (multi-room only)
+  if (qm.attritionCurve) {
+    console.log(`\n  Attrition Curve:`);
+    for (const [room, data] of Object.entries(qm.attritionCurve)) {
+      const tag = data.assessment.includes('HEALTHY') ? '✅' : '⚠️';
+      console.log(`    ${room}: ${data.overallPct}% overall  ${tag} ${data.assessment}`);
+      console.log(`      Vit:${data.avgVitalityPct}%  Res:${data.avgResolvePct}%  Nrv:${data.avgNervePct}%  (${data.samples} samples)`);
+    }
+  }
+
+  // Health Issues Summary
+  if (qm.healthIssues && qm.healthIssues.length > 0) {
+    console.log(`\n  ⚠️  HEALTH ISSUES (${qm.healthIssues.length}):`);
+    for (const issue of qm.healthIssues) {
+      console.log(`    • ${issue}`);
+    }
+  } else {
+    console.log(`\n  ✅ All quality metrics in healthy range.`);
+  }
+  console.log('');
 }
 
 function writeCsv(summary, outDir) {
