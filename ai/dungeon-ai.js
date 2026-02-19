@@ -9,6 +9,7 @@
  * [ADD] React exhaustion awareness: knows when opponent is out of Reacts
  * [FIX] Better Counter timing: only when opponent has active buffs worth removing
  */
+const { getEffectiveCost } = require('./ai-utils');
 
 const PROFILES = {
   aggressive: {
@@ -360,7 +361,7 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
     }
 
     return { card: c, score };
-  }).filter(s => s.score > (p.scoreThreshold || 2) && energy.available >= (s.card.cost || 0))
+  }).filter(s => s.score > (p.scoreThreshold || 2) && energy.available >= (getEffectiveCost(s.card, self)))
     .sort((a, b) => b.score - a.score);
 
   // ── PLAY ORDERING ──
@@ -402,9 +403,9 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
 
   let budget = energy.available - decisions.reduce((s, d) => s + (d.card.cost || 0), 0);
   for (const s of scored) {
-    if ((s.card.cost || 0) <= budget) {
+    if ((getEffectiveCost(s.card, self)) <= budget) {
       decisions.push({ card: s.card, action: 'play' });
-      budget -= (s.card.cost || 0);
+      budget -= (getEffectiveCost(s.card, self));
     }
   }
 

@@ -1,25 +1,39 @@
 /**
- * VISITOR DECK: Veil Moth
+ * VISITOR DECK: Veil Moth (v2.2)
  * Identity: Ethereal, veil-siphoning, evasive, information-gathering
  * Combo lines: Ethereal Focus → Veil Siphon (Drain veil into vitality sustain)
  *              Luminous Burst (Overwhelm spill from veil → presence)
  *              Confusing Dust strips keywords for clean siphon
+ * 
+ * v2.2 ENERGY CHANGES:
+ *   4→5 Energy cards (2 Standard, 1 Surge, 1 Attune[Mystical], 1 Siphon)
+ *   Veil Siphon cost 2→3 (Drain sustain is premium — heals while dealing damage)
+ *   15→16 cards total
  */
 module.exports = [
-  // ── ENERGY (4) ──
+  // ── ENERGY (5) ──
   { name: 'Flickering Wing', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'Wings beat between planes, shedding sparks of power.' },
   { name: 'Dust Shimmer', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'Iridescent scales catch dimensional light.' },
   { name: 'Faint Pulse', category: 'Energy', type: 'Mystical', cost: 0,
-    description: 'A heartbeat synchronized to the veil\'s rhythm.' },
-  { name: 'Sensory Bloom', category: 'Energy', type: 'Social', cost: 0,
-    description: 'Antennae unfurl to drink ambient magic.' },
+    energyType: 'surge', surgeGain: 2,
+    description: 'A sudden heartbeat surge synchronized to dimensional rifts.' },
+  { name: 'Sensory Bloom', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Mystical', discount: 1 },
+    description: 'Antennae attune to the veil\'s frequency. Next Mystical card costs 1 less.' },
+  { name: 'Veil Tap', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'siphon', energyGain: 1, siphonFallback: 1,
+    siphon: { condition: { type: 'has_condition', condition: 'erode' }, target: 'opponent' },
+    description: 'Sip energy from decaying boundaries. +1 permanent if opponent has Erode, else +1 temp.' },
 
   // ── STRIKES (4) — Each mechanically distinct ──
-  { name: 'Veil Siphon', category: 'Strike', type: 'Mystical', cost: 2,
+  { name: 'Veil Siphon', category: 'Strike', type: 'Mystical', cost: 3,
     power: 2, target: 'veil', keywords: ['Drain'], drainTarget: 'vitality',
-    description: 'Drink the boundary between worlds. Deal 2 veil. Drain to vitality (max 2).' },
+    description: 'Drink the boundary between worlds. Deal 2 veil. Drain to vitality (max 2). Cost 3: premium sustain.' },
   { name: 'Luminous Burst', category: 'Strike', type: 'Mystical', cost: 2,
     power: 3, target: 'veil', keywords: ['Overwhelm'], overwhelmTarget: 'presence',
     description: 'Blinding flash tears the veil apart. Deal 3 veil. Overwhelm: excess spills to presence.' },

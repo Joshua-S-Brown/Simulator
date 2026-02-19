@@ -1,20 +1,36 @@
 /**
- * DUNGEON DECK: Living Root Sanctuary
+ * DUNGEON DECK: Living Root Sanctuary (v2.2)
  * Identity: Nurturing, protective, trust-building
  * Combo lines: Test → Offer pipeline (build trust through vulnerability)
  *              Protective Thorns (defensive Strike that punishes aggression)
  *              Calming Presence → trust-scaled healing
+ * 
+ * v2.2 ENERGY CHANGES:
+ *   4→5 Energy cards (2 Standard, 2 Attune[Social+Environmental], 1 Siphon)
+ *   No Surge (sanctuary doesn't burst — it nurtures steadily)
+ *   No cost bumps (nurturing deck keeps low costs for consistent offering)
+ *   15→16 cards total
  */
 module.exports = [
-  // ── ENERGY (4) ──
+  // ── ENERGY (5) ──
   { name: 'Root Cradle', category: 'Energy', type: 'Environmental', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'The sanctuary\'s embrace generates gentle warmth.' },
   { name: 'Gentle Pulse', category: 'Energy', type: 'Environmental', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'A steady rhythm of life-sustaining energy.' },
   { name: 'Shelter Core', category: 'Energy', type: 'Environmental', cost: 0,
-    description: 'The heart of the sanctuary pulses with protective force.' },
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Environmental', discount: 1 },
+    description: 'The heart of the sanctuary aligns with the earth. Next Environmental card costs 1 less.' },
   { name: 'Trust Seed', category: 'Energy', type: 'Social', cost: 0,
-    description: 'A seed that grows only in willing soil.' },
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Social', discount: 1 },
+    description: 'A seed that grows in willing soil. Next Social card costs 1 less.' },
+  { name: 'Sanctuary Siphon', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'siphon', energyGain: 1, siphonFallback: 1,
+    siphon: { condition: { type: 'resource_above', resource: 'trust', threshold: 3 }, target: 'opponent' },
+    description: 'Draw strength from growing trust. +1 permanent if visitor trust > 3, else +1 temp.' },
 
   // ── STRIKES (2) — Defensive/warning, not aggressive ──
   { name: 'Protective Thorns', category: 'Strike', type: 'Environmental', cost: 1,

@@ -10,7 +10,7 @@
  * Supports both dungeon and visitor sides via configuration.
  * Matches the pickCards() interface of existing AI modules.
  */
-
+const { getEffectiveCost } = require('./ai-utils');
 const { evaluateBoard } = require('./board-eval');
 const { evaluateAllCards, estimateCounterProbability, estimateReactProbability } = require('./mc-simulator');
 const { createDeckTracker } = require('./deck-tracker');

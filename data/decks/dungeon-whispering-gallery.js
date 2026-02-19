@@ -1,25 +1,41 @@
 /**
- * DUNGEON DECK: Whispering Gallery
+ * DUNGEON DECK: Whispering Gallery (v2.2)
  * Identity: Echoes, psychological warfare, redirected reality
  * Combo lines: Erode resolve via whispers (persistent attrition)
  *              Redirect opponent Strikes via Spatial Distortion
  *              Steal Empowers via Absorbing Silence
+ * 
+ * v2.2 ENERGY CHANGES:
+ *   3→5 Energy cards (2 Standard, 1 Surge, 1 Attune[Social], 1 Siphon)
+ *   Crushing Silence cost 2→3 (premium no-Empower punish)
+ *   15→17 cards total
  */
 module.exports = [
-  // ── ENERGY (3) ──
-  { name: 'Echoing Void', category: 'Energy', type: 'Social', cost: 0,
-    description: 'Empty spaces amplify intent into power.' },
+  // ── ENERGY (5) ──
   { name: 'Memory Fragment', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'A half-remembered scream crystallizes into energy.' },
   { name: 'Whisper Shard', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'Fractured voices coalesce into focused will.' },
+  { name: 'Echoing Void', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Social', discount: 1 },
+    description: 'Empty spaces amplify intent. Next Social card costs 1 less.' },
+  { name: 'Psychic Surge', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'surge', surgeGain: 2,
+    description: 'A sudden cacophony of overlapping voices erupts into raw power.' },
+  { name: 'Echo Siphon', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'siphon', energyGain: 1, siphonFallback: 1,
+    siphon: { condition: { type: 'has_condition', condition: 'empower' }, target: 'opponent' },
+    description: 'Feed on their preparations. +1 permanent if opponent is Empowered, else +1 temp.' },
 
   // ── STRIKES (3) — Each mechanically distinct ──
-  { name: 'Crushing Silence', category: 'Strike', type: 'Social', cost: 2,
+  { name: 'Crushing Silence', category: 'Strike', type: 'Social', cost: 3,
     power: 3, target: 'resolve',
     trigger: { condition: { type: 'no_condition', target: 'opponent', condition: 'empower' }, bonus: 1,
       description: 'If opponent has no Empower, +1 Power' },
-    description: 'Absolute quiet crushes the will. Deal 3 resolve. If opponent has no active Empower, deal 4.' },
+    description: 'Absolute quiet crushes the will. Deal 3 resolve. If opponent has no active Empower, deal 4. Cost 3: requires setup.' },
   { name: 'Dread Whisper', category: 'Strike', type: 'Social', cost: 1,
     power: 2, target: 'nerve', keywords: ['Erode'],
     description: 'A voice from nowhere speaks their name. Deal 2 nerve. Erode 1.' },
@@ -74,7 +90,7 @@ module.exports = [
   { name: 'Shifting Echoes', category: 'Reshape', type: 'Social', cost: 2,
     reshapeEffect: {
       shift: { from: 'presence', to: 'veil', amount: 2 },
-      fortify: { resource: 'presence', reduction: 1, duration: 1 },
+      fortify: [{ resource: 'presence', reduction: 1, duration: 1 }],
     },
     description: 'Rearrange the gallery\'s acoustics. Convert 2 presence to veil. Fortify presence 1.' },
 ];

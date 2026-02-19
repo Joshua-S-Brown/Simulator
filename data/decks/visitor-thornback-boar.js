@@ -1,4 +1,4 @@
-\/**
+/**
  * VISITOR DECK: Thornback Boar (v2.2)
  * Identity: Relentless physical aggression, cornered-animal danger
  * Combo lines: Boar's Rage → Rampaging Charge (Overwhelm burst)

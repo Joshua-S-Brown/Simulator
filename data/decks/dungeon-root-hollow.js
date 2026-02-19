@@ -1,4 +1,4 @@
-\/**
+/**
  * DUNGEON DECK: Root Hollow (v2.2)
  * Identity: Crushing earth, ensnaring roots, slow decay
  * Combo lines: Entangle → Crushing Grip (+2P conditional)
@@ -101,6 +101,6 @@ module.exports = [
 
   // ── RESHAPE (1) ──
   { name: 'Shifting Roots', category: 'Reshape', type: 'Environmental', cost: 2,
-    reshapeEffect: { heal: { resource: 'structure', amount: 2 }, fortify: { resource: 'structure', amount: 1 } },
+    reshapeEffect: { heal: [{ resource: 'structure', amount: 2 }], fortify: [{ resource: 'structure', amount: 1 }] },
     description: 'The walls reshape themselves. Heal 2 structure. Fortify structure 1.' },
 ];

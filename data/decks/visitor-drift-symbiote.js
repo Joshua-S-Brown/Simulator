@@ -1,22 +1,36 @@
 /**
- * VISITOR DECK: Drift Symbiote
+ * VISITOR DECK: Drift Symbiote (v2.2)
  * Identity: Cooperative, symbiotic, seeks Bond, light combat
  * Combo lines: Test → Offer pipeline (build trust through vulnerability)
  *              Harmonize → scaling power from trust level
  *              Light Strikes for pressure when cooperation fails
+ * 
+ * v2.2 ENERGY CHANGES:
+ *   Already had 5 Energy — added type data (2 Standard, 2 Attune[Social], 1 Siphon)
+ *   No Surge (symbiote doesn't burst — it builds steadily through cooperation)
+ *   No cost bumps (cooperative deck keeps low costs)
+ *   15 cards total (unchanged)
  */
 module.exports = [
   // ── ENERGY (5) ──
   { name: 'Symbiotic Pulse', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'Life-force shared between organisms.' },
   { name: 'Adaptive Core', category: 'Energy', type: 'Environmental', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'The symbiote reshapes itself to gather energy.' },
   { name: 'Trust Filament', category: 'Energy', type: 'Social', cost: 0,
-    description: 'Thin threads of trust crystallize into power.' },
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Social', discount: 1 },
+    description: 'Thin threads of trust crystallize into power. Next Social card costs 1 less.' },
   { name: 'Root Anchor', category: 'Energy', type: 'Environmental', cost: 0,
-    description: 'Tendrils grip the earth to channel its warmth.' },
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Social', discount: 1 },
+    description: 'Tendrils grip the earth to channel cooperative warmth. Next Social card costs 1 less.' },
   { name: 'Resonant Thread', category: 'Energy', type: 'Social', cost: 0,
-    description: 'Vibrations along connective tissue become energy.' },
+    energyType: 'siphon', energyGain: 1, siphonFallback: 1,
+    siphon: { condition: { type: 'resource_above', resource: 'rapport', threshold: 3 }, target: 'opponent' },
+    description: 'Draw power from mutual rapport. +1 permanent if dungeon rapport > 3, else +1 temp.' },
 
   // ── STRIKES (2) — Light pressure, reluctant ──
   { name: 'Tendril Lash', category: 'Strike', type: 'Physical', cost: 1,

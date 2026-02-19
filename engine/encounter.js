@@ -1,7 +1,11 @@
 /**
- * SHATTERED DUNGEON — Encounter Engine v1.5
+ * SHATTERED DUNGEON — Encounter Engine v2.2
  * 
- * CHANGES from v1.4:
+ * CHANGES from v1.5:
+ * [ADD] Energy card type resolution (Standard/Surge/Attune/Siphon) via energy.js
+ * [ADD] Attune discount: consumed before paying action card costs
+ * 
+ * Previous v1.5 changes:
  * [ADD] Extended trigger system: self-state checks, discard pile counts, scaling bonuses
  * [ADD] Drain keyword: damage dealt heals a self resource (capped at 2)
  * [ADD] Overwhelm keyword: excess damage spills to secondary target
@@ -14,6 +18,7 @@
  */
 
 const R = require('./rules');
+const { resolveEnergy, consumeAttune } = require('./energy');
 
 /**
  * Apply a promoter gain (trust or rapport) with per-round cap.
@@ -21,7 +26,6 @@ const R = require('./rules');
  */
 function applyPromoterGain(target, resource, amount, ctx) {
   if (resource !== 'trust' && resource !== 'rapport') {
-    // Not a promoter — apply normally
     R.applyBenefit(target, resource, amount);
     return amount;
   }
@@ -247,11 +251,12 @@ function executeTurn(side, sideData, ctx) {
     // React cards are held for opponent's turn
     if (card.category === 'React') continue;
 
+    // ── ENERGY CARD PLAY (v2.2: type-aware resolution) ──
     if (card.category === 'Energy') {
-      energy.addPermanent(card.energyGain || 1);
+      const result = resolveEnergy(card, energy, self, opp);
       remainingHand.splice(idx, 1);
-      plays.push({ card, action: 'energy' });
-      log(`  [${side}] Energy: ${card.name} → pool now ${energy.base}`);
+      plays.push({ card, action: 'energy', energyResult: result });
+      log(`  [${side}] Energy: ${card.name} (${result.type}) → ${result.description}`);
       ctx.stats.decisions++;
       continue;
     }
@@ -282,9 +287,15 @@ function executeTurn(side, sideData, ctx) {
       continue;
     }
 
-    const cost = card.cost || 0;
+    // ── PAY COST (v2.2: Attune discount applied) ──
+    const baseCost = card.cost || 0;
+    const attuneDiscount = consumeAttune(card, self);
+    const cost = Math.max(0, baseCost - attuneDiscount);
     if (!energy.canAfford(cost)) continue;
     energy.spend(cost);
+    if (attuneDiscount > 0) {
+      log(`  [${side}] Attune: ${card.name} cost ${baseCost} → ${cost} (${card.type} discount)`);
+    }
     remainingHand.splice(idx, 1);
     plays.push({ card, action: 'play' });
     ctx.stats.decisions++;
@@ -364,6 +375,10 @@ function executeTurn(side, sideData, ctx) {
           if (card.counterEffect?.applyKeyword) {
             opp.conditions.push({ type: card.counterEffect.applyKeyword, placedBy: side });
             log(`    [Setup] ${card.counterEffect.applyKeyword} applied to opponent`);
+          }
+          if (card.counterEffect?.applyEntangle) {
+            opp.conditions.push({ type: 'entangled', placedBy: side, source: card.name });
+            log(`    [Setup] Entangle applied to opponent`);
           }
           if (card.counterEffect?.applyFortify) {
             self.conditions.push({
@@ -464,43 +479,29 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
 
   // Resonate
   const lastType = side === 'dungeon' ? ctx.stats.dLastType : ctx.stats.vLastType;
-  if ((card.keywords || []).includes('Resonate') && lastType === card.type) {
-    powerBonus += 1;
-  }
-
-  // Modifier bonus (affects ROLL, not damage)
-  const atkMod = R.getModifierBonus(card, self);
-
-  // Extended trigger check with context (discard pile, round info)
-  const triggerCtx = { ...ctx, discard: sideData?.discard || [] };
-  let triggerBonus = 0;
-  let triggerFired = false;
-  if (card.trigger && evaluateTrigger(card.trigger, self, opp, triggerCtx)) {
-    triggerBonus = getTriggerBonus(card.trigger, self, opp, triggerCtx);
-    triggerFired = true;
-    // Trigger can also grant keywords
-    if (card.trigger.addKeyword) {
-      const kws = Array.isArray(card.trigger.addKeyword) ? card.trigger.addKeyword : [card.trigger.addKeyword];
-      grantedKeywords.push(...kws);
-    }
-    // Trigger can grant advantage
-    if (card.trigger.grantAdvantage) advantage += 1;
-  }
-
-  // Merge card keywords with granted keywords
   const allKeywords = [...(card.keywords || []), ...grantedKeywords];
+  let resonateBonus = 0;
+  if (allKeywords.includes('Resonate') && lastType === card.type) {
+    resonateBonus = 1;
+    log(`    Resonate: +1P (matching ${card.type} type)`);
+  }
 
-  // ── LOG SETUP INFO ──
-  if (emp) log(`    Empower consumed: ${emp.source}${emp.effect.advantage ? ' (Advantage)' : ''}${emp.effect.powerBonus ? ` (+${emp.effect.powerBonus} dmg)` : ''}${grantedKeywords.length ? ` (+${grantedKeywords.join(', ')})` : ''}`);
-  if (dis) log(`    Disrupt consumed: ${dis.source}${dis.effect.disadvantage ? ' (Disadvantage)' : ''}`);
-  if (triggerFired) log(`    Trigger: ${card.trigger.description || 'conditional'} → +${triggerBonus} dmg${card.trigger.addKeyword ? ` +${card.trigger.addKeyword}` : ''}`);
+  // Trigger evaluation
+  let triggerBonus = 0;
+  if (card.trigger && evaluateTrigger(card.trigger, self, opp, ctx)) {
+    triggerBonus = getTriggerBonus(card.trigger, self, opp, ctx);
+    log(`    Trigger: ${card.trigger.description} → +${triggerBonus}P`);
+  }
 
   // ── ATTACKER ROLL ──
   const atkRoll = R.contestedRoll(advantage);
-  const atkTotal = atkRoll.total + atkMod;
-  const atkRollStr = advantage > 0 ? `3d6kh2[${atkRoll.dice}]→[${atkRoll.kept}]`
-    : advantage < 0 ? `3d6kl2[${atkRoll.dice}]→[${atkRoll.kept}]`
-    : `2d6[${atkRoll.kept}]`;
+  const atkMod = R.getModifierBonus(card, self);
+  const atkTotal = atkRoll.total + atkMod + resonateBonus;
+  const atkRollStr = advantage > 0
+    ? `3d6kh2[${atkRoll.dice}]→[${atkRoll.kept}]`
+    : advantage < 0
+      ? `3d6kl2[${atkRoll.dice}]→[${atkRoll.kept}]`
+      : `2d6[${atkRoll.kept}]`;
 
   // ── DEFENDER ROLL ──
   const defRoll = R.contestedRoll(0);
@@ -616,7 +617,6 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   // ── EXHAUST: remove from game instead of discarding ──
   if (card.exhaust) {
     log(`    [Exhaust] ${card.name} removed from game`);
-    // Caller handles discard — we flag the card so it won't be added to discard
     card._exhausted = true;
   }
 }
@@ -653,12 +653,14 @@ function tryReact(defenderSide, defenderHand, defenderState, attackerState, inco
   const success = reactTotal >= threshold;
 
   // Absorb: gain Fortify regardless of success
-  if (react.reactEffect?.alwaysFortify) {
+  if (react.reactEffect?.absorb) {
+    const fortRes = react.reactEffect.fortifyResource || incomingCard.target;
+    const fortAmt = react.reactEffect.fortifyAmount || 1;
     defenderState.conditions.push({
-      type: 'fortify', resource: incomingCard.target,
-      reduction: react.reactEffect.alwaysFortify, duration: 1, source: react.name
+      type: 'fortify', resource: fortRes,
+      reduction: fortAmt, duration: 1, source: react.name
     });
-    log(`    [${defenderSide}] React: ${react.name} → Fortify ${react.reactEffect.alwaysFortify} (${incomingCard.target})`);
+    log(`    [${defenderSide}] React: ${react.name} → Fortify ${fortAmt} (${fortRes})`);
   }
 
   if (success) {
@@ -667,8 +669,8 @@ function tryReact(defenderSide, defenderHand, defenderState, attackerState, inco
     
     // Reflect: on devastating defense, attacker takes damage
     if (react.reactEffect?.reflect && result.tier === 'Devastating') {
-      const reflectDmg = react.reactEffect.reflect.amount || 1;
-      const reflectTarget = react.reactEffect.reflect.resource || 'vitality';
+      const reflectDmg = 1;
+      const reflectTarget = attackerState.side === 'dungeon' ? 'structure' : 'vitality';
       const applied = R.applyDamage(attackerState, reflectTarget, reflectDmg, 1);
       log(`    [Reflect] Attacker ${reflectTarget} -${applied}`);
     }
@@ -691,7 +693,8 @@ function resolveReshape(card, side, self, opp, ctx) {
 
   // Heal: restore a resource (capped at starting value)
   if (eff.heal) {
-    for (const h of eff.heal) {
+    const heals = Array.isArray(eff.heal) ? eff.heal : [eff.heal];
+    for (const h of heals) {
       const before = self[h.resource];
       R.applyBenefit(self, h.resource, h.amount);
       const after = self[h.resource];
@@ -711,36 +714,49 @@ function resolveReshape(card, side, self, opp, ctx) {
     }
   }
 
-  // Fortify: add a persistent defensive condition (reduces incoming damage)
+  // Fortify: add a persistent defensive condition
   if (eff.fortify) {
-    self.conditions.push({
-      type: 'fortify',
-      resource: eff.fortify.resource,
-      reduction: eff.fortify.reduction,
-      duration: eff.fortify.duration || 2,
-      source: card.name,
-      placedBy: side,
-    });
-    log(`    → Fortified: ${eff.fortify.resource} -${eff.fortify.reduction} incoming for ${eff.fortify.duration || 2} rounds`);
+    const fortifyData = Array.isArray(eff.fortify) ? eff.fortify : [eff.fortify];
+    for (const f of fortifyData) {
+      self.conditions.push({
+        type: 'fortify',
+        resource: f.resource,
+        reduction: f.reduction || f.amount || 1,
+        duration: f.duration || 2,
+        source: card.name,
+        placedBy: side,
+      });
+      log(`    → Fortified: ${f.resource} -${f.reduction || f.amount || 1} incoming for ${f.duration || 2} rounds`);
+    }
   }
 }
 
 // ═══ TRAP TRIGGER CHECK ═══
-// Check if opponent has traps that trigger on the action we just performed
 function checkTraps(triggerType, actingSide, self, opp, ctx) {
   const log = ctx.log;
   const oppSide = actingSide === 'dungeon' ? 'visitor' : 'dungeon';
-  // Traps are stored on the SETTER's conditions. Opponent set them, so check opp.conditions
   const traps = opp.conditions.filter(c => c.type === 'trap' && c.trigger === triggerType);
   for (const trap of traps) {
     log(`    TRAP SPRINGS: ${trap.card.name} (triggered by ${triggerType})`);
     opp.conditions = opp.conditions.filter(c => c !== trap);
     if (trap.card.trapEffect) {
-      for (const eff of trap.card.trapEffect) {
-        // 'triggerer' = the one who triggered the trap (the acting side = self)
-        const t = eff.target === 'triggerer' ? self : opp;
-        const dmg = R.applyDamage(t, eff.resource, Math.abs(eff.amount), 1);
-        log(`      → ${eff.resource} -${dmg}`);
+      const effects = Array.isArray(trap.card.trapEffect) ? trap.card.trapEffect : [trap.card.trapEffect];
+      for (const eff of effects) {
+        if (eff.applyEntangle) {
+          self.conditions.push({ type: 'entangled', placedBy: oppSide, source: trap.card.name });
+          log(`      → Entangle applied`);
+        }
+        if (eff.damage) {
+          const t = self; // Trap targets the one who triggered it
+          const dmg = R.applyDamage(t, eff.damage.resource, eff.damage.amount, 1);
+          log(`      → ${eff.damage.resource} -${dmg}`);
+        }
+        if (eff.resource) {
+          // Legacy format: { target, resource, amount }
+          const t = eff.target === 'triggerer' ? self : opp;
+          const dmg = R.applyDamage(t, eff.resource, Math.abs(eff.amount), 1);
+          log(`      → ${eff.resource} -${dmg}`);
+        }
       }
     }
     if (trap.card.keywords?.length) {
@@ -750,40 +766,32 @@ function checkTraps(triggerType, actingSide, self, opp, ctx) {
 }
 
 // ═══ TEST RESOLUTION ═══
-// Tests are prisoner's dilemma interactions. The opponent chooses cooperate or defect.
-// Cooperate: both promoters advance. Defect: defector gains combat advantage, trust crashes.
 
 function resolveTest(card, side, self, opp, ctx) {
   const log = ctx.log;
   const trustLevel = side === 'dungeon' ? opp.trust : self.trust;
   const rapportLevel = side === 'dungeon' ? self.rapport : opp.rapport;
 
-  // Cooperation probability based on existing trust + rapport
-  // Higher trust = more likely to cooperate. Base 40% + 5% per trust point.
   const coopChance = Math.min(0.85, 0.4 + (trustLevel * 0.05) + (rapportLevel * 0.03));
   const cooperates = Math.random() < coopChance;
 
   const testReward = card.testReward || { trust: 2, rapport: 2 };
   const defectPenalty = card.defectPenalty || { trustCrash: 0.5, powerGain: 2 };
 
-  // Trust is ALWAYS visitor's promoter, Rapport is ALWAYS dungeon's promoter
   const visitorState = side === 'dungeon' ? opp : self;
   const dungeonState = side === 'dungeon' ? self : opp;
 
   if (cooperates) {
     log(`  [${side}] Test: ${card.name} → COOPERATE (trust:${trustLevel}, chance:${(coopChance * 100).toFixed(0)}%)`);
-    // Both promoters advance (subject to per-round cap)
     const truGain = applyPromoterGain(visitorState, 'trust', testReward.trust, ctx);
     const rapGain = applyPromoterGain(dungeonState, 'rapport', testReward.rapport, ctx);
     log(`    → trust +${truGain}, rapport +${rapGain}`);
-    // Small vulnerability cost: test-giver loses 1 from a reducer (exposure cost)
     if (card.exposureCost) {
       const dmg = R.applyDamage(self, card.exposureCost.resource, card.exposureCost.amount, 1);
       log(`    → Exposure: ${card.exposureCost.resource} -${dmg}`);
     }
   } else {
     log(`  [${side}] Test: ${card.name} → DEFECT (trust:${trustLevel}, chance:${(coopChance * 100).toFixed(0)}%)`);
-    // Defector gains combat advantage
     const oppSide = side === 'dungeon' ? 'visitor' : 'dungeon';
     opp.conditions.push({
       type: 'empower',
@@ -792,7 +800,6 @@ function resolveTest(card, side, self, opp, ctx) {
       placedBy: oppSide,
     });
     log(`    → Defector gains +${defectPenalty.powerGain} power on next strike`);
-    // Trust and rapport crash on defection — always target correct side
     if (visitorState.trust > 0) {
       const trustLost = Math.ceil(visitorState.trust * defectPenalty.trustCrash);
       visitorState.trust = Math.max(0, visitorState.trust - trustLost);
@@ -817,22 +824,41 @@ function resolveOffer(card, side, self, opp, ctx) {
   if (accepted) {
     log(`  [${side}] Offer: ${card.name} → ACCEPTED (trust:${trustLevel}, chance:${(acceptChance * 100).toFixed(0)}%)`);
     if (card.offerPayload) {
-      for (const effect of card.offerPayload) {
-        const target = effect.target === 'opponent' ? opp : self;
-        if (effect.amount > 0) {
-          // Promoter gains (trust/rapport) are subject to per-round cap
-          if (effect.resource === 'trust' || effect.resource === 'rapport') {
-            const actual = applyPromoterGain(target, effect.resource, effect.amount, ctx);
-            log(`    Payload: ${effect.resource} +${actual}${actual < effect.amount ? ` (capped, wanted +${effect.amount})` : ''}`);
+      const payloads = Array.isArray(card.offerPayload) ? card.offerPayload : [card.offerPayload];
+      for (const effect of payloads) {
+        if (effect.heal) {
+          const target = opp; // Offers heal the recipient
+          const before = target[effect.heal.resource];
+          R.applyBenefit(target, effect.heal.resource, effect.heal.amount);
+          log(`    Payload: ${effect.heal.resource} +${effect.heal.amount}`);
+        } else if (effect.resource) {
+          // Legacy format
+          const target = effect.target === 'opponent' ? opp : self;
+          if (effect.amount > 0) {
+            if (effect.resource === 'trust' || effect.resource === 'rapport') {
+              const actual = applyPromoterGain(target, effect.resource, effect.amount, ctx);
+              log(`    Payload: ${effect.resource} +${actual}${actual < effect.amount ? ` (capped, wanted +${effect.amount})` : ''}`);
+            } else {
+              R.applyBenefit(target, effect.resource, effect.amount);
+              log(`    Payload: ${effect.resource} +${effect.amount}`);
+            }
           } else {
-            R.applyBenefit(target, effect.resource, effect.amount);
-            log(`    Payload: ${effect.resource} +${effect.amount}`);
+            R.applyDamage(target, effect.resource, Math.abs(effect.amount), 1);
+            log(`    Payload: ${effect.resource} ${effect.amount}`);
           }
-        } else {
-          R.applyDamage(target, effect.resource, Math.abs(effect.amount), 1);
-          log(`    Payload: ${effect.resource} ${effect.amount}`);
         }
       }
+    }
+    // Trust/Rapport gains from offer acceptance
+    if (card.offerTrustGain) {
+      const visitorState = side === 'dungeon' ? opp : self;
+      const actual = applyPromoterGain(visitorState, 'trust', card.offerTrustGain, ctx);
+      log(`    → trust +${actual}`);
+    }
+    if (card.offerRapportGain) {
+      const dungeonState = side === 'dungeon' ? self : opp;
+      const actual = applyPromoterGain(dungeonState, 'rapport', card.offerRapportGain, ctx);
+      log(`    → rapport +${actual}`);
     }
     // Trap check on Offer acceptance
     const traps = self.conditions.filter(c => c.type === 'trap' && c.trigger === 'offer_accepted');
@@ -840,10 +866,17 @@ function resolveOffer(card, side, self, opp, ctx) {
       log(`    TRAP SPRINGS: ${trap.card.name}`);
       self.conditions = self.conditions.filter(c => c !== trap);
       if (trap.card.trapEffect) {
-        for (const eff of trap.card.trapEffect) {
-          const t = eff.target === 'triggerer' ? opp : self;
-          const dmg = R.applyDamage(t, eff.resource, Math.abs(eff.amount), 1);
-          log(`      → ${eff.resource} -${dmg}`);
+        const effects = Array.isArray(trap.card.trapEffect) ? trap.card.trapEffect : [trap.card.trapEffect];
+        for (const eff of effects) {
+          if (eff.damage) {
+            const dmg = R.applyDamage(opp, eff.damage.resource, eff.damage.amount, 1);
+            log(`      → ${eff.damage.resource} -${dmg}`);
+          }
+          if (eff.resource) {
+            const t = eff.target === 'triggerer' ? opp : self;
+            const dmg = R.applyDamage(t, eff.resource, Math.abs(eff.amount), 1);
+            log(`      → ${eff.resource} -${dmg}`);
+          }
         }
       }
       if (trap.card.keywords?.length) {
@@ -852,7 +885,6 @@ function resolveOffer(card, side, self, opp, ctx) {
     }
   } else {
     log(`  [${side}] Offer: ${card.name} → REFUSED (trust:${trustLevel}, chance:${(acceptChance * 100).toFixed(0)}%)`);
-    // Refusal cost: small rapport loss from the awkwardness of rejection
     if (side === 'dungeon' && self.rapport > 0) {
       self.rapport = Math.max(0, self.rapport - 1);
       log(`    → rapport -1 (offer rejected)`);
@@ -868,8 +900,6 @@ function resolveOffer(card, side, self, opp, ctx) {
 function evaluateTrigger(trigger, self, opponent, ctx) {
   if (!trigger?.condition) return false;
   const c = trigger.condition;
-  
-  // Target selection: 'self' or 'opponent' (default opponent for backward compat)
   const target = c.target === 'self' ? self : opponent;
   
   switch (c.type) {
@@ -886,13 +916,11 @@ function evaluateTrigger(trigger, self, opponent, ctx) {
     case 'no_condition':
       return !R.hasCondition(target, c.condition);
     case 'discard_count': {
-      // Count cards of a category in own discard pile
       const discard = ctx?.discard || [];
       const count = discard.filter(card => card.category === c.category).length;
       return count >= (c.min || 1);
     }
     case 'discard_count_value': {
-      // Return the count as the trigger bonus (used for scaling)
       const discard = ctx?.discard || [];
       return discard.filter(card => card.category === c.category).length > 0;
     }
@@ -903,19 +931,14 @@ function evaluateTrigger(trigger, self, opponent, ctx) {
   }
 }
 
-// Get the numeric bonus from a trigger (for scaling effects)
 function getTriggerBonus(trigger, self, opponent, ctx) {
   if (!trigger) return 0;
   const c = trigger.condition;
-  
-  // Scaling triggers: bonus = count * multiplier
   if (c?.type === 'discard_count_value') {
     const discard = ctx?.discard || [];
     const count = discard.filter(card => card.category === c.category).length;
     return Math.min(count * (trigger.bonusPerCount || 1), trigger.maxBonus || 4);
   }
-  
-  // Standard triggers: flat bonus
   return trigger.bonus || 0;
 }
 

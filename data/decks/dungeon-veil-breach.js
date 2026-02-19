@@ -1,18 +1,34 @@
 /**
- * DUNGEON DECK: Veil Breach
+ * DUNGEON DECK: Veil Breach (v2.2)
  * Identity: Reality fractures, existential dread, high risk/reward
  * Combo lines: Fear Resonance → Nightmare Surge (Overwhelm spill)
  *              Veil Rend (self-cost big damage)
  *              Spatial Distortion strips keywords for clean hits
+ * 
+ * v2.2 ENERGY CHANGES:
+ *   3→5 Energy cards (1 Standard, 2 Surge, 1 Attune[Mystical], 1 Siphon)
+ *   Veil Rend cost 2→3 (4P Exhaust alpha strike — ultimate premium)
+ *   16→18 cards total
  */
 module.exports = [
-  // ── ENERGY (3) ──
+  // ── ENERGY (5) ──
   { name: 'Veil Fracture', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'standard', energyGain: 1,
     description: 'Cracks in reality bleed usable power.' },
-  { name: 'Warped Root', category: 'Energy', type: 'Mystical', cost: 0,
-    description: 'A root twisted through dimensional folds.' },
   { name: 'Fear Essence', category: 'Energy', type: 'Social', cost: 0,
-    description: 'Distilled terror becomes raw energy.' },
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Mystical', discount: 1 },
+    description: 'Distilled terror aligns with the veil. Next Mystical card costs 1 less.' },
+  { name: 'Reality Spike', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'surge', surgeGain: 2,
+    description: 'A violent tear in the boundary floods the room with raw dimensional energy.' },
+  { name: 'Warped Root', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'surge', surgeGain: 2,
+    description: 'A root twisted through dimensional folds releases stored chaos.' },
+  { name: 'Dread Siphon', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'siphon', energyGain: 1, siphonFallback: 1,
+    siphon: { condition: { type: 'resource_below', resource: 'nerve', pct: 0.5 }, target: 'opponent' },
+    description: 'Feed on faltering courage. +1 permanent if visitor nerve below half, else +1 temp.' },
 
   // ── STRIKES (4) — Each mechanically distinct ──
   { name: 'Nightmare Surge', category: 'Strike', type: 'Social', cost: 2,
@@ -24,10 +40,10 @@ module.exports = [
   { name: 'Veil Lash', category: 'Strike', type: 'Mystical', cost: 1,
     power: 2, target: 'vitality', keywords: ['Resonate'],
     description: 'Reality itself cuts. Deal 2 vitality. Resonate: +1P if same type last round.' },
-  { name: 'Veil Rend', category: 'Strike', type: 'Mystical', cost: 2,
+  { name: 'Veil Rend', category: 'Strike', type: 'Mystical', cost: 3,
     power: 4, target: 'nerve', exhaust: true,
     selfCost: { resource: 'veil', amount: 2 },
-    description: 'Tear the boundary open. Deal 4 nerve. Self-cost: lose 2 veil. Exhaust (one use).' },
+    description: 'Tear the boundary open. Deal 4 nerve. Self-cost: lose 2 veil. Exhaust (one use). Cost 3: requires Surge or deep pool.' },
 
   // ── EMPOWER (1) — Power boost + Overwhelm grant ──
   { name: 'Fear Resonance', category: 'Empower', type: 'Social', cost: 1,
@@ -75,7 +91,7 @@ module.exports = [
   { name: 'Reality Fold', category: 'Reshape', type: 'Mystical', cost: 2,
     reshapeEffect: {
       heal: [{ resource: 'veil', amount: 2 }],
-      fortify: { resource: 'veil', reduction: 1, duration: 1 },
+      fortify: [{ resource: 'veil', reduction: 1, duration: 1 }],
     },
     description: 'Fold the breach partly closed. Heal 2 veil. Fortify veil 1 for 1 round.' },
 ];
