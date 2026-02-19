@@ -1,10 +1,11 @@
 /**
- * SHATTERED DUNGEON — Dungeon AI v2.1 (Combo Sequencer)
+ * SHATTERED DUNGEON — Dungeon AI v2.4 (Party Targeting)
  * 
  * v2.0: opponent tracking, win probability, strategic mode switching.
  * v2.1: Combo sequencer integration — replaces naive energy-then-score
  *       with strategic energy planning (Surge burst, Attune sequencing,
  *       Siphon awareness, budget-aware combos, win condition diversification).
+ * v2.4: Party member targeting — selectMemberTarget for per-profile targeting
  * 
  * [ADD] Opponent card tracking: knows what categories opponent has played
  * [ADD] Win probability: estimates chance of winning based on resource trajectories
@@ -12,6 +13,7 @@
  * [ADD] React exhaustion awareness: knows when opponent is out of Reacts
  * [FIX] Better Counter timing: only when opponent has active buffs worth removing
  * [ADD] Combo sequencer: strategic energy + action card sequencing (v2.1)
+ * [ADD] selectMemberTarget: per-profile party member targeting (v2.4)
  */
 const { getEffectiveCost } = require('./ai-utils');
 const { planTurn } = require('./combo-sequencer');
@@ -54,7 +56,60 @@ function createDungeonAI(profileName) {
     pickCards(hand, energy, self, opponent, ctx) {
       return pickCards(hand, energy, self, opponent, ctx, p, history);
     },
+    // v2.4: Party member targeting
+    selectMemberTarget(visitor, dungeon) {
+      return selectMemberTarget(visitor, dungeon, profileName);
+    },
   };
+}
+
+// ═══ PARTY MEMBER TARGETING (v2.4) ═══
+
+function selectMemberTarget(visitor, dungeon, profileName) {
+  if (!visitor.isParty) return null;
+
+  const active = Object.entries(visitor.members)
+    .filter(([_, m]) => m.status === 'active')
+    .map(([key, m]) => ({ key, ...m }));
+
+  if (active.length <= 1) return active.length === 1 ? active[0].key : null;
+
+  switch (profileName) {
+    case 'aggressive':
+    case 'desperate':
+      // Target lowest vitality → fastest knockout
+      return active.sort((a, b) => a.vitality - b.vitality)[0].key;
+
+    case 'tactical': {
+      // Target most valuable member: support > flex > dps > tank
+      const rolePriority = { support: 4, flex: 3, dps: 2, tank: 1 };
+      return active.sort((a, b) => {
+        const pA = rolePriority[a.role] || 0;
+        const pB = rolePriority[b.role] || 0;
+        if (pB !== pA) return pB - pA; // Higher priority first
+        return a.vitality - b.vitality; // Tiebreak: lower vitality
+      })[0].key;
+    }
+
+    case 'nurturing':
+      // Target highest vitality → avoid kills, want Bond
+      return active.sort((a, b) => b.vitality - a.vitality)[0].key;
+
+    case 'deceptive': {
+      // Target anti-deception tools: flex > support > others
+      // Rogue has Flash Bomb, Disarm Trap, Sleight of Hand — kill first
+      const deceptivePriority = { flex: 4, support: 3, dps: 2, tank: 1 };
+      return active.sort((a, b) => {
+        const pA = deceptivePriority[a.role] || 0;
+        const pB = deceptivePriority[b.role] || 0;
+        if (pB !== pA) return pB - pA;
+        return a.vitality - b.vitality;
+      })[0].key;
+    }
+
+    default:
+      return active.sort((a, b) => a.vitality - b.vitality)[0].key;
+  }
 }
 
 // ═══ WIN PROBABILITY ESTIMATION ═══

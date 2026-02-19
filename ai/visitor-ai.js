@@ -1,16 +1,19 @@
 /**
- * SHATTERED DUNGEON — Visitor AI v2.1 (Combo Sequencer)
+ * SHATTERED DUNGEON — Visitor AI v2.4 (Party Support)
  * 
  * v2.0: opponent tracking, win probability, strategic mode switching.
  * v2.1: Combo sequencer integration — replaces naive energy-then-score
  *       with strategic energy planning (Surge burst, Attune sequencing,
  *       Siphon awareness, budget-aware combos, win condition diversification).
+ * v2.4: Party-aware AI profile (party_balanced) with restoration priority,
+ *       member healing urgency, cross-member combo awareness
  * 
  * [ADD] Opponent card tracking: knows what categories dungeon has played  
  * [ADD] Win probability: estimates chance of winning based on resource trajectories
  * [ADD] Strategic modes: aggressive when winning (push advantage), defensive when losing
  * [ADD] React exhaustion awareness: strikes more confidently when dungeon out of Reacts
  * [ADD] Combo sequencer: strategic energy + action card sequencing (v2.1)
+ * [ADD] party_balanced profile with party-aware scoring adjustments (v2.4)
  */
 const { getEffectiveCost } = require('./ai-utils');
 const { planTurn } = require('./combo-sequencer');
@@ -33,6 +36,13 @@ const PROFILES = {
     baseWeights: { Strike: 0.5, Empower: 1, Disrupt: 0.5, Counter: 1, Trap: 0, Offer: 3, Reshape: 0, React: 1, Test: 2.5 },
     scoreThreshold: 1, preferredTargets: ['trust'],
     energyEagerness: 0.5, comboAwareness: 0.5,
+  },
+  // v2.4: Party visitor profile
+  party_balanced: {
+    description: 'Balanced party of adventurers. Survive-focused with Bond secondary.',
+    baseWeights: { Strike: 2.5, Empower: 2.0, Disrupt: 1.8, Counter: 1.5, React: 1.5, Trap: 1.5, Offer: 0.8, Test: 0.8, Reshape: 2.0, Energy: 2.0 },
+    scoreThreshold: 1, preferredTargets: ['structure', 'veil', 'presence'],
+    energyEagerness: 0.7, comboAwareness: 0.8,
   },
 };
 
@@ -294,6 +304,63 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
     if (lethalMode) {
       if (card.category === 'Strike' && targets.includes(card.target)) score *= 1.5;
       if (['Empower', 'Trap', 'Offer'].includes(card.category)) score *= 0.3;
+    }
+
+    // ═══ v2.4: PARTY-AWARE SCORING ADJUSTMENTS ═══
+    if (self.isParty) {
+      // Restoration priority: highest priority if anyone is knocked out
+      if (card.reshapeEffect?.restoreMember && self.knockoutCount > 0) {
+        score += 15;
+      }
+
+      // Member healing urgency: boost heals if any member below 30% vitality
+      if (card.category === 'Reshape' && card.reshapeEffect?.heal) {
+        const anyLow = Object.values(self.members).some(m =>
+          m.status === 'active' && m.vitality < m.maxVitality * 0.3
+        );
+        if (anyLow) score += 3;
+      }
+
+      // Fortify value: boost if collective resolve below 50%
+      if (card.reshapeEffect?.fortify) {
+        const resolveRatio = self.resolve / (self.startingValues?.resolve || 16);
+        if (resolveRatio < 0.5) score += 3;
+      }
+
+      // Cross-member combo awareness: reward cards that synergize with active conditions
+      if (card.trigger?.condition?.type === 'has_condition') {
+        const condType = card.trigger.condition.condition;
+        if (opponent.conditions?.some(co => co.type === condType)) {
+          score += 3; // Active trigger — combo ready
+        }
+      }
+
+      // Disrupt value: boost if dungeon has played 2+ Strikes
+      if (card.category === 'Disrupt' && oppAnalysis.strikesPlayed >= 2) {
+        score += 1.5;
+      }
+
+      // Trap value: boost early (setup for combos)
+      if (card.category === 'Trap' && round <= 3) {
+        score += 2;
+      }
+
+      // Anti-deception tools: Flash Bomb value if dungeon played Offers
+      if (card.name && card.name.includes('Flash Bomb')) {
+        const dungeonOffers = ctx.cardTracker?.dungeon?.Offer || 0;
+        if (dungeonOffers > 0) score += 3;
+      }
+
+      // Disarm Trap value if dungeon played Traps
+      if (card.name && card.name.includes('Disarm Trap')) {
+        const dungeonTraps = ctx.cardTracker?.dungeon?.Trap || 0;
+        if (dungeonTraps > 0) score += 3;
+      }
+
+      // Sleight of Hand: steal Empower if dungeon has one active
+      if (card.counterEffect?.steal && oppAnalysis.hasActiveEmpower) {
+        score += 5;
+      }
     }
 
     return score;

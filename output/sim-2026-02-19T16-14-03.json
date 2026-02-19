@@ -1,0 +1,214 @@
+{
+  "scenario": "Deceptive Dungeon vs Drift Symbiote (2-Room)",
+  "iterations": 1000,
+  "outcomeDistribution": {
+    "Kill": {
+      "count": 990,
+      "pct": 99
+    },
+    "Bond": {
+      "count": 8,
+      "pct": 0.8
+    },
+    "Survive": {
+      "count": 1,
+      "pct": 0.1
+    },
+    "Panic": {
+      "count": 1,
+      "pct": 0.1
+    }
+  },
+  "avgRounds": 18,
+  "avgDecisions": 60,
+  "perEncounter": {
+    "Honeyed Hollow": {
+      "timesReached": 1000,
+      "reachedPct": 100,
+      "avgRounds": 8,
+      "avgDecisions": 27,
+      "outcomes": {
+        "Survive": {
+          "count": 997,
+          "pct": 99.7
+        },
+        "Bond": {
+          "count": 3,
+          "pct": 0.3
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 1000,
+          "dungeonPct": 99,
+          "visitorPct": 99,
+          "dungeonLeadPct": 47,
+          "visitorLeadPct": 51
+        },
+        {
+          "round": 2,
+          "samples": 1000,
+          "dungeonPct": 100,
+          "visitorPct": 99,
+          "dungeonLeadPct": 59,
+          "visitorLeadPct": 37
+        },
+        {
+          "round": 3,
+          "samples": 1000,
+          "dungeonPct": 98,
+          "visitorPct": 98,
+          "dungeonLeadPct": 46,
+          "visitorLeadPct": 46
+        },
+        {
+          "round": 4,
+          "samples": 1000,
+          "dungeonPct": 99,
+          "visitorPct": 98,
+          "dungeonLeadPct": 53,
+          "visitorLeadPct": 39
+        },
+        {
+          "round": 5,
+          "samples": 1000,
+          "dungeonPct": 97,
+          "visitorPct": 98,
+          "dungeonLeadPct": 46,
+          "visitorLeadPct": 53
+        },
+        {
+          "round": 6,
+          "samples": 1000,
+          "dungeonPct": 98,
+          "visitorPct": 97,
+          "dungeonLeadPct": 62,
+          "visitorLeadPct": 37
+        },
+        {
+          "round": 7,
+          "samples": 1000,
+          "dungeonPct": 97,
+          "visitorPct": 96,
+          "dungeonLeadPct": 48,
+          "visitorLeadPct": 42
+        },
+        {
+          "round": 8,
+          "samples": 997,
+          "dungeonPct": 96,
+          "visitorPct": 94,
+          "dungeonLeadPct": 64,
+          "visitorLeadPct": 29
+        }
+      ]
+    },
+    "Root Hollow": {
+      "timesReached": 997,
+      "reachedPct": 99.7,
+      "avgRounds": 10,
+      "avgDecisions": 33.1,
+      "outcomes": {
+        "Kill": {
+          "count": 990,
+          "pct": 99.3
+        },
+        "Overcome": {
+          "count": 1,
+          "pct": 0.1
+        },
+        "Bond": {
+          "count": 5,
+          "pct": 0.5
+        },
+        "Panic": {
+          "count": 1,
+          "pct": 0.1
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 992,
+          "dungeonPct": 96,
+          "visitorPct": 88,
+          "dungeonLeadPct": 82,
+          "visitorLeadPct": 15
+        },
+        {
+          "round": 2,
+          "samples": 992,
+          "dungeonPct": 97,
+          "visitorPct": 84,
+          "dungeonLeadPct": 93,
+          "visitorLeadPct": 6
+        },
+        {
+          "round": 3,
+          "samples": 992,
+          "dungeonPct": 96,
+          "visitorPct": 80,
+          "dungeonLeadPct": 97,
+          "visitorLeadPct": 3
+        },
+        {
+          "round": 4,
+          "samples": 992,
+          "dungeonPct": 97,
+          "visitorPct": 77,
+          "dungeonLeadPct": 99,
+          "visitorLeadPct": 1
+        },
+        {
+          "round": 5,
+          "samples": 991,
+          "dungeonPct": 95,
+          "visitorPct": 72,
+          "dungeonLeadPct": 99,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 6,
+          "samples": 991,
+          "dungeonPct": 96,
+          "visitorPct": 69,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 7,
+          "samples": 988,
+          "dungeonPct": 95,
+          "visitorPct": 63,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 8,
+          "samples": 940,
+          "dungeonPct": 95,
+          "visitorPct": 58,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 9,
+          "samples": 779,
+          "dungeonPct": 92,
+          "visitorPct": 51,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 10,
+          "samples": 305,
+          "dungeonPct": 89,
+          "visitorPct": 47,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        }
+      ]
+    }
+  }
+}

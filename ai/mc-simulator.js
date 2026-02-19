@@ -266,8 +266,11 @@ function simulateOffer(card, side, self, opp, ctx) {
   const acceptChance = Math.min(0.9, 0.3 + (trustLevel * 0.1));
 
   if (Math.random() < acceptChance) {
-    if (card.offerPayload) {
-      for (const effect of card.offerPayload) {
+    const payload = Array.isArray(card.offerPayload) ? card.offerPayload
+      : card.offerPayload ? [card.offerPayload]
+      : [];
+    if (payload.length > 0) {
+      for (const effect of payload) {
         const target = effect.target === 'opponent' ? opp : self;
         if (effect.amount > 0) {
           if (effect.resource === 'trust' || effect.resource === 'rapport') {

@@ -1,0 +1,165 @@
+{
+  "scenario": "Verdant Maw vs Drift Symbiote (3-Room)",
+  "iterations": 1000,
+  "outcomeDistribution": {
+    "Kill": {
+      "count": 823,
+      "pct": 82.3
+    },
+    "Bond": {
+      "count": 177,
+      "pct": 17.7
+    }
+  },
+  "avgRounds": 13.7,
+  "avgDecisions": 42.6,
+  "perEncounter": {
+    "Living Root Sanctuary": {
+      "timesReached": 1000,
+      "reachedPct": 100,
+      "avgRounds": 13.7,
+      "avgDecisions": 42.6,
+      "outcomes": {
+        "Kill": {
+          "count": 822,
+          "pct": 82.2
+        },
+        "Bond": {
+          "count": 177,
+          "pct": 17.7
+        },
+        "Survive": {
+          "count": 1,
+          "pct": 0.1
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 1000,
+          "dungeonPct": 101,
+          "visitorPct": 99,
+          "dungeonLeadPct": 50,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 2,
+          "samples": 1000,
+          "dungeonPct": 105,
+          "visitorPct": 99,
+          "dungeonLeadPct": 72,
+          "visitorLeadPct": 3
+        },
+        {
+          "round": 3,
+          "samples": 1000,
+          "dungeonPct": 106,
+          "visitorPct": 99,
+          "dungeonLeadPct": 79,
+          "visitorLeadPct": 3
+        },
+        {
+          "round": 4,
+          "samples": 1000,
+          "dungeonPct": 107,
+          "visitorPct": 99,
+          "dungeonLeadPct": 84,
+          "visitorLeadPct": 3
+        },
+        {
+          "round": 5,
+          "samples": 1000,
+          "dungeonPct": 109,
+          "visitorPct": 99,
+          "dungeonLeadPct": 93,
+          "visitorLeadPct": 2
+        },
+        {
+          "round": 6,
+          "samples": 1000,
+          "dungeonPct": 111,
+          "visitorPct": 99,
+          "dungeonLeadPct": 95,
+          "visitorLeadPct": 2
+        },
+        {
+          "round": 7,
+          "samples": 1000,
+          "dungeonPct": 114,
+          "visitorPct": 99,
+          "dungeonLeadPct": 98,
+          "visitorLeadPct": 1
+        },
+        {
+          "round": 8,
+          "samples": 1000,
+          "dungeonPct": 114,
+          "visitorPct": 97,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 9,
+          "samples": 996,
+          "dungeonPct": 116,
+          "visitorPct": 95,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 10,
+          "samples": 977,
+          "dungeonPct": 115,
+          "visitorPct": 91,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 11,
+          "samples": 948,
+          "dungeonPct": 116,
+          "visitorPct": 87,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 12,
+          "samples": 884,
+          "dungeonPct": 115,
+          "visitorPct": 81,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 13,
+          "samples": 782,
+          "dungeonPct": 113,
+          "visitorPct": 76,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        },
+        {
+          "round": 14,
+          "samples": 83,
+          "dungeonPct": 108,
+          "visitorPct": 73,
+          "dungeonLeadPct": 100,
+          "visitorLeadPct": 0
+        }
+      ]
+    },
+    "Whispering Gallery": {
+      "timesReached": 1,
+      "reachedPct": 0.1,
+      "avgRounds": 1,
+      "avgDecisions": 3,
+      "outcomes": {
+        "Kill": {
+          "count": 1,
+          "pct": 100
+        }
+      },
+      "momentum": []
+    }
+  }
+}

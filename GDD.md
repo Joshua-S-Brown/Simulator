@@ -802,3 +802,476 @@ The generic card pool serves as the connective tissue between encounter-aligned 
 4. **Balance-neutral by default.** Adding a generic card to any deck should not significantly shift win condition distributions. The simulation infrastructure should validate this — run each matchup with 1–2 generic swaps and confirm metrics stay within tolerance.
 
 5. **Thematically neutral.** Generic cards represent fundamental dungeon capabilities (basic strikes, simple reshapes, universal reactions) rather than room-specific phenomena. "Rumbling Strike" works in any room; "Entombing Grasp" only makes sense in Root Hollow.
+
+# GDD Update — v2.4 (Party System + Economy + Smart AI Resolution)
+
+Apply these changes to the main GDD. Each section below specifies what to find and what to replace/add.
+
+---
+
+## UPDATE 1: Section 7.2 — Smart AI (Replace entire section)
+
+### 7.2 Smart AI (Monte Carlo) — Benchmarked & Resolved
+
+Smart AI replaces heuristic scoring with Monte Carlo evaluation. For each playable card, the AI simulates 12 random playouts from the resulting board state and evaluates the final position. Smart AI includes a deck tracker that monitors draw probabilities, depleted categories, and opponent card history. The evaluation function assesses position based on resource health ratios, vulnerability detection (opponent's lowest reducer vs. own lowest), and time pressure from escalation.
+
+Smart AI v1.1 integrates the combo sequencer — MC evaluation feeds card scores into `planTurn()` via a scoreFunction closure, combining Monte Carlo position assessment with strategic energy planning. For cooperative profiles (goalType 'bond'), a cooperative override applies heuristic strike suppression and Offer/Test boosting on top of MC deltas, because MC evaluation structurally undervalues multi-turn cooperative payoff (a single Offer yields ~1.25 pts of board eval, but cumulative Offers reaching Bond threshold wins the game).
+
+**Benchmark Results (v2.4, 1000 iterations per matchup):**
+
+| Matchup | Metric | Heuristic | Smart AI | Delta |
+|---------|--------|:---------:|:--------:|:-----:|
+| Boar | Kill | 57.6% | 54.2% | -3.4% |
+| Boar | Panic | 20.8% | 20.0% | -0.8% |
+| Boar | Break | 10.4% | 11.7% | +1.3% |
+| Boar | Survive | 11.2% | 14.1% | +2.9% |
+| Moth | Survive | 46.1% | 43.3% | -2.8% |
+| Moth | Panic | 29.4% | 31.3% | +1.9% |
+| Moth | Kill | 15.2% | 17.8% | +2.6% |
+| Symbiote | Bond | 65.9% | 61.6% | -4.3% |
+| Symbiote | Kill | 34.1% | 38.4% | +4.3% |
+| Deceptive | Kill | 99.0% | 99.7% | +0.7% |
+
+**Conclusion:** Monte Carlo evaluation does not outperform heuristic AI with the current Tier 0 card set. The heuristic weights + combo sequencer already capture the decision space well. The game's contested dice rolls introduce sufficient variance that 12 random rollouts per card cannot reliably distinguish small deltas from noise. Smart AI runs 2–3× slower for no measurable benefit.
+
+Smart AI becomes relevant when card complexity increases — specifically when Intelligent Visitor party mechanics introduce targeting decisions, cross-member synergies, and multi-turn strategic planning that heuristic weights cannot capture. The Smart AI infrastructure is code-complete and available for future activation.
+
+---
+
+## UPDATE 2: Section 7.4 — Intelligent Visitor AI (Replace entire section)
+
+### 7.4 Intelligent Visitor AI
+
+The intelligent visitor phase replaces solo creature visitors with adventuring parties — groups of 3–4 specialized members who compose a shared deck and resource pool. This is the system that transforms Shattered Dungeon from a systems prototype into its real game identity.
+
+Intelligent visitors require: party composition (selecting members for strategic synergy), shared deck construction (each member contributes cards to a party-wide deck), individual targeting (dungeon chooses which party member to attack), member elimination and deck thinning (downed members lose their cards from the active deck), multi-encounter planning (managing party resources across a full dungeon run), adaptive strategy (recognizing dungeon identity mid-run and adjusting approach), and social intelligence (evaluating Offer sincerity based on dungeon reputation and behavior history).
+
+The party system is defined in Section 16. The creature visitors (Boar, Moth, Symbiote) remain as Tier 0 content for early encounters and system validation.
+
+---
+
+## UPDATE 3: Section 11.4 — Replace with Resolved, renumber remaining
+
+Find the current **11.4 Remaining Open Questions** and replace the entire section with:
+
+### 11.4 Resolved from v2.3
+
+**Deception Path.** Validated through dedicated 2-room scenario (Honeyed Hollow → Root Hollow). Cross-room deception arc works: Room 1 (nurturing profile, deceptive deck) builds trust while dealing ~6 hidden damage via Trap→Offer engine. Room 2 (tactical profile, combat deck) finishes the weakened visitor. Per-encounter AI profile overrides enable different strategies per room. Section 15 (Dungeon Strategic Architecture) documents the multi-room strategic framework.
+
+**Smart AI + Combo Sequencer Integration.** Completed and benchmarked. Smart AI v1.1 integrates the combo sequencer via scoreFunction closure. Cooperative override added for bond profiles to prevent MC evaluation from undermining cooperative play. Full benchmark across all matchups confirms heuristic AI + combo sequencer is the performance ceiling for the current Tier 0 card set. Monte Carlo evaluation does not add measurable value at this card complexity level. Smart AI infrastructure preserved for future activation when card depth increases with Intelligent Visitors.
+
+### 11.5 Remaining Open Questions
+
+**Intelligent Visitor Party System — Implementation.** The party system architecture is defined in Section 16. Design decisions are locked. Implementation requires: party member data structures, individual vitality tracking, member knockout + card removal, morale cascade on elimination, party deck composition, targeting AI for dungeon side, and a sample standard party (Fighter/Mage/Healer/Rogue) for initial testing.
+
+**Expanded Creature Content.** The GDD targets 5 creature visitors for Phase 2. Currently 3 are implemented (Boar, Moth, Symbiote). This is deprioritized in favor of the party system — the creature visitors are Tier 0 training content and the party system is the real game.
+
+**Symbiote Parasitism Mechanic.** The Symbiote's cooperation currently has no hidden cost. Adding a corruption or parasitism mechanic where Symbiote cooperation slowly drains a dungeon resource would create genuine cost/benefit tension during Bond-building. Design needed, not yet prototyped.
+
+**Cooperative Deck Diversity.** Restraint fills some dead turns during cooperation, but mid-game can still have minimal activity when waiting for Offer/Test cards to cycle from discard. Adding 2–3 cards per cooperative deck that contribute to Bond without being Offers/Tests would address this.
+
+**Cognitive Load.** Nine card categories, multi-card turns, reaction timing, keywords, triggers, and persistent conditions are substantially complex. Progressive introduction (Strike + Empower + Energy first, then Disrupt/Counter/React, then Trap/Offer/Test/Reshape, then keywords/triggers) should mitigate this, but paper playtest must verify.
+
+**Emotional States.** Visitor emotional states (Enraged from betrayal, Cautious from trap awareness, Grateful from beneficial offers) that modify AI behavior qualitatively. Not yet designed in detail.
+
+**Environmental Hazards During Cooperation.** Adding threats that pressure both sides during cooperative encounters would increase tension — the dungeon and visitor must cooperate while the environment works against them both.
+
+**Run Rewards & Economy.** The dual economy framework (Essence/World Knowledge for dungeons, Gold/Items for visitors) is defined in Section 17. Detailed implementation of reward scaling per encounter outcome, card morphing mechanics, and reputation-based matchmaking remain to be specified.
+
+---
+
+## UPDATE 4: Section 12 — Update Roadmap (Replace entire section)
+
+---
+
+## 12. Scope & Development Roadmap
+
+**Phase 1 (Months 1–6): Core Loop.** Card engine with 9 categories, encounter system, turn-based resolution, Energy system, 3 base encounters, 3 creature visitors, economy, attribute growth. Simulation engine for validation. *Status: Complete. Card system validated with mechanical depth. 15 keywords/conditions, triggers, keyword grants, Disrupt/Counter/React variants designed. 7 decks with distinct combo lines. Energy system fully implemented and validated. AI combo sequencer operational. Smart AI benchmarked — heuristic AI confirmed as performance ceiling for Tier 0 content.*
+
+**Phase 2 (Months 7–12): Intelligent Visitors & Content.** Party system implementation (Section 16), dual economy framework (Section 17), sample standard party, party-vs-dungeon encounter testing, 2 additional creature visitors, companion cards, card evolution, architecture branching. Deception scenario validation complete.
+
+**Phase 3 (Months 13–18): Content Depth & Early Access.** Additional party compositions, class customization, equipment system implementation, card morphing, reputation and matchmaking, multi-encounter party resource management, narrative framework, Veil crafting, offering market. Early Access launch.
+
+**Phase 4 (Months 19–24): PVP & Endgame.** Player-vs-player mode (human controls visitor party OR dungeon side), advanced encounter designs, scoring system. Balance passes across party compositions.
+
+**Phase 5 (Months 25–36): 1.0 & Beyond.** Full content pass, modding support, additional morph paths, community-designed encounters and party classes.
+
+---
+
+## UPDATE 5: New Section 16 — Intelligent Visitor Party System (Add after Section 15)
+
+---
+
+## 16. Intelligent Visitor Party System
+
+### 16.1 Design Philosophy
+
+The party system transforms the visitor side from a single entity with flat resource pools into a composed team of specialized members — mirroring how the dungeon side composes encounter rooms into a strategic sequence. Both sides now have a **compositional layer** (which rooms / which party members) that determines the **tactical layer** (which cards are available and what strategies are viable).
+
+The party system is the inverse of dungeon encounter design. Dungeon encounters add flavor and tactics through sub-decks, auto-effects, and room-specific cards aligned to the encounter. Party members function identically: each member contributes cards to the party deck, modifies the collective resource pool, and brings a strategic focus area. Pre-match party selection — choosing which members to bring against a dungeon with a known reputation — is a core strategic decision.
+
+This architecture supports PVE (party vs AI dungeon), PVE-inverse (dungeon vs AI party), and PVP (human party vs human dungeon) without changing the underlying mechanical systems.
+
+### 16.2 Party Composition
+
+Parties are **fixed at 4 members** for initial implementation. Each party member has:
+
+- **Individual vitality** — their own physical health pool, targeted independently by the dungeon
+- **Collective resource contribution** — each member adds to the party's shared resolve and nerve pools
+- **Card contribution** — each member brings 8–12 cards to the shared party deck
+- **Strategic identity** — primary focus, dual focus, or utility (see 16.4)
+
+The party functions as a single "side" in the encounter system. One shared hand is drawn from the combined party deck. One shared energy pool funds all card plays. The party takes one unified turn per round, playing cards from the shared hand. This keeps the turn economy identical to the current system — the party is one side that plays cards each turn, not four separate actors.
+
+### 16.3 Resource Model
+
+**Vitality is individual.** Each party member has their own vitality pool. The dungeon targets individual members when playing vitality-targeting Strikes. This represents physical health — each person has their own body, their own hit points.
+
+**Resolve and nerve are collective.** The party shares a single resolve pool and a single nerve pool. These represent group morale: willpower (resolve) and courage (nerve) are contagious — one member's fear affects the whole group, one member's determination bolsters everyone.
+
+**Collective pool composition.** Each party member contributes a defined amount to the party's resolve and nerve pools. A fighter might contribute +6 resolve / +4 nerve while a mage contributes +3 resolve / +5 nerve. Party composition directly shapes the defensive profile:
+
+- A heavy-fighter party has deep resolve but shallow nerve — hard to Break, easy to Panic.
+- A balanced party has no glaring weakness but no deep reservoir either.
+- A caster-heavy party has deep nerve but shallow resolve — resistant to fear, vulnerable to psychological warfare.
+
+This means pre-match party selection is a defensive decision as much as an offensive one. The party is choosing its vulnerability profile.
+
+**Trust is collective.** The party shares a single Trust value. Bond requires the entire party's Trust reaching threshold — the dungeon must convince the whole group, not just one member.
+
+### 16.4 Party Member Archetypes
+
+Party members exist on a specialization spectrum, similar to dungeon deck identities (Section 14.3):
+
+**Primary focus** — Deep in one area. Most cards serve a single strategic function. Example: a Knight brings predominantly Strikes targeting structure/presence, with one Empower and one Reshape. High impact in their lane, minimal flexibility.
+
+**Dual focus** — Split across two areas. Cards serve two complementary functions. Example: a Battlemage brings Strikes and Disrupts, able to pressure two resource axes but neither as hard as a specialist.
+
+**Utility** — Spread across many functions. Cards provide support, healing, disruption, and light offense. Example: a Bard brings Reshapes, Offers, Counters, and one Disrupt. Doesn't push any win condition independently but enables specialists and shores up weaknesses.
+
+A well-composed party has a mix: 1–2 primary focus members for win condition pressure, 1 dual focus for flexibility, and 1 utility for support and counterplay. An unbalanced party (e.g., 4 fighters) is powerful on one axis but has glaring gaps the dungeon can exploit.
+
+### 16.5 Party Deck Construction
+
+Each party member brings **8–12 cards** to the shared party deck, creating a combined deck of **32–48 cards** that carries the party through the entire dungeon run. This contrasts with the dungeon side, where each encounter room has its own 15–16 card deck.
+
+**Why the party deck persists across rooms:** Visitors don't control the dungeon's layout. They bring one kit and adapt it to whatever rooms they encounter. This creates resource management tension across the full run — burning powerful cards early to survive Room 1 means fewer options in Room 3.
+
+**Deck composition rules:**
+- Each member's card set must include at least 1 Energy card
+- The combined party deck must contain at least 4 Energy cards total
+- Each member's cards should form a coherent kit (internal synergies)
+- Cross-member synergies are encouraged (a healer's buff makes the fighter's Strike better)
+
+**Future evolution:** Party member card pools can be customizable, similar to how dungeon encounter decks have core slots (locked) and flex slots (swappable). A Knight's core cards (signature Strikes) are fixed, but 2–3 flex slots allow the player to customize their Knight's secondary capabilities. This is a future system — initial implementation uses fixed card sets per class.
+
+### 16.6 Member Elimination
+
+When a party member's individual vitality reaches 0, they are **knocked out:**
+
+1. **Card removal.** The knocked-out member's cards are removed from the active deck. Cards currently in hand remain playable this turn but are not reshuffled. Cards in the draw pile and discard are removed.
+
+2. **Morale cascade.** Each knockout inflicts direct damage to the party's collective resolve and nerve. The damage **scales with eliminations** — the first knockout is a setback, the second is devastating:
+   - First knockout: -3 resolve, -3 nerve
+   - Second knockout: -6 resolve, -6 nerve (and triggers Kill — see 16.7)
+
+3. **Deck thinning.** Losing a member's cards reduces deck size, which increases draw consistency for remaining cards. This is a feature, not a bug — it mirrors the DND dynamic where a reduced party is weaker overall but each remaining member gets more spotlight. A 3-survivor party with a tight 24-card deck might draw their best cards more often than the original 4-member party with a diluted 32-card deck.
+
+### 16.7 Kill Win Condition (Revised)
+
+With parties, Kill no longer requires depleting a single vitality pool. Kill triggers when **2 of 4 party members are knocked out** (50% threshold) — the survivors flee the dungeon. This creates a clean aggressive-path victory for the dungeon.
+
+The morale cascade means member elimination accelerates other win conditions too. Knocking out one member deals -3 to resolve and nerve, potentially bringing the party within Break or Panic range. The dungeon faces a genuine strategic choice:
+
+- **Focus fire** two members for Kill (requires concentrated vitality damage on individuals)
+- **Spread pressure** to trigger knockouts that cascade into Break or Panic (requires mixing vitality damage with resolve/nerve pressure)
+- **Ignore vitality entirely** and pursue pure Break or Panic against the collective pools
+
+This makes the dungeon's targeting decision — which party member to attack — one of the most important strategic choices in the game.
+
+### 16.8 Member Restoration
+
+Party members can be restored mid-encounter through dedicated healing cards (typically from utility/healer class members). Restoration is:
+
+- **Expensive** — high energy cost (3+), representing significant resource investment
+- **Partial** — restored member returns at reduced vitality (e.g., 50% of starting), not full health
+- **Blockable** — the dungeon can play cards that prevent or interfere with restoration (Counter to dispel the heal, Disrupt to reduce its effectiveness, or targeting the healer to prevent the attempt)
+
+This creates the classic "kill the healer first" dynamic from DND party tactics. If the dungeon leaves the healer alive, the party can recover from member knockouts. If the dungeon prioritizes the healer, the party loses both its restoration capability and its utility cards.
+
+Between-encounter restoration is more generous — downed members automatically return at partial vitality between rooms, representing rest and regrouping. The dungeon's multi-room strategy must account for party recovery between encounters.
+
+### 16.9 Targeting System
+
+Dungeon Strikes that target vitality require a **target selection** — which party member to hit. This is a dungeon AI decision (or player decision in PVP) based on:
+
+- **Member threat assessment** — which member's cards are most dangerous to the dungeon
+- **Member vulnerability** — which member has the lowest remaining vitality
+- **Strategic objective** — whether the dungeon is pursuing Kill (focus fire), Break/Panic (morale cascade), or Bond disruption
+- **Healer priority** — eliminating restoration capability before focusing other members
+
+Strikes targeting collective resources (resolve, nerve) do not require member targeting — they hit the party's shared pool directly.
+
+**Keyword extensions for party targeting:**
+- Default: dungeon AI selects target (or player chooses in PVP)
+- **Cleave** keyword: Strike hits multiple party members for reduced damage
+- **Focused** keyword: Strike must target a specific member (e.g., lowest vitality)
+- **Piercing** keyword: Strike ignores restoration effects
+
+These keywords are future design space. Initial implementation uses AI-selected targeting as the default.
+
+### 16.10 Energy System
+
+The party shares a **single energy pool**, consistent with the shared deck and shared hand. Energy cards from any party member contribute to the shared pool. This creates natural energy tension — a healer's expensive restoration card competes for energy with the fighter's finisher Strike.
+
+Party member card pools may include specialty Energy cards (e.g., a mage's "Arcane Surge" provides 2 temp energy but only for Mystical-type cards) or standard Energy cards. The player chooses which Energy cards to include when constructing the party deck, adding another layer of pre-match composition decisions.
+
+### 16.11 Bond with Parties
+
+Bond requires the **entire party's Trust** reaching threshold. The dungeon must convince the whole group, not just one sympathetic member. This is the hardest path — four skeptical adventurers are harder to win over than one creature.
+
+This creates potential narrative richness:
+- The dungeon may need to address different party members' concerns differently (though mechanically Trust is one shared pool)
+- Knocking out party members does NOT make Bond easier — it damages morale (resolve/nerve cascade) and removes that member's potential Offer/Test cards from the deck
+- A dungeon pursuing Bond against a party cannot eliminate members as a shortcut — it must keep everyone alive and cooperating
+
+Bond with a full party is the most difficult and rewarding win condition in the game.
+
+### 16.12 Interaction with Existing Systems
+
+The party system integrates with existing mechanics without replacing them:
+
+- **Card categories** — all 9 categories function identically. Party member cards use the same Strike/Empower/Disrupt/Counter/Trap/Offer/Test/Reshape/React categories.
+- **Energy system** — shared pool, same Energy card types (Standard, Surge, Attune, Siphon), same costs and activation.
+- **Combo sequencer** — `planTurn()` works with the party deck since it operates on hand contents, not on party structure. No changes needed to the combo sequencer.
+- **Encounter engine** — the party is one "side" with modified resource tracking. The core turn loop (draw → play → resolve → end-of-round) is unchanged.
+- **Auto-effects** — encounter auto-effects that target visitor vitality need a targeting rule (e.g., target lowest-vitality member, or spread across all members). Auto-effects targeting resolve/nerve hit the collective pool as before.
+- **Creature visitors** — Boar, Moth, and Symbiote remain as Tier 0 solo visitors. They use the current system unchanged. The party system applies only to Intelligent Visitors (Tier 1+).
+
+### 16.13 Sample Party — The Standard Adventuring Company
+
+The first party implementation will be a classic 4-member composition for testing:
+
+| Role | Class | Vitality | Resolve Contrib. | Nerve Contrib. | Cards | Strategic Focus |
+|------|-------|:--------:|:-----------------:|:--------------:|:-----:|----------------|
+| Tank | Knight | 12 | +6 | +3 | 10 | Primary: Structure/Presence Strikes, Reshapes |
+| DPS | Battlemage | 8 | +4 | +5 | 10 | Dual: Vitality Strikes + Disrupts |
+| Support | Cleric | 8 | +5 | +4 | 10 | Utility: Reshapes, Offers, restoration |
+| Flex | Rogue | 7 | +3 | +6 | 10 | Dual: Veil Strikes + Traps + Counters |
+| **Party Total** | | **35 (individual)** | **18 (collective)** | **18 (collective)** | **40** | |
+
+This gives the party: 35 combined individual vitality (dungeon must knock out 2 members from individual pools), 18 shared resolve (comparable to current creature visitors), 18 shared nerve, and a 40-card deck with mixed capabilities.
+
+The Knight has the most vitality (12) and is the hardest to eliminate individually. The Rogue has the least vitality (7) and is the easiest knockout target, but removing the Rogue eliminates Traps and Counters — defensive tools the party needs. This creates a genuine dungeon dilemma: kill the easy target and lose your own counterplay threat, or focus the Knight for a harder but less costly elimination.
+
+### 16.14 Design Validation Plan
+
+The party system will be validated through the same simulation methodology used for creature visitors:
+
+1. **Build the Knight/Battlemage/Cleric/Rogue party** with fixed card sets
+2. **Run against Verdant Maw** (tactical dungeon) — 1000 iterations
+3. **Evaluate targeting patterns** — does the dungeon AI make interesting targeting decisions?
+4. **Evaluate win condition distribution** — do Kill, Break, Panic, and Survive all occur at meaningful rates?
+5. **Evaluate member elimination patterns** — which members get knocked out first and does it vary by dungeon strategy?
+6. **Evaluate deck thinning dynamics** — does the party's effectiveness change in interesting ways as members are eliminated?
+7. **Test Bond path** — run against nurturing dungeon to verify Bond is achievable but hard with full party Trust requirement
+8. **Test deceptive path** — run 2-room deceptive scenario against party to verify the deceptive arc still works with party mechanics
+
+Target outcome distributions will be established after initial testing — the party system introduces enough new variables that existing Tier 0 targets may not apply directly.
+
+---
+
+## UPDATE 6: New Section 17 — Dual Economy & Progression (Add after Section 16)
+
+---
+
+## 17. Dual Economy & Progression
+
+### 17.1 Economic Philosophy
+
+The economy is a two-sided marketplace. The dungeon has something visitors want (gold, items, the challenge itself). Visitors have something the dungeon wants (Essence from their life force, World Knowledge from their experiences). Every encounter outcome distributes these currencies differently, making the dungeon's identity choice — predator, nurturer, trader, deceiver — an economic decision with long-term progression consequences.
+
+**Critical design constraint:** The economy must prevent runaway specialization. A dungeon that only kills becomes Essence-rich but Knowledge-poor — powerful rooms but no sophistication. A dungeon that only bonds becomes Knowledge-rich but Essence-poor — clever encounters but structurally weak. Over time, the system incentivizes strategic diversification naturally through currency scarcity, not through artificial rules mandating variety.
+
+### 17.2 Dungeon Currencies
+
+**Essence** — Raw power extracted from visitors. Represents the life force, fear, and suffering the dungeon absorbs.
+
+Earning rates scale with encounter aggression:
+- Kill: High Essence (maximum extraction)
+- Break/Panic: Moderate Essence (fear and broken will feed the dungeon)
+- Survive (visitor escapes): Low Essence (brief exposure)
+- Bond: Minimal Essence (cooperative visitors share willingly but the dungeon takes nothing by force)
+
+**World Knowledge** — Information, memories, and experiences visitors carry. Represents the dungeon learning about the world beyond its walls.
+
+Earning rates scale with encounter depth and cooperation:
+- Bond: High World Knowledge (visitor shares freely, deep mutual exchange)
+- Survive (extended encounter): Moderate World Knowledge (dungeon observes visitor behavior over many rounds)
+- Break/Panic: Low World Knowledge (traumatized visitors reveal little of value)
+- Kill (quick): Minimal World Knowledge (dead visitors teach nothing)
+
+This creates the core economic tradeoff. Predatory dungeons accumulate power fast but plateau in sophistication. Nurturing dungeons grow slowly in raw power but develop complex, adaptable strategies. The most successful long-term dungeons must diversify their approach across visitors.
+
+### 17.3 Dungeon Spending
+
+**Essence buys power:**
+- New combat-oriented cards (Strikes, Empowers, aggressive Disrupts)
+- Card morphs toward lethality (existing cards gain power, keywords, or aggressive triggers)
+- Room items that boost reducer resources or amplify damage (see 17.7)
+- Encounter morphs that increase environmental pressure (stronger auto-effects)
+
+**World Knowledge buys sophistication:**
+- New utility and tactical cards (Traps, Offers, Tests, Reshapes, Counters)
+- Card morphs toward complexity (existing cards gain conditional effects, combo enablers)
+- Room items that enable new strategies (trap enhancements, offer sweeteners, environmental manipulation)
+- Encounter morphs that add mechanical depth (new auto-effect types, branching room outcomes)
+- Unlocking new encounter room templates
+
+**Both currencies can buy:**
+- Energy card improvements (better Attune/Siphon/Surge variants)
+- Defensive investments (resource pool increases, React improvements)
+
+### 17.4 Dungeon Lure Investment
+
+The dungeon **spends resources to place loot in its rooms** as bait to attract visitors. This is a strategic investment:
+
+- Placing valuable items costs the dungeon Essence or World Knowledge
+- Higher-value loot attracts more and better-equipped parties
+- The type of loot shapes which visitors arrive (combat gear attracts fighters, magical items attract casters)
+- Loot placement is part of the dungeon's pre-run strategic setup alongside room ordering
+
+This creates a genuine economic cycle: the dungeon invests in loot → attracts visitors → encounters produce Essence/Knowledge → dungeon reinvests. The dungeon is running a business where the product is "an interesting and potentially survivable experience" and the revenue is extracted life force and knowledge.
+
+### 17.5 Visitor Currencies
+
+**Gold** — Universal currency earned from dungeon runs. Represents treasure found, payment for services, and rewards for survival.
+
+Earning rates scale with encounter outcome and difficulty:
+- Bond: Highest gold (dungeon shares treasure willingly, mutual reward)
+- Survive (full run completion): High gold (collected loot from all rooms)
+- Survive (partial, fled early): Moderate gold (kept what you grabbed)
+- Break/Panic (fled in terror): Low gold (dropped most of it running)
+- Kill (party wipe): Zero gold (dead parties collect nothing)
+
+Gold scales with dungeon difficulty — a harder dungeon pays more for survival. This creates the risk/reward calculation parties make when choosing which dungeon to enter.
+
+**Items** — Specific equipment and artifacts found during runs.
+
+Sources:
+- Dungeon-placed loot (collected during encounters, the dungeon's bait investment)
+- Between-run shops and marketplaces (purchased with gold)
+- Crafting from materials gathered during runs (future system)
+- Rare drops from specific encounter outcomes (e.g., defeating a powerful dungeon room)
+
+### 17.6 Visitor Spending
+
+**Gold buys:**
+- Equipment from shops (see 17.7)
+- New cards for party members (expanding card pools for deck construction)
+- Card morphs (upgrading existing cards — see 17.9)
+- Party member recruitment and replacement (hiring new members, reviving permanently lost ones)
+- Consumables for runs (one-use items that provide temporary advantages)
+
+**Items are equipped** to party members (see 17.7) or consumed during runs.
+
+### 17.7 Equipment & Room Items
+
+Equipment is the primary way both sides modify their tactical capabilities between runs. **The design principle is effect-based progression, not flat stat increases.** A +1 vitality item is boring. An item that applies Entangle on Strong hits transforms how a card plays.
+
+**Visitor Equipment** — Equipped to individual party members, modifying their stats or card behavior.
+
+Equipment exists on a tiered rarity scale:
+
+| Tier | Name | Effect Type | Example |
+|------|------|-------------|---------|
+| Common (White) | Basic Gear | Small flat stat bonus | Iron Shield: +1 vitality |
+| Uncommon (Green) | Quality Gear | Conditional stat bonus | Sturdy Boots: +2 vitality if nerve > 50% |
+| Rare (Blue) | Specialized Gear | Card play modifier | Veil-Touched Blade: Physical Strikes also deal 1 veil damage |
+| Epic (Purple) | Exceptional Gear | New mechanic or trigger | Healer's Oath: When ally drops below 30% vitality, auto-restore 2 (once per encounter) |
+| Legendary (Gold) | Unique Artifacts | Game-changing effect | Crown of Defiance: Party is immune to first Panic trigger per encounter |
+
+The design target is that **Common and Uncommon items are stepping stones, Rare items change how you build your deck, and Epic/Legendary items change how you approach encounters.** A party's equipment loadout should meaningfully affect their strategy, not just their numbers.
+
+**Equipment slots per party member:** Weapon (modifies offensive cards), Armor (modifies defensive stats/reactions), Accessory (provides a unique effect or trigger). Three slots keeps it manageable while allowing meaningful customization.
+
+**Dungeon Room Items** — Installed in encounter rooms, providing persistent modifiers to that room's encounters.
+
+| Tier | Example | Effect |
+|------|---------|--------|
+| Common | Essence Crystal | Structure +2 in this room |
+| Uncommon | Fear Totem | Nerve auto-effects deal +1 in this room |
+| Rare | Trapweaver's Loom | Traps in this room trigger twice before expiring |
+| Epic | Betrayal Mirror | When visitor Trust > 6, dungeon gains +1 power on all Strikes (deception enabler) |
+| Legendary | Heart of the Veil | All dungeon cards in this room gain the Drain keyword |
+
+Dungeon room items are the equivalent of encounter morphs but purchased/found rather than earned through progression. They let the dungeon customize individual rooms beyond the base encounter template and aligned deck.
+
+### 17.8 Reputation & Matchmaking
+
+The dungeon's accumulated encounter outcomes create a **reputation** that shapes which visitors arrive. Reputation is not a single number — it's a profile of the dungeon's behavior history.
+
+Reputation dimensions:
+- **Lethality** — ratio of Kills to total encounters. High lethality attracts aggressive parties who think they can win, deters cautious ones.
+- **Hospitality** — ratio of Bonds and successful Survives. High hospitality attracts cooperative visitors and treasure-seekers.
+- **Deception** — ratio of encounters where early cooperation was followed by aggression. High deception makes all visitors more suspicious (higher resistance to Offers, lower initial Trust).
+- **Difficulty** — aggregate measure of how challenging the dungeon is. Affects gold scaling for visitors.
+
+Matchmaking uses reputation to generate appropriate challenges:
+- A lethal dungeon faces increasingly well-equipped, aggressive parties (the weak ones stopped coming)
+- A hospitable dungeon attracts diverse visitors including rare cooperative ones with unique rewards
+- A deceptive dungeon faces parties with high starting suspicion and anti-trap capabilities
+- Rising difficulty attracts stronger parties but also increases the Essence/Knowledge yield per encounter
+
+This creates the **natural progression treadmill**: as the dungeon gets better, so do its opponents. Progression is real (better cards, morphed encounters, room items) but the challenge scales with it. A dungeon that diversifies its approach (sometimes killing, sometimes bonding, sometimes deceiving) develops a complex reputation that attracts varied visitors — keeping gameplay fresh and preventing formulaic optimization.
+
+### 17.9 Card Morphing (Framework)
+
+Both sides can invest currency to permanently modify existing cards. Card morphing is the deepest progression mechanic — it transforms how individual cards play rather than just adding new cards to the pool.
+
+**Design principles for morphing:**
+- Morphs are permanent and irreversible (commitment matters)
+- Each card has 2–3 morph paths representing different specializations
+- Morph paths align with the currency used (Essence morphs → power/aggression, World Knowledge morphs → utility/complexity)
+- Morphed cards must still pass the Description Test (the morph creates a genuinely different card, not a numerically bigger version)
+- Higher-tier morphs require both currencies, incentivizing balanced play
+
+**Example morph paths (dungeon card):**
+
+*Entangling Grasp (base: Strike, 2 power, Entangle keyword)*
+- **Essence morph → Strangling Grasp:** 3 power, Entangle + Erode. Pure lethality upgrade.
+- **Knowledge morph → Binding Inquiry:** 2 power, Entangle + on hit: reveal one face-down visitor card. Tactical information gathering.
+- **Dual morph → Consuming Embrace:** 2 power, Entangle + Drain (convert 1 damage dealt to structure healing). Sustain through aggression.
+
+**Example morph paths (visitor card):**
+
+*Holy Light (base: Strike, 2 power, targets structure)*
+- **Gold morph → Searing Radiance:** 3 power, targets structure. Raw damage increase.
+- **Item morph → Purifying Light:** 2 power, targets structure + removes one dungeon Empower condition. Utility upgrade.
+- **Rare item morph → Revealing Light:** 2 power, targets veil instead of structure + reveals one face-down Trap. Strategic retargeting.
+
+Detailed morph trees per card are a future design task. The framework establishes that morphing exists, uses the dual currency system, and creates meaningful specialization choices.
+
+### 17.10 Economic Balance Constraints
+
+Several constraints prevent the economy from breaking game balance:
+
+**Currency caps per encounter.** Maximum Essence and World Knowledge earned per encounter prevents farming through artificial encounter extension.
+
+**Diminishing returns on specialization.** The first Essence-purchased combat card is cheap. The tenth is expensive. This naturally pushes dungeons toward diversification over deep specialization in one currency's purchases.
+
+**Loot investment risk.** Placed dungeon loot that visitors collect is a real cost. If the visitor Bonds or Survives, they take the loot. If the dungeon Kills them, the loot stays (recycled for the next visitor). This means hospitable dungeons pay a real ongoing cost for their visitor-friendly reputation.
+
+**Equipment durability or charges.** Visitor equipment may degrade over runs, requiring gold to maintain. This prevents equipment stockpiling and keeps the gold economy flowing. Exact durability mechanics are a future design decision.
+
+**Matchmaking pressure.** The reputation system ensures that economic advantages translate into harder opponents, not easier wins. Getting rich makes the game harder, not easier — but also more rewarding.
+
+### 17.11 Interaction with Party System
+
+The economy directly shapes party gameplay:
+
+- **Party composition is an economic decision.** Hiring a specialized party member costs gold. Bringing a healer means investing in restoration capability at the expense of offensive gear.
+- **Equipment loadout defines the run strategy.** A party equipped for anti-trap operations approaches a deceptive dungeon differently than one equipped for raw combat.
+- **Run reward depends on encounter outcomes.** Which party members survive, whether Bond was achieved, and how many rooms were completed all affect gold and item rewards.
+- **Member loss has economic consequences.** A knocked-out party member's equipment is at risk. Permanent member death (if implemented) means losing both the member and their gear investment.
+- **Dungeon lure quality affects party decisions.** Players choose which dungeon to enter based on reputation, difficulty, and advertised rewards — creating a marketplace where dungeons compete for visitors.

@@ -1,20 +1,14 @@
 /**
- * SHATTERED DUNGEON — Encounter Engine v2.2
+ * SHATTERED DUNGEON — Encounter Engine v2.4
  * 
- * CHANGES from v1.5:
- * [ADD] Energy card type resolution (Standard/Surge/Attune/Siphon) via energy.js
- * [ADD] Attune discount: consumed before paying action card costs
+ * v2.2: Energy card type resolution, Attune discount
+ * v2.4: Party system — member targeting, knockout mechanics, card removal,
+ *       morale cascade, restoration, party-aware damage routing
  * 
- * Previous v1.5 changes:
- * [ADD] Extended trigger system: self-state checks, discard pile counts, scaling bonuses
- * [ADD] Drain keyword: damage dealt heals a self resource (capped at 2)
- * [ADD] Overwhelm keyword: excess damage spills to secondary target
- * [ADD] Empower keyword grants: Empowers can add keywords, retarget, conditional advantage
- * [ADD] Disrupt variants: onStrike thorns, stripKeywords, randomizeTarget, suppress
- * [ADD] Counter variants: steal Empower, punish bonus, counter+setup (entangle/fortify)
- * [ADD] React variants: conditional power, absorb (always-fortify), reflect
- * [ADD] Strike self-cost: risk/reward Strikes that damage yourself
- * [ADD] Exhaust mechanic: cards removed from game instead of discarded
+ * Previous changes preserved:
+ * [ADD] Extended trigger system, Drain, Overwhelm, Empower keyword grants
+ * [ADD] Disrupt variants, Counter variants, React variants
+ * [ADD] Strike self-cost, Exhaust mechanic
  */
 
 const R = require('./rules');
@@ -47,7 +41,12 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
   const log = (msg) => { lines.push(msg); };
 
   // ─── STATE SETUP ───
-  const visitor = carryover?.visitor || R.createVisitorState(visitorTemplate);
+  // v2.4: Party visitor support
+  const visitor = carryover?.visitor || (
+    visitorTemplate.type === 'party'
+      ? R.createPartyVisitorState(visitorTemplate)
+      : R.createVisitorState(visitorTemplate)
+  );
   const dungeon = carryover?.dungeon || R.createDungeonState(dungeonTemplate);
   const dEnergy = R.createEnergyPool(config.dungeonBaseEnergy || 2);
   const vEnergy = R.createEnergyPool(config.visitorBaseEnergy || 2);
@@ -56,6 +55,9 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
   const vDraw = R.drawOpeningHand(visitorDeck, config.handSize || 7);
   let dHand = dDraw.hand, dPile = dDraw.drawPile, dDiscard = carryover?.dungeonDiscard || [];
   let vHand = vDraw.hand, vPile = vDraw.drawPile, vDiscard = carryover?.visitorDiscard || [];
+
+  // v2.4: Keep full deck reference for member card restoration (Healing Word)
+  const fullVisitorDeck = [...visitorDeck];
 
   // Initialize deck trackers for smart AIs
   if (typeof dungeonAI.initDeck === 'function') dungeonAI.initDeck(dungeonDeck);
@@ -72,7 +74,15 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
     log(`  Auto: ${ae.target} ${ae.resource} ${ae.amount > 0 ? '+' : ''}${ae.amount}/${freq}`);
   }
   log(`  Dungeon: Str:${dungeon.structure} Vl:${dungeon.veil} Pr:${dungeon.presence} Rp:${dungeon.rapport}`);
-  log(`  Visitor: Vit:${visitor.vitality} Res:${visitor.resolve} Nrv:${visitor.nerve} Tru:${visitor.trust}`);
+  // v2.4: Party-aware header logging
+  if (visitor.isParty) {
+    const memberStatus = Object.entries(visitor.members)
+      .map(([k, m]) => `${m.name}:${m.vitality}/${m.maxVitality}`)
+      .join(' ');
+    log(`  Party: ${memberStatus} | Res:${visitor.resolve} Nrv:${visitor.nerve} Tru:${visitor.trust}`);
+  } else {
+    log(`  Visitor: Vit:${visitor.vitality} Res:${visitor.resolve} Nrv:${visitor.nerve} Tru:${visitor.trust}`);
+  }
   log(`  D-Hand: ${dHand.map(c => c.name).join(', ')}`);
   log(`  V-Hand: ${vHand.map(c => c.name).join(', ')}`);
 
@@ -87,7 +97,7 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
     rounds: 0, dCardsPlayed: 0, vCardsPlayed: 0, decisions: 0,
     dDamageDealt: {}, vDamageDealt: {}, dLastType: null, vLastType: null,
   };
-  const roundSnapshots = []; // Track per-round resource state
+  const roundSnapshots = [];
 
   // ─── MAIN LOOP ───
   while (round < maxRounds) {
@@ -95,7 +105,6 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
     stats.rounds = round;
     log(`\n── Round ${round} ──`);
 
-    // Track promoter values at round start for per-round gain cap
     const roundStartTrust = visitor.trust || 0;
     const roundStartRapport = dungeon.rapport || 0;
     const promoterGainCap = config.promoterGainCap || 2;
@@ -105,9 +114,31 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
       const fires = ae.frequency === 'every' || (ae.frequency === 'other' && round % 2 === 1);
       if (fires && ae.resource && ae.amount !== 0) {
         const tgt = ae.target === 'visitor' ? visitor : dungeon;
-        if (ae.amount < 0) R.applyDamage(tgt, ae.resource, Math.abs(ae.amount), 1);
-        else R.applyBenefit(tgt, ae.resource, ae.amount);
-        log(`  [Auto] ${ae.target} ${ae.resource} ${ae.amount > 0 ? '+' : ''}${ae.amount}`);
+        if (ae.amount < 0) {
+          // v2.4: Route party vitality auto-damage to a random active member
+          if (tgt.isParty && ae.resource === 'vitality') {
+            const targetKey = R.selectPartyTarget(tgt, 'random');
+            if (targetKey) {
+              const autoResult = R.damagePartyMember(tgt, targetKey, Math.abs(ae.amount));
+              log(`  [Auto] ${ae.target} ${tgt.members[targetKey].name} vitality ${ae.amount}`);
+              if (autoResult.knockout) {
+                log(`    >>> ${tgt.members[targetKey].name} KNOCKED OUT by auto-effect!`);
+                if (autoResult.moraleCascade) {
+                  log(`    [Morale] Resolve -${autoResult.moraleCascade.resolveHit}, Nerve -${autoResult.moraleCascade.nerveHit}`);
+                }
+                const removal = R.removeKnockedOutCards(targetKey, vHand, vPile, vDiscard);
+                vHand = removal.newHand;
+                log(`    [Deck] Removed ${removal.removed.length} cards`);
+              }
+            }
+          } else {
+            R.applyDamage(tgt, ae.resource, Math.abs(ae.amount), 1);
+            log(`  [Auto] ${ae.target} ${ae.resource} ${ae.amount}`);
+          }
+        } else {
+          R.applyBenefit(tgt, ae.resource, ae.amount);
+          log(`  [Auto] ${ae.target} ${ae.resource} ${ae.amount > 0 ? '+' : ''}${ae.amount}`);
+        }
       }
     }
     R.resolveErode(visitor, autoResource, log);
@@ -115,7 +146,13 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
 
     const esc = R.getEscalation(round, config);
     if (esc) {
-      R.applyDamage(visitor, 'vitality', esc.damage, 1);
+      // v2.4: Route escalation vitality damage to party member
+      if (visitor.isParty) {
+        const escTarget = R.selectPartyTarget(visitor, 'random');
+        if (escTarget) R.damagePartyMember(visitor, escTarget, esc.damage);
+      } else {
+        R.applyDamage(visitor, 'vitality', esc.damage, 1);
+      }
       R.applyDamage(dungeon, 'structure', esc.damage, 1);
       log(`  [Escalation] Both sides take ${esc.damage}`);
     }
@@ -133,14 +170,30 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
       visitor: { hand: vHand, energy: vEnergy, self: visitor, opp: dungeon, ai: visitorAI, discard: vDiscard },
     };
 
-    // 3. FIRST TURN — clear entangle on the acting side before they act
+    // v2.4: Compute party member targeting strategy for dungeon turns
+    let memberTargetStrategy = null;
+    if (visitor.isParty) {
+      memberTargetStrategy = (typeof dungeonAI.selectMemberTarget === 'function')
+        ? dungeonAI.selectMemberTarget(visitor, dungeon)
+        : 'lowest_vitality';
+    }
+
+    // 3. FIRST TURN
     clearEntangle(sides[firstSide].self, firstSide, log);
     const firstCtx = { encounter, round, stats, autoResource, log, activeSide: firstSide,
       opponentReactHand: sides[secondSide].hand, opponentSide: secondSide, cardTracker,
       bondThreshold: config.bondThreshold || 12,
-      roundStartTrust, roundStartRapport, promoterGainCap };
+      roundStartTrust, roundStartRapport, promoterGainCap,
+      memberTargetStrategy: firstSide === 'dungeon' ? memberTargetStrategy : null,
+      fullVisitorDeck, vPile, vDiscard, sides,
+    };
     const firstResult = executeTurn(firstSide, sides[firstSide], firstCtx);
     sides[firstSide].hand = firstResult.remainingHand;
+    // v2.4: Update vHand reference if visitor hand changed during dungeon turn (knockout removal)
+    if (firstSide === 'dungeon' && firstResult.updatedVisitorHand) {
+      vHand = firstResult.updatedVisitorHand;
+      sides.visitor.hand = vHand;
+    }
     for (const p of firstResult.plays) {
       if (!p.card._exhausted) sides[firstSide].discard.push(p.card);
       if (p.card.category && cardTracker[firstSide]) cardTracker[firstSide][p.card.category] = (cardTracker[firstSide][p.card.category] || 0) + 1;
@@ -150,14 +203,21 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
     outcome = R.checkWinConditions(visitor, dungeon, config);
     if (outcome) { log(`  >>> ${outcome.condition}: ${outcome.desc}`); break; }
 
-    // 4. SECOND TURN — clear entangle on acting side
+    // 4. SECOND TURN
     clearEntangle(sides[secondSide].self, secondSide, log);
     const secondCtx = { encounter, round, stats, autoResource, log, activeSide: secondSide,
       opponentReactHand: sides[firstSide].hand, opponentSide: firstSide, cardTracker,
       bondThreshold: config.bondThreshold || 12,
-      roundStartTrust, roundStartRapport, promoterGainCap };
+      roundStartTrust, roundStartRapport, promoterGainCap,
+      memberTargetStrategy: secondSide === 'dungeon' ? memberTargetStrategy : null,
+      fullVisitorDeck, vPile, vDiscard, sides,
+    };
     const secondResult = executeTurn(secondSide, sides[secondSide], secondCtx);
     sides[secondSide].hand = secondResult.remainingHand;
+    if (secondSide === 'dungeon' && secondResult.updatedVisitorHand) {
+      vHand = secondResult.updatedVisitorHand;
+      sides.visitor.hand = vHand;
+    }
     for (const p of secondResult.plays) {
       if (!p.card._exhausted) sides[secondSide].discard.push(p.card);
       if (p.card.category && cardTracker[secondSide]) cardTracker[secondSide][p.card.category] = (cardTracker[secondSide][p.card.category] || 0) + 1;
@@ -193,24 +253,41 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
       });
     }
 
-    log(`  [EoR] V: Vit${visitor.vitality} Res${visitor.resolve} Nrv${visitor.nerve} Tru${visitor.trust} | D: Str${dungeon.structure} Vl${dungeon.veil} Pr${dungeon.presence} Rp${dungeon.rapport} | DE:${dEnergy.base} VE:${vEnergy.base}`);
+    // v2.4: Party-aware EoR logging
+    if (visitor.isParty) {
+      const mStatus = Object.entries(visitor.members)
+        .map(([k, m]) => `${m.name[0]}:${m.vitality}${m.status === 'knocked_out' ? '☠' : ''}`)
+        .join(' ');
+      log(`  [EoR] Party [${mStatus}] Res${visitor.resolve} Nrv${visitor.nerve} Tru${visitor.trust} KO:${visitor.knockoutCount} | D: Str${dungeon.structure} Vl${dungeon.veil} Pr${dungeon.presence} Rp${dungeon.rapport} | DE:${dEnergy.base} VE:${vEnergy.base}`);
+    } else {
+      log(`  [EoR] V: Vit${visitor.vitality} Res${visitor.resolve} Nrv${visitor.nerve} Tru${visitor.trust} | D: Str${dungeon.structure} Vl${dungeon.veil} Pr${dungeon.presence} Rp${dungeon.rapport} | DE:${dEnergy.base} VE:${vEnergy.base}`);
+    }
 
-    // Snapshot: track resource health percentages each round
+    // Snapshot
     const dStart = dungeon.startingValues || { structure: 20, veil: 16, presence: 14 };
     const vStart = visitor.startingValues || { vitality: 20, resolve: 16, nerve: 16 };
     const dHealthPct = Math.round(
       ((dungeon.structure / dStart.structure) + (dungeon.veil / dStart.veil) + (dungeon.presence / dStart.presence)) / 3 * 100
     );
     const vHealthPct = Math.round(
-      ((visitor.vitality / vStart.vitality) + (visitor.resolve / vStart.resolve) + (visitor.nerve / vStart.nerve)) / 3 * 100
+      ((visitor.vitality / (vStart.vitality || 1)) + (visitor.resolve / (vStart.resolve || 1)) + (visitor.nerve / (vStart.nerve || 1))) / 3 * 100
     );
-    roundSnapshots.push({
+    const snapshot = {
       round,
       dungeon: { structure: dungeon.structure, veil: dungeon.veil, presence: dungeon.presence, pct: dHealthPct },
       visitor: { vitality: visitor.vitality, resolve: visitor.resolve, nerve: visitor.nerve, pct: vHealthPct },
       lead: dHealthPct > vHealthPct ? 'dungeon' : vHealthPct > dHealthPct ? 'visitor' : 'tied',
       gap: Math.abs(dHealthPct - vHealthPct),
-    });
+    };
+    // v2.4: Add party member data to snapshot
+    if (visitor.isParty) {
+      snapshot.partyMembers = {};
+      for (const [k, m] of Object.entries(visitor.members)) {
+        snapshot.partyMembers[k] = { vitality: m.vitality, status: m.status };
+      }
+      snapshot.knockoutCount = visitor.knockoutCount;
+    }
+    roundSnapshots.push(snapshot);
   }
 
   if (!outcome) outcome = { winner: 'visitor', condition: 'Survive', desc: 'Round limit reached' };
@@ -224,9 +301,6 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
 }
 
 // ═══ ENTANGLE MANAGEMENT ═══
-// Entangle clears when the entangled side starts their turn (not end of round).
-// This means if you're entangled on the opponent's turn, you stay entangled
-// through their whole turn and it clears when YOUR turn begins.
 function clearEntangle(state, side, log) {
   const had = R.hasCondition(state, 'entangled');
   state.conditions = state.conditions.filter(c => c.type !== 'entangled');
@@ -240,6 +314,7 @@ function executeTurn(side, sideData, ctx) {
   const log = ctx.log;
   const plays = [];
   const remainingHand = [...hand];
+  let updatedVisitorHand = null; // v2.4: Track if visitor hand changes during dungeon turn
 
   const decisions = ai.pickCards(remainingHand, energy, self, opp, ctx);
 
@@ -270,10 +345,9 @@ function executeTurn(side, sideData, ctx) {
       continue;
     }
 
-    // RESTRAINT: Discard a Strike to build Trust/Rapport. "I choose not to hurt you."
-    // Flat +1 to own promoter only, max once per turn. Fills dead turns, not a Bond accelerant.
+    // RESTRAINT
     if (decision.action === 'restrain') {
-      if (plays.some(p => p.action === 'restrain')) continue; // Max 1 per turn
+      if (plays.some(p => p.action === 'restrain')) continue;
       remainingHand.splice(idx, 1);
       if (side === 'dungeon') {
         const rapGain = applyPromoterGain(self, 'rapport', 1, ctx);
@@ -304,9 +378,7 @@ function executeTurn(side, sideData, ctx) {
       case 'Strike':
         resolveStrike(card, side, self, opp, energy, ctx, sideData);
         checkTraps('strike_played', side, self, opp, ctx);
-        // BETRAYAL: Striking while building cooperation crashes promoters
-        // Only triggers when genuine cooperation is established (promoter > 3),
-        // not on incidental starting trust from encounter templates
+        // BETRAYAL
         if (side === 'dungeon' && self.rapport > 3) {
           const lost = Math.ceil(self.rapport * 0.5);
           self.rapport = Math.max(0, self.rapport - lost);
@@ -355,9 +427,7 @@ function executeTurn(side, sideData, ctx) {
         if (!removed) removed = R.removeCondition(self, 'disrupt', oppSide);
         if (removed) {
           log(`  [${side}] Counter: ${card.name} removes ${removed.source}`);
-          // Standard chip damage
           if (card.counterDamage) {
-            // Punish counter: extra chip if removed an Empower
             let chipAmt = card.counterDamage.amount;
             if (card.counterEffect?.empowerBonus && removed.type === 'empower') {
               chipAmt = card.counterEffect.empowerBonus.chipDamage || chipAmt;
@@ -366,12 +436,10 @@ function executeTurn(side, sideData, ctx) {
             const dmg = R.applyDamage(opp, card.counterDamage.resource, chipAmt, 1);
             log(`    +chip: ${card.counterDamage.resource} -${dmg}`);
           }
-          // Steal: take the removed Empower for yourself
           if (card.counterEffect?.steal && removed.type === 'empower') {
             self.conditions.push({ ...removed, placedBy: side });
             log(`    [Steal] ${card.name} captures ${removed.source} for own use`);
           }
-          // Counter + Setup: apply a condition after removing
           if (card.counterEffect?.applyKeyword) {
             opp.conditions.push({ type: card.counterEffect.applyKeyword, placedBy: side });
             log(`    [Setup] ${card.counterEffect.applyKeyword} applied to opponent`);
@@ -412,7 +480,7 @@ function executeTurn(side, sideData, ctx) {
     }
   }
 
-  return { plays, remainingHand };
+  return { plays, remainingHand, updatedVisitorHand };
 }
 
 // ═══ STRIKE RESOLUTION ═══
@@ -421,24 +489,21 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   const log = ctx.log;
   const oppSide = side === 'dungeon' ? 'visitor' : 'dungeon';
   let advantage = 0, powerBonus = 0;
-  let grantedKeywords = []; // Keywords added by Empower
+  let grantedKeywords = [];
 
-  // Consume Empower (placed by us on ourselves)
+  // Consume Empower
   const emp = R.removeCondition(self, 'empower', side);
   if (emp) {
     if (emp.effect.advantage) advantage += 1;
     if (emp.effect.powerBonus) powerBonus += emp.effect.powerBonus;
-    // Keyword grants: Empower can add keywords to the Strike
     if (emp.effect.addKeyword) {
       const kws = Array.isArray(emp.effect.addKeyword) ? emp.effect.addKeyword : [emp.effect.addKeyword];
       grantedKeywords.push(...kws);
     }
-    // Target redirect: Empower can change what the Strike targets
     if (emp.effect.retarget && card.target) {
       log(`    Empower redirect: ${card.target} → ${emp.effect.retarget}`);
-      card = { ...card, target: emp.effect.retarget }; // Clone to avoid mutating deck
+      card = { ...card, target: emp.effect.retarget };
     }
-    // Conditional advantage from Empower (e.g., +Advantage if opponent has condition)
     if (emp.effect.conditionalAdvantage) {
       const ca = emp.effect.conditionalAdvantage;
       if (ca.hasCondition && R.hasCondition(opp, ca.hasCondition)) {
@@ -448,11 +513,10 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
     }
   }
 
-  // Consume Disrupt on self (placed by opponent on us)
+  // Consume Disrupt on self
   const dis = R.removeCondition(self, 'disrupt', oppSide);
   if (dis) {
     if (dis.effect.disadvantage) advantage -= 1;
-    // Punish disrupt: take damage when striking
     if (dis.effect.onStrike) {
       const penalty = dis.effect.onStrike;
       if (penalty.selfDamage) {
@@ -460,13 +524,11 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
         log(`    Disrupt penalty: ${side} ${penalty.selfDamage.resource} -${dmg} (${dis.source})`);
       }
     }
-    // Suppress keywords
     if (dis.effect.stripKeywords) {
       grantedKeywords = [];
       card = { ...card, keywords: [] };
       log(`    Disrupt strips all keywords (${dis.source})`);
     }
-    // Target randomize
     if (dis.effect.randomizeTarget && card.target) {
       const resources = side === 'dungeon'
         ? ['vitality', 'resolve', 'nerve']
@@ -509,8 +571,6 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   const defTotal = defRoll.total + defMod;
 
   const result = R.resolveTier(atkTotal, defTotal);
-
-  // Damage uses card power + empower powerBonus + triggerBonus (NOT modifier)
   const damagePower = (card.power || 0) + powerBonus + triggerBonus;
 
   log(`  [${side}] Strike: ${card.name} (P:${card.power}${powerBonus ? `+${powerBonus}e` : ''}${triggerBonus ? `+${triggerBonus}t` : ''} = ${damagePower} dmg) | Roll: ${atkRollStr}+${atkMod}mod = ${atkTotal} vs 2d6[${defRoll.kept}]+${defMod}mod = ${defTotal} → ${result.tier}`);
@@ -541,47 +601,84 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
       fortifyReduction += fc.reduction;
     }
 
-    // Self-cost (risk/reward Strikes)
+    // Self-cost
     if (card.selfCost) {
       const sCost = R.applyDamage(self, card.selfCost.resource, card.selfCost.amount, 1);
       log(`    Self-cost: ${card.selfCost.resource} -${sCost}`);
     }
 
     const finalDmg = Math.max(0, rawDmg - reactMitigation - fortifyReduction);
-    const applied = R.applyDamage(opp, card.target, finalDmg, 1);
-    const mitigationParts = [];
-    if (reactMitigation > 0) mitigationParts.push(`${reactMitigation} React`);
-    if (fortifyReduction > 0) mitigationParts.push(`${fortifyReduction} Fortify`);
-    const mitigationStr = mitigationParts.length > 0 ? ` (${rawDmg} raw - ${mitigationParts.join(' - ')})` : '';
-    log(`    → ${card.target} -${applied}${mitigationStr} [${result.tier}: ${damagePower}×${result.atkMult}=${rawDmg}]`);
+
+    // v2.4: PARTY VITALITY ROUTING
+    let applied;
+    let partyKnockout = null;
+    if (opp.isParty && card.target === 'vitality') {
+      // Route to specific party member
+      const strategy = ctx.memberTargetStrategy || 'lowest_vitality';
+      const memberKey = R.selectPartyTarget(opp, strategy);
+      if (memberKey) {
+        const memberResult = R.damagePartyMember(opp, memberKey, finalDmg);
+        applied = memberResult.damaged;
+        const memberName = opp.members[memberKey].name;
+
+        const mitigationParts = [];
+        if (reactMitigation > 0) mitigationParts.push(`${reactMitigation} React`);
+        if (fortifyReduction > 0) mitigationParts.push(`${fortifyReduction} Fortify`);
+        const mitigationStr = mitigationParts.length > 0 ? ` (${rawDmg} raw - ${mitigationParts.join(' - ')})` : '';
+        log(`    → ${memberName} vitality -${applied}${mitigationStr} [${result.tier}: ${damagePower}×${result.atkMult}=${rawDmg}]`);
+
+        if (memberResult.knockout) {
+          partyKnockout = { memberKey, memberName, moraleCascade: memberResult.moraleCascade };
+          log(`    >>> ${memberName} KNOCKED OUT!`);
+          if (memberResult.moraleCascade) {
+            log(`    [Morale] Resolve -${memberResult.moraleCascade.resolveHit}, Nerve -${memberResult.moraleCascade.nerveHit}`);
+          }
+          // Remove knocked-out member's cards
+          const removal = R.removeKnockedOutCards(memberKey, ctx.sides.visitor.hand, ctx.vPile, ctx.vDiscard);
+          ctx.sides.visitor.hand = removal.newHand;
+          log(`    [Deck] Removed ${removal.removed.length} cards (hand:${removal.from.hand} draw:${removal.from.draw} discard:${removal.from.discard})`);
+          if (removal.removed.length > 0) log(`    [Deck] Removed: ${removal.removed.join(', ')}`);
+          log(`    [Party] ${opp.knockoutCount}/${opp.killThreshold} knockouts toward Kill`);
+        }
+      } else {
+        applied = 0;
+      }
+    } else {
+      // Standard path: collective pool damage
+      applied = R.applyDamage(opp, card.target, finalDmg, 1);
+      const mitigationParts = [];
+      if (reactMitigation > 0) mitigationParts.push(`${reactMitigation} React`);
+      if (fortifyReduction > 0) mitigationParts.push(`${fortifyReduction} Fortify`);
+      const mitigationStr = mitigationParts.length > 0 ? ` (${rawDmg} raw - ${mitigationParts.join(' - ')})` : '';
+      log(`    → ${card.target} -${applied}${mitigationStr} [${result.tier}: ${damagePower}×${result.atkMult}=${rawDmg}]`);
+    }
 
     const tracker = side === 'dungeon' ? ctx.stats.dDamageDealt : ctx.stats.vDamageDealt;
     tracker[card.target] = (tracker[card.target] || 0) + applied;
 
     if (applied > 0) {
-      // Apply keywords (card's own + granted by Empower/Trigger)
       const keywordCard = { ...card, keywords: allKeywords };
       R.applyKeywords(keywordCard, opp, self, { autoResource: ctx.autoResource, log, activeSide: side });
 
-      // ── DRAIN: damage dealt heals a self resource ──
+      // Drain
       if (allKeywords.includes('Drain')) {
         const drainTarget = card.drainTarget || (side === 'dungeon' ? 'presence' : 'vitality');
-        const healed = Math.min(applied, 2); // Cap drain at 2
+        const healed = Math.min(applied, 2);
         R.applyBenefit(self, drainTarget, healed);
         log(`    [KW] Drain: ${side} ${drainTarget} +${healed}`);
       }
 
-      // ── OVERWHELM: excess damage spills to secondary target ──
+      // Overwhelm
       if (allKeywords.includes('Overwhelm') && opp[card.target] <= 0) {
         const spill = card.overwhelmTarget || (card.target === 'vitality' ? 'resolve' : card.target === 'nerve' ? 'resolve' : 'nerve');
-        const spillDmg = Math.abs(opp[card.target]); // Amount below 0
+        const spillDmg = Math.abs(opp[card.target]);
         if (spillDmg > 0) {
           const spillApplied = R.applyDamage(opp, spill, spillDmg, 1);
           log(`    [KW] Overwhelm: excess spills → ${spill} -${spillApplied}`);
         }
       }
 
-      // ── RALLY: attacker recovers 1 of lowest reducer on Strong/Devastating ──
+      // Rally
       if (result.atkMult >= 1.0) {
         const reducers = side === 'dungeon'
           ? [{ name: 'structure', val: self.structure, start: self.startingValues?.structure || 20 },
@@ -614,7 +711,7 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   if (side === 'dungeon') ctx.stats.dLastType = card.type;
   else ctx.stats.vLastType = card.type;
 
-  // ── EXHAUST: remove from game instead of discarding ──
+  // Exhaust
   if (card.exhaust) {
     log(`    [Exhaust] ${card.name} removed from game`);
     card._exhausted = true;
@@ -627,13 +724,10 @@ function tryReact(defenderSide, defenderHand, defenderState, attackerState, inco
   const log = ctx.log;
   const reactCards = defenderHand.filter(c => c.category === 'React');
   if (reactCards.length === 0) return null;
-
-  // Only react to significant incoming damage
   if (result.tier !== 'Strong' && result.tier !== 'Devastating') return null;
 
   const react = reactCards.sort((a, b) => (b.power || 0) - (a.power || 0))[0];
-  
-  // Conditional power: check if react has a conditional power override
+
   let reactPower = react.power || 1;
   if (react.reactEffect?.conditionalPower) {
     const cp = react.reactEffect.conditionalPower;
@@ -645,7 +739,7 @@ function tryReact(defenderSide, defenderHand, defenderState, attackerState, inco
       }
     }
   }
-  
+
   const reactRoll = R.contestedRoll(0);
   const reactMod = R.getModifierBonus(react, defenderState);
   const reactTotal = reactRoll.total + reactMod + reactPower;
@@ -666,15 +760,14 @@ function tryReact(defenderSide, defenderHand, defenderState, attackerState, inco
   if (success) {
     let mitigation = reactPower;
     log(`    [${defenderSide}] React: ${react.name} → SUCCESS (2d6[${reactRoll.kept}]+${reactMod}mod+${reactPower}pwr = ${reactTotal} vs ${threshold}) mitigates ${mitigation}`);
-    
-    // Reflect: on devastating defense, attacker takes damage
+
     if (react.reactEffect?.reflect && result.tier === 'Devastating') {
       const reflectDmg = 1;
       const reflectTarget = attackerState.side === 'dungeon' ? 'structure' : 'vitality';
       const applied = R.applyDamage(attackerState, reflectTarget, reflectDmg, 1);
       log(`    [Reflect] Attacker ${reflectTarget} -${applied}`);
     }
-    
+
     return { card: react, mitigation };
   } else {
     log(`    [${defenderSide}] React: ${react.name} → FAILED (2d6[${reactRoll.kept}]+${reactMod}mod+${reactPower}pwr = ${reactTotal} vs ${threshold})`);
@@ -691,8 +784,66 @@ function resolveReshape(card, side, self, opp, ctx) {
   if (!card.reshapeEffect) return;
   const eff = card.reshapeEffect;
 
-  // Heal: restore a resource (capped at starting value)
-  if (eff.heal) {
+  // v2.4: Party member restoration (Healing Word)
+  if (eff.restoreMember && self.isParty) {
+    const knockedOut = Object.entries(self.members)
+      .filter(([_, m]) => m.status === 'knocked_out');
+
+    if (knockedOut.length > 0) {
+      const [targetKey, targetMember] = knockedOut[0];
+      const healAmount = (Array.isArray(eff.heal) ? eff.heal[0]?.amount : eff.heal?.amount) || 4;
+      const restoreResult = R.restorePartyMember(self, targetKey, healAmount);
+
+      if (restoreResult.restored) {
+        const returned = R.returnMemberCards(targetKey, ctx.fullVisitorDeck, ctx.vDiscard);
+        log(`    [Restore] ${targetMember.name} returns at ${restoreResult.vitality} vitality!`);
+        log(`    [Deck] ${returned.length} cards returned to discard: ${returned.join(', ')}`);
+      }
+      return; // Restoration consumes the full Reshape action
+    }
+    // No one knocked out — fall through to normal heal
+  }
+
+  // v2.4: Self-member healing (e.g., Knight's Second Wind)
+  if (eff.heal && self.isParty) {
+    const heals = Array.isArray(eff.heal) ? eff.heal : [eff.heal];
+    for (const h of heals) {
+      if (h.target === 'self_member' && card.member) {
+        const m = self.members[card.member];
+        if (m && m.status === 'active') {
+          const heal = Math.min(h.amount, m.maxVitality - m.vitality);
+          m.vitality += heal;
+          self.vitality = Object.values(self.members)
+            .filter(m2 => m2.status === 'active')
+            .reduce((s, m2) => s + m2.vitality, 0);
+          log(`    → ${m.name} vitality +${heal} (${m.vitality - heal}→${m.vitality})`);
+        }
+        continue;
+      }
+      if (h.target === 'select_member' && self.isParty) {
+        const active = Object.entries(self.members)
+          .filter(([_, m]) => m.status === 'active')
+          .sort(([_, a], [__, b]) => a.vitality - b.vitality);
+        if (active.length > 0) {
+          const [targetKey, targetMember] = active[0];
+          const heal = Math.min(h.amount, targetMember.maxVitality - targetMember.vitality);
+          targetMember.vitality += heal;
+          self.vitality = Object.values(self.members)
+            .filter(m => m.status === 'active')
+            .reduce((s, m) => s + m.vitality, 0);
+          log(`    → ${targetMember.name} vitality +${heal} (now ${targetMember.vitality}/${targetMember.maxVitality})`);
+        }
+        continue;
+      }
+      // Standard collective pool heal
+      const before = self[h.resource];
+      R.applyBenefit(self, h.resource, h.amount);
+      const after = self[h.resource];
+      const gained = after - before;
+      if (gained > 0) log(`    → ${h.resource} +${gained} (${before}→${after})`);
+    }
+  } else if (eff.heal) {
+    // Non-party standard heal
     const heals = Array.isArray(eff.heal) ? eff.heal : [eff.heal];
     for (const h of heals) {
       const before = self[h.resource];
@@ -703,7 +854,7 @@ function resolveReshape(card, side, self, opp, ctx) {
     }
   }
 
-  // Shift: move points from one resource to another
+  // Shift
   if (eff.shift) {
     const fromVal = self[eff.shift.from];
     const take = Math.min(eff.shift.amount, fromVal);
@@ -714,7 +865,7 @@ function resolveReshape(card, side, self, opp, ctx) {
     }
   }
 
-  // Fortify: add a persistent defensive condition
+  // Fortify
   if (eff.fortify) {
     const fortifyData = Array.isArray(eff.fortify) ? eff.fortify : [eff.fortify];
     for (const f of fortifyData) {
@@ -747,12 +898,11 @@ function checkTraps(triggerType, actingSide, self, opp, ctx) {
           log(`      → Entangle applied`);
         }
         if (eff.damage) {
-          const t = self; // Trap targets the one who triggered it
+          const t = self;
           const dmg = R.applyDamage(t, eff.damage.resource, eff.damage.amount, 1);
           log(`      → ${eff.damage.resource} -${dmg}`);
         }
         if (eff.resource) {
-          // Legacy format: { target, resource, amount }
           const t = eff.target === 'triggerer' ? self : opp;
           const dmg = R.applyDamage(t, eff.resource, Math.abs(eff.amount), 1);
           log(`      → ${eff.resource} -${dmg}`);
@@ -827,12 +977,10 @@ function resolveOffer(card, side, self, opp, ctx) {
       const payloads = Array.isArray(card.offerPayload) ? card.offerPayload : [card.offerPayload];
       for (const effect of payloads) {
         if (effect.heal) {
-          const target = opp; // Offers heal the recipient
-          const before = target[effect.heal.resource];
+          const target = opp;
           R.applyBenefit(target, effect.heal.resource, effect.heal.amount);
           log(`    Payload: ${effect.heal.resource} +${effect.heal.amount}`);
         } else if (effect.resource) {
-          // Legacy format
           const target = effect.target === 'opponent' ? opp : self;
           if (effect.amount > 0) {
             if (effect.resource === 'trust' || effect.resource === 'rapport') {
@@ -849,7 +997,6 @@ function resolveOffer(card, side, self, opp, ctx) {
         }
       }
     }
-    // Trust/Rapport gains from offer acceptance
     if (card.offerTrustGain) {
       const visitorState = side === 'dungeon' ? opp : self;
       const actual = applyPromoterGain(visitorState, 'trust', card.offerTrustGain, ctx);
@@ -901,11 +1048,11 @@ function evaluateTrigger(trigger, self, opponent, ctx) {
   if (!trigger?.condition) return false;
   const c = trigger.condition;
   const target = c.target === 'self' ? self : opponent;
-  
+
   switch (c.type) {
     case 'resource_below': {
       const val = target[c.resource];
-      const threshold = c.value !== undefined ? c.value 
+      const threshold = c.value !== undefined ? c.value
         : Math.floor((target.startingValues?.[c.resource] || 20) * (c.pct || 0.5));
       return val <= threshold;
     }

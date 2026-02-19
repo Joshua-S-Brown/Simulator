@@ -1,11 +1,9 @@
 /**
- * SHATTERED DUNGEON — Rules Engine v1.1
+ * SHATTERED DUNGEON — Rules Engine v2.4
  * 
- * CHANGES from v1.0:
- * [FIX] Separate modifier mappings for dungeon vs visitor attributes
- * [FIX] States now track which side they belong to (side: 'dungeon'|'visitor')
- * [FIX] Conditions require placedBy field for source tracking
- * [FIX] Entangle stored as object (not bare string) for consistency
+ * v1.1: Separate modifier mappings, side tracking, condition source tracking
+ * v2.4: Party system support — createPartyVisitorState, member damage/restore,
+ *       knockout mechanics, card removal helpers, party-aware win conditions
  */
 
 // ═══ DICE ═══
@@ -50,6 +48,56 @@ function createVisitorState(t) {
   };
 }
 
+function createPartyVisitorState(t) {
+  // Build individual member states
+  const members = {};
+  for (const [key, m] of Object.entries(t.members)) {
+    members[key] = {
+      vitality: m.vitality,
+      maxVitality: m.vitality,
+      status: 'active', // 'active' | 'knocked_out'
+      name: m.name,
+      role: m.role,
+      resolveContribution: m.resolveContribution || 0,
+      nerveContribution: m.nerveContribution || 0,
+    };
+  }
+
+  // Compute aggregate vitality for display/health% calculations
+  const totalVitality = Object.values(members).reduce((s, m) => s + m.vitality, 0);
+
+  return {
+    // Collective pools (existing fields — AI and encounter code sees these)
+    vitality: totalVitality,
+    resolve: t.resolve,
+    nerve: t.nerve,
+    trust: t.trust || 0,
+
+    // Party-specific fields
+    isParty: true,
+    members,
+    knockoutCount: 0,
+    killThreshold: t.killThreshold || 2,
+    knockoutMorale: t.knockoutMorale || [
+      { resolveHit: 3, nerveHit: 3 },
+      { resolveHit: 6, nerveHit: 6 },
+    ],
+    partySize: t.partySize || Object.keys(t.members).length,
+
+    // Existing fields (preserved for compatibility)
+    modifiers: { ...(t.modifiers || {}) },
+    side: 'visitor',
+    emotionalState: 'neutral',
+    conditions: [],
+    startingValues: {
+      vitality: totalVitality,
+      resolve: t.resolve,
+      nerve: t.nerve,
+      trust: t.trust || 0,
+    },
+  };
+}
+
 function createDungeonState(t) {
   return {
     structure: t.structure, veil: t.veil, presence: t.presence,
@@ -65,7 +113,17 @@ function createDungeonState(t) {
 
 function checkWinConditions(visitor, dungeon, config = {}) {
   const bt = config.bondThreshold || 12;
-  if (visitor.vitality  <= 0) return { winner: 'dungeon', condition: 'Kill',     desc: 'Vitality depleted' };
+
+  // Party Kill: based on knockout threshold, not raw vitality
+  if (visitor.isParty) {
+    if (visitor.knockoutCount >= visitor.killThreshold) {
+      return { winner: 'dungeon', condition: 'Kill', desc: `${visitor.knockoutCount} party members eliminated` };
+    }
+  } else {
+    if (visitor.vitality <= 0) return { winner: 'dungeon', condition: 'Kill', desc: 'Vitality depleted' };
+  }
+
+  // These work identically for solo and party (collective pools)
   if (visitor.resolve   <= 0) return { winner: 'dungeon', condition: 'Break',    desc: 'Resolve shattered' };
   if (visitor.nerve     <= 0) return { winner: 'dungeon', condition: 'Panic',    desc: 'Nerve broken' };
   if (dungeon.structure <= 0) return { winner: 'visitor', condition: 'Overcome', desc: 'Structure breached' };
@@ -106,10 +164,139 @@ function applyBenefit(state, resource, amount) {
   return amount;
 }
 
+// ═══ PARTY DAMAGE & RESTORATION ═══
+
+/**
+ * Apply vitality damage to a specific party member.
+ * Returns { damaged, knockout, memberKey, moraleCascade } event data.
+ */
+function damagePartyMember(visitor, memberKey, amount) {
+  const member = visitor.members[memberKey];
+  if (!member || member.status !== 'active') return { damaged: 0, knockout: false };
+
+  const before = member.vitality;
+  member.vitality = Math.max(0, member.vitality - amount);
+  const damaged = before - member.vitality;
+
+  // Update aggregate vitality for health% display
+  visitor.vitality = Object.values(visitor.members)
+    .filter(m => m.status === 'active')
+    .reduce((s, m) => s + m.vitality, 0);
+
+  const result = { damaged, knockout: false, memberKey };
+
+  // Check for knockout
+  if (member.vitality <= 0 && before > 0) {
+    member.status = 'knocked_out';
+    visitor.knockoutCount++;
+    result.knockout = true;
+
+    // Morale cascade — apply resolve/nerve damage to collective pool
+    const cascadeIdx = Math.min(visitor.knockoutCount - 1, visitor.knockoutMorale.length - 1);
+    const cascade = visitor.knockoutMorale[cascadeIdx];
+    if (cascade) {
+      const resDmg = Math.min(cascade.resolveHit, visitor.resolve);
+      const nrvDmg = Math.min(cascade.nerveHit, visitor.nerve);
+      visitor.resolve = Math.max(0, visitor.resolve - cascade.resolveHit);
+      visitor.nerve = Math.max(0, visitor.nerve - cascade.nerveHit);
+      result.moraleCascade = { resolveHit: resDmg, nerveHit: nrvDmg };
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Restore a knocked-out party member (e.g., Healing Word).
+ * Returns { restored, memberKey, vitality } event data.
+ */
+function restorePartyMember(visitor, memberKey, healAmount) {
+  const member = visitor.members[memberKey];
+  if (!member || member.status !== 'knocked_out') return { restored: false };
+
+  member.status = 'active';
+  member.vitality = Math.min(healAmount, member.maxVitality);
+  visitor.knockoutCount = Math.max(0, visitor.knockoutCount - 1);
+
+  // Update aggregate vitality
+  visitor.vitality = Object.values(visitor.members)
+    .filter(m => m.status === 'active')
+    .reduce((s, m) => s + m.vitality, 0);
+
+  return { restored: true, memberKey, vitality: member.vitality };
+}
+
+/**
+ * Remove a knocked-out member's cards from hand, draw pile, and discard.
+ * Returns { newHand, removed, from: { hand, draw, discard } } for logging.
+ */
+function removeKnockedOutCards(memberKey, hand, drawPile, discard) {
+  const result = { removed: [], from: { hand: 0, draw: 0, discard: 0 } };
+
+  const filterOut = (arr, source) => {
+    const kept = [];
+    for (const card of arr) {
+      if (card.member === memberKey) {
+        result.removed.push(card.name);
+        result.from[source]++;
+      } else {
+        kept.push(card);
+      }
+    }
+    return kept;
+  };
+
+  const newHand = filterOut(hand, 'hand');
+
+  // Mutate draw/discard in place (preserve references used by encounter loop)
+  const newDraw = filterOut(drawPile, 'draw');
+  drawPile.length = 0;
+  drawPile.push(...newDraw);
+
+  const newDiscard = filterOut(discard, 'discard');
+  discard.length = 0;
+  discard.push(...newDiscard);
+
+  return { newHand, ...result };
+}
+
+/**
+ * Return a restored member's cards to the discard pile.
+ * Cards come from the original full deck (passed as param).
+ */
+function returnMemberCards(memberKey, fullDeck, discard) {
+  const memberCards = fullDeck.filter(c => c.member === memberKey);
+  discard.push(...memberCards);
+  return memberCards.map(c => c.name);
+}
+
+/**
+ * Select best target for dungeon to attack in a party.
+ * strategies: 'lowest_vitality', 'highest_vitality', 'random', or a specific member key
+ */
+function selectPartyTarget(visitor, strategy = 'lowest_vitality') {
+  const active = Object.entries(visitor.members)
+    .filter(([_, m]) => m.status === 'active')
+    .map(([key, m]) => ({ key, ...m }));
+
+  if (active.length === 0) return null;
+  if (active.length === 1) return active[0].key;
+
+  switch (strategy) {
+    case 'lowest_vitality':
+      return active.sort((a, b) => a.vitality - b.vitality)[0].key;
+    case 'highest_vitality':
+      return active.sort((a, b) => b.vitality - a.vitality)[0].key;
+    case 'random':
+      return active[Math.floor(Math.random() * active.length)].key;
+    default:
+      // If strategy is a member key, target directly
+      if (visitor.members[strategy]?.status === 'active') return strategy;
+      return active.sort((a, b) => a.vitality - b.vitality)[0].key;
+  }
+}
+
 // ═══ MODIFIER BONUSES ═══
-// Dungeon attributes: dominion, resonance, presence_attr, memory
-// Visitor attributes: strength, cunning, perception, resilience
-// These are INTENTIONALLY different per the design docs.
 
 const DUNGEON_TYPE_ATTR_MAP = {
   Physical: 'dominion',
@@ -143,17 +330,14 @@ function getModifierBonus(card, playerState) {
 
 // ═══ CONDITION HELPERS ═══
 
-/** Check if a state has a specific condition type */
 function hasCondition(state, condType) {
   return state.conditions.some(c => c.type === condType);
 }
 
-/** Find conditions on a state placed by a specific side */
 function findConditionsBy(state, condType, placedBy) {
   return state.conditions.filter(c => c.type === condType && c.placedBy === placedBy);
 }
 
-/** Remove first matching condition, return it or null */
 function removeCondition(state, condType, placedBy) {
   const idx = state.conditions.findIndex(c => c.type === condType && c.placedBy === placedBy);
   if (idx < 0) return null;
@@ -172,7 +356,6 @@ function resolveErode(state, autoEffectResource, log) {
       } else {
         log(`    [Erode] ${c.resource} SUPPRESSED (auto-effect match)`);
       }
-      // Erode expires after 1 round
     } else {
       keep.push(c);
     }
@@ -261,9 +444,11 @@ function drawCards(drawPile, discard, count) {
 // ═══ EXPORTS ═══
 module.exports = {
   rollD6, contestedRoll, resolveTier,
-  createVisitorState, createDungeonState,
+  createVisitorState, createPartyVisitorState, createDungeonState,
   checkWinConditions, createEnergyPool,
   applyDamage, applyBenefit, applyKeywords,
+  damagePartyMember, restorePartyMember,
+  removeKnockedOutCards, returnMemberCards, selectPartyTarget,
   resolveErode, getModifierBonus, getEscalation,
   shuffle, drawOpeningHand, drawCards,
   hasCondition, findConditionsBy, removeCondition,

@@ -200,6 +200,13 @@ function pickCardsSmart(hand, energy, self, opponent, ctx, profile, tracker, his
     return { card, delta: adjustedDelta, originalDelta: r.delta };
   });
 
+  // — COOPERATIVE OVERRIDE (bond profiles) —
+  // MC evaluation structurally undervalues cooperative play: single-card
+  // rollouts can't see multi-turn Trust/Rapport accumulation toward Bond.
+  // For bond profiles, apply heuristic cooperative logic on top of MC deltas.
+  if (profile.goalType === 'bond') {
+    applyCooperativeOverrides(adjustedResults, self, opponent, side, profile);
+  }
   // — BUILD SCORE FUNCTION FROM MC RESULTS —
   const mcScoreMap = new Map();
   for (const r of adjustedResults) {
@@ -338,6 +345,56 @@ function applyComboAwareness(card, delta, hand, profile) {
   if (card.category === 'Offer' && hasTrap) delta += 1;
 
   return delta;
+}
+
+// ═══ COOPERATIVE OVERRIDES ═══
+
+/**
+ * For bond-goal profiles, override MC scores to enforce cooperative strategy.
+ * MC evaluation can't see multi-turn cooperative payoff (a single Offer yields
+ * ~1.25 pts of board eval, but 10 Offers reaching Bond threshold = game win).
+ * Apply same cooperative rules as heuristic AI: suppress strikes, boost offers.
+ */
+function applyCooperativeOverrides(results, self, opponent, side, profile) {
+  const rapport = side === 'dungeon' ? (self.rapport || 0) : (opponent.rapport || 0);
+  const trust = side === 'dungeon' ? (opponent.trust || 0) : (self.trust || 0);
+  const coopInvested = rapport > 2 || trust > 2;
+
+  for (const r of results) {
+    const cat = r.card.category;
+
+    // Strike suppression: hard-zero when cooperation is established.
+    // Mirrors heuristic AI — prevents betrayal crashes that destroy promoters.
+    if (cat === 'Strike' && coopInvested) {
+      r.delta = 0;
+      continue;
+    }
+
+    // Before cooperation established, still deprioritize strikes for bond goal
+    if (cat === 'Strike') {
+      r.delta *= 0.3;
+    }
+
+    // Boost Offers — MC sees ~1 pt of board improvement per Offer, but
+    // cumulative effect over 8-12 rounds is what reaches Bond threshold
+    if (cat === 'Offer') {
+      r.delta = Math.max(r.delta, 5) + 8;
+    }
+
+    // Boost Tests — prisoner's dilemma payoff is high but requires
+    // multi-turn trust accumulation that MC can't model
+    if (cat === 'Test') {
+      r.delta = Math.max(r.delta, 4) + 6;
+    }
+
+    // Reshape keeps you alive long enough to reach threshold
+    if (cat === 'Reshape') {
+      r.delta = Math.max(r.delta, 3) + 2;
+    }
+
+    // Counter/Disrupt: keep MC values — defensive impact is immediate
+    // and MC evaluates it correctly
+  }
 }
 
 // ═══ HELPERS ═══

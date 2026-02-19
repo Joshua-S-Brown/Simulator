@@ -1,0 +1,144 @@
+{
+  "scenario": "Verdant Maw vs Standard Adventuring Company",
+  "iterations": 1000,
+  "outcomeDistribution": {
+    "Survive": {
+      "count": 735,
+      "pct": 73.5
+    },
+    "Kill": {
+      "count": 195,
+      "pct": 19.5
+    },
+    "Panic": {
+      "count": 70,
+      "pct": 7
+    }
+  },
+  "avgRounds": 12,
+  "avgDecisions": 41.9,
+  "perEncounter": {
+    "Root Hollow": {
+      "timesReached": 1000,
+      "reachedPct": 100,
+      "avgRounds": 12,
+      "avgDecisions": 41.9,
+      "outcomes": {
+        "Overcome": {
+          "count": 734,
+          "pct": 73.4
+        },
+        "Kill": {
+          "count": 195,
+          "pct": 19.5
+        },
+        "Panic": {
+          "count": 70,
+          "pct": 7
+        },
+        "Inert": {
+          "count": 1,
+          "pct": 0.1
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 1000,
+          "dungeonPct": 95,
+          "visitorPct": 94,
+          "dungeonLeadPct": 56,
+          "visitorLeadPct": 37
+        },
+        {
+          "round": 2,
+          "samples": 999,
+          "dungeonPct": 94,
+          "visitorPct": 92,
+          "dungeonLeadPct": 61,
+          "visitorLeadPct": 34
+        },
+        {
+          "round": 3,
+          "samples": 999,
+          "dungeonPct": 91,
+          "visitorPct": 88,
+          "dungeonLeadPct": 65,
+          "visitorLeadPct": 31
+        },
+        {
+          "round": 4,
+          "samples": 999,
+          "dungeonPct": 91,
+          "visitorPct": 87,
+          "dungeonLeadPct": 66,
+          "visitorLeadPct": 30
+        },
+        {
+          "round": 5,
+          "samples": 999,
+          "dungeonPct": 88,
+          "visitorPct": 83,
+          "dungeonLeadPct": 68,
+          "visitorLeadPct": 29
+        },
+        {
+          "round": 6,
+          "samples": 999,
+          "dungeonPct": 87,
+          "visitorPct": 81,
+          "dungeonLeadPct": 71,
+          "visitorLeadPct": 26
+        },
+        {
+          "round": 7,
+          "samples": 999,
+          "dungeonPct": 84,
+          "visitorPct": 77,
+          "dungeonLeadPct": 73,
+          "visitorLeadPct": 24
+        },
+        {
+          "round": 8,
+          "samples": 999,
+          "dungeonPct": 82,
+          "visitorPct": 74,
+          "dungeonLeadPct": 74,
+          "visitorLeadPct": 24
+        },
+        {
+          "round": 9,
+          "samples": 992,
+          "dungeonPct": 77,
+          "visitorPct": 69,
+          "dungeonLeadPct": 73,
+          "visitorLeadPct": 25
+        },
+        {
+          "round": 10,
+          "samples": 955,
+          "dungeonPct": 72,
+          "visitorPct": 63,
+          "dungeonLeadPct": 73,
+          "visitorLeadPct": 24
+        },
+        {
+          "round": 11,
+          "samples": 744,
+          "dungeonPct": 68,
+          "visitorPct": 55,
+          "dungeonLeadPct": 83,
+          "visitorLeadPct": 15
+        },
+        {
+          "round": 12,
+          "samples": 307,
+          "dungeonPct": 65,
+          "visitorPct": 45,
+          "dungeonLeadPct": 95,
+          "visitorLeadPct": 4
+        }
+      ]
+    }
+  }
+}
