@@ -1,33 +1,41 @@
 /**
- * DUNGEON DECK: Honeyed Hollow (v2.3)
- * Identity: Deceptive — Trap→Offer engine, hidden damage behind trust-building
+ * DUNGEON DECK: Honeyed Hollow (v3.0 — Bond System Integration)
  * 
- * Combo lines: 
- *   Trap→Offer (set trap, play offer, trap springs on acceptance = hidden damage + visible trust)
- *   Trust escalation (each accepted Offer raises acceptance probability for the next)
- *   Cross-room setup (visitor leaves with high trust + accumulated hidden damage → Room 2 closes)
+ * Identity: Deceptive — Trap→Offer engine, hidden damage behind trust
+ * Tags: Social, Environmental, Deceptive
  * 
- * Design philosophy: This deck is a specialist at SEEMING SAFE. It builds trust genuinely
- * through Offers and Tests while dealing hidden damage through Traps. The visitor's visible
- * experience is positive (heals, trust gains). The hidden experience is resource erosion.
+ * ═══════════════════════════════════════════════════════════════
+ * v3.0 BOND INTEGRATION — NO COVENANT (EXPLICIT)
+ * ═══════════════════════════════════════════════════════════════
  * 
- * The deck does NOT need to finish the visitor. It sets up Room 2. If run with the
- * `deceptive` AI profile, the betrayalThreshold triggers within-room aggression. If run
- * with the `nurturing` profile, it cooperates fully and lets Room 2 handle the kill.
+ * The betrayal room. A Covenant would be antithetical. This room
+ * BUILDS trust to EXPLOIT it — through Trap→Offer combos or the
+ * Deceptive AI's betrayal conversion at trust >= 6.
  * 
- * ENERGY DESIGN:
- *   5 Energy cards (2 Standard, 2 Attune[Social], 1 Siphon[trust-conditional])
- *   Social Attune discounts Offers and Tests — the core action economy
- *   Siphon rewards trust-building (permanent growth when trust > 3)
- *   16 cards total
+ * All 3 Offers updated to transactional format with costs that
+ * SEEM mild but compound through the Trap→Offer engine:
+ *   Amber Draught: Binding (resolve -1, 1 round)
+ *   Soothing Light: Exposure (next Social Strike +2)
+ *   Gilded Fruit: Binding (nerve -1/round, 2 rounds)
  * 
- * TRAP DAMAGE SPREAD:
- *   Venomous Nectar → vitality -2 (poison)
- *   Binding Threads → nerve -1 + Entangle (fear/restriction)
- *   Dulling Mist → resolve -2 (mental erosion)
- *   Total hidden damage per cycle: ~5 across three resources
- *   Total visible healing per cycle: ~3-4 (Offers)
- *   Net: visitor loses ~1-2 points they barely notice, trust climbs 3-6
+ * TRAP→OFFER ENGINE:
+ *   1. Play Trap (Venomous Nectar / Binding Threads / Dulling Mist)
+ *   2. Play Offer (Amber Draught / Soothing Light / Gilded Fruit)
+ *   3. Visitor accepts → benefit + cost + trap damage
+ *   4. Visible: "Healed! Trust +1!" Actual: net resource loss
+ * 
+ * WIN CONDITIONS:
+ *   Kill — Via betrayal conversion at trust >= 6.
+ *   Break — Dulling Mist + Binding resolve costs.
+ *   Panic — Binding Threads + Gilded Fruit nerve costs.
+ *   Bond — EXPLICITLY NOT A WIN CONDITION. No Covenant.
+ * 
+ * ═══════════════════════════════════════════════════════════════
+ * VERSION HISTORY
+ * ═══════════════════════════════════════════════════════════════
+ * v2.3: Initial deck creation. Trap→Offer engine design.
+ * v3.0: All 3 Offers → transactional format with hidden costs.
+ *       Explicitly NO Covenant — betrayal specialist room.
  */
 module.exports = [
   // ═══ ENERGY (5) ═══
@@ -71,33 +79,32 @@ module.exports = [
     ],
     description: 'A calming haze that clouds judgment. Triggers on Offer accepted: resolve -2.' },
 
-  // ═══ OFFERS (3) — Bait for the traps ═══
+  // ═══ OFFERS (3) — v3.0 Transactional — Bait for the traps ═══
   { name: 'Amber Draught', category: 'Offer', type: 'Environmental', cost: 1,
-    target: 'trust',
-    offerPayload: [
-      { heal: { resource: 'vitality', amount: 1 } },
-    ],
-    offerTrustGain: 1,
-    offerRapportGain: 1,
-    description: 'A warm drink from the hollow\'s heart. Accept: heal 1 vitality, +1 trust, +1 rapport.' },
-  { name: 'Soothing Light', category: 'Offer', type: 'Social', cost: 1,
-    target: 'trust',
-    offerPayload: [
-      { heal: { resource: 'nerve', amount: 1 } },
-    ],
-    offerTrustGain: 1,
-    offerRapportGain: 1,
-    description: 'Soft luminescence that calms fear. Accept: heal 1 nerve, +1 trust, +1 rapport.' },
-  { name: 'Gilded Fruit', category: 'Offer', type: 'Environmental', cost: 2,
-    target: 'trust',
-    offerPayload: [
-      { heal: { resource: 'vitality', amount: 2 } },
-    ],
-    offerTrustGain: 2,
-    offerRapportGain: 1,
-    description: 'An irresistible offering — too generous to refuse. Accept: heal 2 vitality, +2 trust, +1 rapport.' },
+    offer: {
+      benefit: { resource: 'vitality', amount: 2 },
+      cost: { type: 'binding', resource: 'resolve', amount: 1, duration: 1 },
+      investment: { trust: 1 },
+    },
+    description: 'Warm honeyed liquid from the hollow\'s heart. Restorative — though the sweetness lingers too long. Heal 2 vitality. Binding: resolve -1 for 1 round.' },
 
-  // ═══ TEST (1) — Genuine vulnerability to build cooperation probability ═══
+  { name: 'Soothing Light', category: 'Offer', type: 'Social', cost: 1,
+    offer: {
+      benefit: { resource: 'nerve', amount: 2 },
+      cost: { type: 'exposure', strikeType: 'Social', amount: 2, duration: 1 },
+      investment: { trust: 1 },
+    },
+    description: 'Soft luminescence that calms fear. But lowered guard invites deeper influence. Heal 2 nerve. Exposure: next Social Strike deals +2.' },
+
+  { name: 'Gilded Fruit', category: 'Offer', type: 'Environmental', cost: 2,
+    offer: {
+      benefit: { resource: 'vitality', amount: 3 },
+      cost: { type: 'binding', resource: 'nerve', amount: 1, duration: 2 },
+      investment: { trust: 2 },
+    },
+    description: 'An irresistible offering — golden fruit that heals deeply. The aftertaste, though, creeps into your courage. Heal 3 vitality. Binding: nerve -1/round for 2 rounds.' },
+
+  // ═══ TEST (1) ═══
   { name: 'Offering of Self', category: 'Test', type: 'Social', cost: 1,
     target: 'trust',
     testReward: { trust: 2, rapport: 2 },
@@ -105,7 +112,7 @@ module.exports = [
     exposureCost: { resource: 'presence', amount: 1 },
     description: 'Reveal something true about yourself. Cooperate: +2 trust, +2 rapport, lose 1 presence. Defect: trust crashes.' },
 
-  // ═══ STRIKE (1) — For deceptive profile within-room betrayal ═══
+  // ═══ STRIKE (1) — Trust-scaled betrayal weapon ═══
   { name: 'Hidden Thorn', category: 'Strike', type: 'Environmental', cost: 1,
     power: 2, target: 'vitality',
     trigger: {
@@ -115,23 +122,23 @@ module.exports = [
     },
     description: 'A thorn hidden beneath soft petals. Deal 2 vitality. If trust > 3, deal 4 instead.' },
 
-  // ═══ DISRUPT (1) — Softens visitor for later ═══
+  // ═══ DISRUPT (1) ═══
   { name: 'Lulling Scent', category: 'Disrupt', type: 'Environmental', cost: 1,
     disruptEffect: { disadvantage: true },
     description: 'A drowsy fragrance dulls the senses. Opponent\'s next Strike rolls at Disadvantage.' },
 
-  // ═══ COUNTER (1) — Gentle, maintains the facade ═══
+  // ═══ COUNTER (1) ═══
   { name: 'Gentle Deflection', category: 'Counter', type: 'Social', cost: 1,
     counterDamage: { resource: 'vitality', amount: 0 },
     counterEffect: { applyFortify: 1, fortifyResource: 'presence' },
     description: 'Redirect hostility with warmth. Remove condition. Fortify presence 1. No chip damage.' },
 
-  // ═══ REACT (1) — Basic defense ═══
+  // ═══ REACT (1) ═══
   { name: 'Cushioning Moss', category: 'React', type: 'Environmental', cost: 0,
     power: 2,
     description: 'Soft moss absorbs the blow. Contest with Power 2.' },
 
-  // ═══ RESHAPE (1) — Self-preservation ═══
+  // ═══ RESHAPE (1) ═══
   { name: 'Mend the Mask', category: 'Reshape', type: 'Social', cost: 1,
     reshapeEffect: { heal: { resource: 'presence', amount: 2 } },
     description: 'Restore the welcoming facade. Heal 2 presence.' },

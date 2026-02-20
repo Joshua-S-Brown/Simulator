@@ -129,8 +129,9 @@ function checkWinConditions(visitor, dungeon, config = {}) {
   if (dungeon.structure <= 0) return { winner: 'visitor', condition: 'Overcome', desc: 'Structure breached' };
   if (dungeon.veil      <= 0) return { winner: 'visitor', condition: 'Inert',    desc: 'Veil depleted' };
   if (dungeon.presence  <= 0) return { winner: 'visitor', condition: 'Dominate', desc: 'Presence overwhelmed' };
-  if (visitor.trust >= bt && dungeon.rapport >= bt)
-    return { winner: 'both', condition: 'Bond', desc: 'Mutual trust established' };
+//  if (visitor.trust >= bt && dungeon.rapport >= bt)
+//   return { winner: 'both', condition: 'Bond', desc: 'Mutual trust established' };
+  // Bond v3.0: triggers via Covenant acceptance, not threshold.
   return null;
 }
 

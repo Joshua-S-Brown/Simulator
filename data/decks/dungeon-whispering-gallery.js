@@ -1,46 +1,40 @@
 /**
- * DUNGEON DECK: Whispering Gallery (v2.7 — Strike Power Rebalance)
+ * DUNGEON DECK: Whispering Gallery (v3.0 — Bond System Integration)
  * 
  * Identity: Echoes, psychological warfare, redirected reality
  * Tags: Social, Mystical, Open
  * 
  * ═══════════════════════════════════════════════════════════════
- * v2.7 STRIKE POWER PHILOSOPHY
+ * v3.0 BOND INTEGRATION — OFFER UPDATE ONLY
  * ═══════════════════════════════════════════════════════════════
  * 
- * Whispering Gallery's hierarchy:
- *   Chip:     Sonic Lash (P2) — sound made sharp. Physical chip.
- *   Threat:   Dread Whisper (P3) — named fear. Nerve + Erode.
- *   Finisher: Crushing Silence (P4 base, P5 if unprotected) —
- *             absolute quiet that shatters resolve.
+ * Break specialist. NO Covenant. Comforting Lie updated to v3.0
+ * transactional format with Exposure cost — the soothing lie
+ * lowers your guard, making the next Social Strike hit harder.
  * 
- * COMBO LINES:
+ * For Nurturing: Exposure expires unused (no followup Strike).
+ * For Deceptive: Exposure → Crushing Silence/Dread Whisper = +2.
+ * For Tactical: AI won't play it.
  * 
- * PRIMARY: Voices in Chorus → Crushing Silence
- *   Cost: 1+2 = 3 energy. Adds +1P + Erode to P4 base = P5.
- *   Strong hit = 5 resolve + Erode 1. The Gallery weaponizes
- *   silence — many whispers focus into a single devastating void.
+ * PRIMARY COMBO: Voices in Chorus → Crushing Silence
+ *   Cost: 1+2 = 3 energy. P5 resolve + Erode.
  * 
- * SECONDARY: Absorbing Silence → steal Empower → use it
- *   Counter their preparation, take it for yourself. The Gallery
- *   consumes intent before it becomes action.
- * 
- * CONTROL: Echoing Confusion → randomize next Strike target
- *   You can't defend what you can't predict. The Gallery distorts
- *   spatial awareness, making targeting decisions meaningless.
+ * WIN CONDITIONS:
+ *   Break — Primary. Crushing Silence + resolve auto-drain.
+ *   Panic — Secondary. Dread Whisper + nerve Erode.
+ *   Bond — Comforting Lie builds trust. No Covenant — carries fwd.
  * 
  * ═══════════════════════════════════════════════════════════════
  * VERSION HISTORY
  * ═══════════════════════════════════════════════════════════════
- * v2.2: Energy system integration. 5 Energy cards.
- * v2.3: Crushing Silence cost 3→2 (affordable with pool growth).
- * v2.7: Strike power rebalance.
- *       Crushing Silence P3→P4 (P5 conditional). Gallery signature
- *       must be the scariest resolve card in the gauntlet.
- *       Dread Whisper P2→P3. Named whispers should be frightening.
+ * v2.2: Energy system integration.
+ * v2.3: Crushing Silence cost 3→2.
+ * v2.7: Crushing Silence P3→P4. Dread Whisper P2→P3.
+ * v3.0: Comforting Lie → transactional format. Exposure cost.
+ *       No Covenant — Break specialist room.
  */
 module.exports = [
-  // ── ENERGY (5) ──
+  // ═══ ENERGY (5) ═══
   { name: 'Memory Fragment', category: 'Energy', type: 'Social', cost: 0,
     energyType: 'standard', energyGain: 1,
     description: 'A half-remembered scream crystallizes into energy.' },
@@ -59,38 +53,30 @@ module.exports = [
     siphon: { condition: { type: 'has_condition', condition: 'empower' }, target: 'opponent' },
     description: 'Feed on their preparations. +1 permanent if opponent is Empowered, else +1 temp.' },
 
-  // ── STRIKES (3) — Three-tier hierarchy ──
-
-  // COMBO FINISHER: Absolute silence. P4 base, P5 when unprotected.
-  // v2.7: P3→P4. The Gallery's signature must command respect.
+  // ═══ STRIKES (3) ═══
   { name: 'Crushing Silence', category: 'Strike', type: 'Social', cost: 2,
     power: 4, target: 'resolve',
     trigger: { condition: { type: 'no_condition', target: 'opponent', condition: 'empower' }, bonus: 1,
       description: 'If opponent has no Empower, +1 Power' },
     description: 'Absolute quiet crushes the will. Deal 4 resolve. If opponent has no active Empower, deal 5.' },
-
-  // THREAT: A voice from nowhere speaks your name. Personal terror.
-  // v2.7: P2→P3. Named whispers should be genuinely frightening.
   { name: 'Dread Whisper', category: 'Strike', type: 'Social', cost: 1,
     power: 3, target: 'nerve', keywords: ['Erode'],
     description: 'A voice from nowhere speaks their name. Deal 3 nerve. Erode 1.' },
-
-  // CHIP: Sound as a physical weapon. Cheap vitality pressure.
   { name: 'Sonic Lash', category: 'Strike', type: 'Environmental', cost: 1,
     power: 2, target: 'vitality', keywords: ['Resonate'],
     description: 'Sound made sharp enough to cut. Deal 2 vitality. Resonate: +1P if same type played last round.' },
 
-  // ── EMPOWER (1) — Keyword grant ──
+  // ═══ EMPOWER (1) ═══
   { name: 'Voices in Chorus', category: 'Empower', type: 'Social', cost: 1,
     empowerEffect: { powerBonus: 1, addKeyword: 'Erode' },
     description: 'Many whispers become one command. Next Strike gains +1 Power and Erode.' },
 
-  // ── DISRUPT (1) — Randomize target ──
+  // ═══ DISRUPT (1) ═══
   { name: 'Echoing Confusion', category: 'Disrupt', type: 'Social', cost: 1,
     disruptEffect: { disadvantage: true, randomizeTarget: true },
     description: 'Echoes turn directions inside out. Disadvantage. Next Strike hits a random resource.' },
 
-  // ── COUNTERS (2) — Steal vs Punish ──
+  // ═══ COUNTERS (2) ═══
   { name: 'Absorbing Silence', category: 'Counter', type: 'Environmental', cost: 1,
     counterDamage: { resource: 'resolve', amount: 1 },
     counterEffect: { steal: true },
@@ -100,30 +86,29 @@ module.exports = [
     counterEffect: { empowerBonus: { chipDamage: 2 } },
     description: 'Turn their words against them. Remove condition. Chip 1 nerve. If Empower, chip 2 instead.' },
 
-  // ── REACTS (2) — Block vs Redirect ──
+  // ═══ REACTS (2) ═══
   { name: 'Wall of Whispers', category: 'React', type: 'Social', cost: 0, power: 2,
     description: 'A wall of overlapping voices deflects the blow. Contest with Power 2.' },
   { name: 'Echoing Deflection', category: 'React', type: 'Social', cost: 0, power: 1,
     reactEffect: { reflect: { amount: 1, resource: 'resolve' } },
     description: 'Bounce the attack back as psychic echo. Contest Power 1. On Devastating defense, reflect 1 resolve.' },
 
-  // ── TRAP (1) ──
+  // ═══ TRAP (1) ═══
   { name: 'Echo Snare', category: 'Trap', type: 'Social', cost: 1,
     trapTrigger: 'counter_played',
     trapEffect: [{ resource: 'resolve', amount: -2, target: 'triggerer' }],
     description: 'A false silence invites a counter that springs the real trap. Triggers on Counter. Deal 2 resolve.' },
 
-  // ── OFFER (1) ──
+  // ═══ OFFER (1) — v3.0 Transactional ═══
   { name: 'Comforting Lie', category: 'Offer', type: 'Social', cost: 2,
-    target: 'trust',
-    offerPayload: [
-      { resource: 'nerve', amount: 3, target: 'opponent' },
-      { resource: 'trust', amount: 1, target: 'opponent' },
-      { resource: 'rapport', amount: 1, target: 'self' },
-    ],
-    description: 'A soothing falsehood that calms the spirit. Accept: heal 3 nerve, build trust.' },
+    offer: {
+      benefit: { resource: 'nerve', amount: 3 },
+      cost: { type: 'exposure', strikeType: 'Social', amount: 2, duration: 1 },
+      investment: { trust: 1 },
+    },
+    description: 'A soothing falsehood that calms the spirit. The words feel true — but they leave you open. Heal 3 nerve. Exposure: next Social Strike deals +2.' },
 
-  // ── RESHAPE (1) ──
+  // ═══ RESHAPE (1) ═══
   { name: 'Shifting Echoes', category: 'Reshape', type: 'Social', cost: 2,
     reshapeEffect: {
       shift: { from: 'presence', to: 'veil', amount: 2 },
