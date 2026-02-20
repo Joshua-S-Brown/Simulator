@@ -1,5 +1,5 @@
 /**
- * SHATTERED DUNGEON — Combo Sequencer v1.1
+ * SHATTERED DUNGEON — Combo Sequencer v1.2 (Bond v3.0 Restraint)
  * 
  * Strategic energy + action card sequencing module.
  * Called by dungeon-ai.js, visitor-ai.js, and smart-ai.js to replace
@@ -8,6 +8,9 @@
  * v1.1 FIXES:
  *   - Energy investment cost now scales with pool size (stops dump-all-energy)
  *   - Win condition diversification skips score-0 cards (preserves coop suppression)
+ * v1.2 Bond v3.0:
+ *   - addRestraintIfNeeded now recognizes bondStrategy profiles (nurturing/deceptive)
+ *     so restraint triggers even at trust 0, not just when rapport/trust > 2.
  * 
  * KEY CAPABILITIES:
  *   1. Surge Planning     — Burst turns: Surge → expensive card in one turn
@@ -540,9 +543,16 @@ function getEnergyInvestmentPriority(card, self, opponent) {
 
 /**
  * Add restraint decision for cooperative profiles when no cooperative cards available.
+ * v1.2 Bond v3.0: bondStrategy profiles (nurturing/deceptive) always restrain,
+ * even at trust 0, because restraint gives +1 rapport and Strikes destroy
+ * the entire cooperative investment.
  */
 function addRestraintIfNeeded(decisions, hand, self, opponent, ctx, profile) {
+  // Bond v3.0: bondStrategy profiles are always cooperative
+  // Deceptive stops being cooperative once trust reaches betrayal threshold
   const isCooperative =
+    (profile.bondStrategy === 'nurturing') ||
+    (profile.bondStrategy === 'deceptive' && (opponent.trust || 0) < (profile.betrayalThreshold || 6)) ||
     (profile.preferredTargets?.includes('rapport') && (self.rapport || 0) > 2) ||
     (profile.preferredTargets?.includes('trust') && (self.trust || 0) > 2);
 

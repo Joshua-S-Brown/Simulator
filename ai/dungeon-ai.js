@@ -1,11 +1,14 @@
 /**
- * SHATTERED DUNGEON — Dungeon AI v2.4 (Party Targeting)
+ * SHATTERED DUNGEON — Dungeon AI v2.5 (Bond v3.0 Profiles)
  * 
  * v2.0: opponent tracking, win probability, strategic mode switching.
  * v2.1: Combo sequencer integration — replaces naive energy-then-score
  *       with strategic energy planning (Surge burst, Attune sequencing,
  *       Siphon awareness, budget-aware combos, win condition diversification).
  * v2.4: Party member targeting — selectMemberTarget for per-profile targeting
+ * v2.5: Bond v3.0 — trust-tier-aware scoring for nurturing/deceptive profiles
+ *       via bond-ai-scoring module. Replaces heuristic rapport-gating with
+ *       phase-driven scoring (trust-building → Covenant / betrayal).
  * 
  * [ADD] Opponent card tracking: knows what categories opponent has played
  * [ADD] Win probability: estimates chance of winning based on resource trajectories
@@ -14,9 +17,11 @@
  * [FIX] Better Counter timing: only when opponent has active buffs worth removing
  * [ADD] Combo sequencer: strategic energy + action card sequencing (v2.1)
  * [ADD] selectMemberTarget: per-profile party member targeting (v2.4)
+ * [ADD] Bond v3.0: trust-tier scoring for nurturing/deceptive via applyBondV3Scoring (v2.5)
  */
 const { getEffectiveCost } = require('./ai-utils');
 const { planTurn } = require('./combo-sequencer');
+const { applyBondV3Scoring } = require('./bond-ai-scoring');
 
 const PROFILES = {
   aggressive: {
@@ -25,11 +30,13 @@ const PROFILES = {
     scoreThreshold: 2, preferredTargets: ['vitality', 'nerve'],
     energyEagerness: 0.6, comboAwareness: 0.7,
   },
+  // Bond v3.0: Trust-tier-aware nurturing profile
   nurturing: {
-    description: 'Build Trust toward Bond. Minimize harm.',
-    baseWeights: { Strike: 0.5, Empower: 1, Disrupt: 0.5, Counter: 1, Trap: 0, Offer: 3, Reshape: 2, React: 1, Test: 2.5 },
+    description: 'Build Trust toward Bond. Minimize harm. Bond v3.0 trust-tier strategy.',
+    baseWeights: { Strike: 0.1, Empower: 0.5, Disrupt: 0.3, Counter: 1, Trap: 0, Offer: 5, Reshape: 3, React: 1, Test: 4 },
     scoreThreshold: 1, preferredTargets: ['trust', 'rapport'],
     energyEagerness: 0.5, comboAwareness: 0.5,
+    bondStrategy: 'nurturing',
   },
   tactical: {
     description: 'Balanced play. Reads board state. Pivots based on win probability.',
@@ -37,12 +44,14 @@ const PROFILES = {
     scoreThreshold: 2, preferredTargets: null,
     energyEagerness: 0.7, comboAwareness: 0.9,
   },
+  // Bond v3.0: Trust-tier-aware deceptive profile
   deceptive: {
-    description: 'Build Trust then betray. Offer-Trap combos.',
-    baseWeights: { Strike: 1, Empower: 1, Disrupt: 1, Counter: 1, Trap: 3, Offer: 3, Reshape: 1, React: 1 },
-    scoreThreshold: 1, preferredTargets: ['trust'],
+    description: 'Build Trust then betray. Mirrors Nurturing until threshold. Bond v3.0.',
+    baseWeights: { Strike: 0.1, Empower: 0.5, Disrupt: 0.3, Counter: 1, Trap: 0, Offer: 5, Reshape: 3, React: 1, Test: 4 },
+    scoreThreshold: 1, preferredTargets: ['trust', 'rapport'],
     energyEagerness: 0.5, comboAwareness: 0.8,
-    betrayalThreshold: 8,
+    bondStrategy: 'deceptive',
+    betrayalThreshold: 6,
   },
 };
 
@@ -234,8 +243,8 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
     let score = 0;
     const w = p.baseWeights[card.category] || 1;
 
-    // NURTURING STRIKE SUPPRESSION
-    if (card.category === 'Strike' && p.preferredTargets?.includes('rapport') && (self.rapport || 0) > 2) {
+    // NURTURING STRIKE SUPPRESSION (legacy fallback — Bond v3.0 scoring handles this better)
+    if (card.category === 'Strike' && p.preferredTargets?.includes('rapport') && (self.rapport || 0) > 2 && !p.bondStrategy) {
       return 0;
     }
 
@@ -376,6 +385,13 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
     if (lethalMode) {
       if (card.category === 'Strike' && targets.includes(card.target)) score *= 1.5;
       if (['Empower', 'Reshape', 'Trap', 'Offer'].includes(card.category)) score *= 0.3;
+    }
+
+    // ── BOND v3.0: Trust-Tier-Aware Override ──
+    if (p.bondStrategy) {
+      score = applyBondV3Scoring(card, score, self, opponent, ctx, p, {
+        hasStrike, bestStrikePower, round, lethalMode
+      });
     }
 
     return score;
