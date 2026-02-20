@@ -1,9 +1,36 @@
 /**
- * SHATTERED DUNGEON — Encounter Engine v2.4
+ * SHATTERED DUNGEON — Encounter Engine v2.6c
  * 
  * v2.2: Energy card type resolution, Attune discount
  * v2.4: Party system — member targeting, knockout mechanics, card removal,
  *       morale cascade, restoration, party-aware damage routing
+ * v2.6b: Defensive mechanics rework — Guard, React Fortify, Fortify spread,
+ *        Fortify extension, party restore via Reshape
+ * v2.6c: Fortify/Guard duration timing fix
+ * 
+ * v2.6c CHANGES:
+ * [FIX] Fortify and Guard conditions now carry a `fresh` flag when placed.
+ *       Fresh conditions skip their first end-of-round tick-down, ensuring
+ *       duration N = N full rounds of protection AFTER the round of placement.
+ *       Previously, duration 1 expired same-round → zero effective protection.
+ *       Duration 2 (Arcane Ward, Guardian Stance) now correctly protects for
+ *       2 full rounds instead of ~1. Affects all 8 Fortify creation points
+ *       and 1 Guard creation point.
+ *
+ * v2.6b CHANGES:
+ * [ADD] Guard mechanic: Disrupt cards with `guard` effect place a Guarded
+ *       condition on an ally, reducing Strike power against that member.
+ *       Dungeon must spend extra power or switch targets.
+ * [ADD] React onSuccess Fortify: React cards with `reactEffect.onSuccess.selfFortify`
+ *       grant Fortify to the defender on successful block (snowball defense).
+ * [ADD] Counter spreadFortify: Counter cards with `counterEffect.spreadFortify`
+ *       propagate Fortify from self to an ally when condition is met.
+ * [ADD] Reshape extendFortify: Reshape cards with `reshapeEffect.extendFortify`
+ *       extend active Fortify durations on the healed target.
+ * [FIX] Reshape `restore` now correctly triggers party member restoration
+ *       (previously only `restoreMember` was handled).
+ * [FIX] Heal target `weakest_member` now routes to lowest-vitality active member.
+ * [ADD] Guard conditions tick down at end of round alongside Fortify.
  * 
  * Previous changes preserved:
  * [ADD] Extended trigger system, Drain, Overwhelm, Empower keyword grants
@@ -239,13 +266,27 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
     dEnergy.refresh();
     vEnergy.refresh();
 
-    // Tick down fortify durations
+    // Tick down Fortify and Guard durations
+    // v2.6c: Fresh conditions skip their first tick-down (the round they were placed).
+    // This ensures duration N = N full rounds of protection AFTER the round of play.
+    // Without this, duration 1 expired same round it was played → zero protection.
     for (const state of [dungeon, visitor]) {
       state.conditions = state.conditions.filter(c => {
         if (c.type === 'fortify') {
+          if (c.fresh) { c.fresh = false; return true; }  // v2.6c: skip first tick
           c.duration--;
           if (c.duration <= 0) {
             log(`    [Fortify] ${c.source} expires`);
+            return false;
+          }
+        }
+        if (c.type === 'guarded') {
+          if (c.fresh) { c.fresh = false; return true; }  // v2.6c: skip first tick
+          c.duration--;
+          if (c.duration <= 0) {
+            const guardedName = state.isParty && state.members[c.memberKey]
+              ? state.members[c.memberKey].name : 'target';
+            log(`    [Guard] ${c.source} on ${guardedName} expires`);
             return false;
           }
         }
@@ -413,12 +454,18 @@ function executeTurn(side, sideData, ctx) {
         break;
 
       case 'Disrupt':
-        opp.conditions.push({ type: 'disrupt', effect: card.disruptEffect || {}, source: card.name, placedBy: side });
-        log(`  [${side}] Disrupt: ${card.name} → debuffing ${ctx.opponentSide}`);
-        if (card.disruptEffect?.onStrike) log(`    Thorns: opponent takes ${card.disruptEffect.onStrike.selfDamage?.amount || 0} ${card.disruptEffect.onStrike.selfDamage?.resource || ''} on next Strike`);
-        if (card.disruptEffect?.stripKeywords) log(`    Strips: opponent's next Strike loses all keywords`);
-        if (card.disruptEffect?.randomizeTarget) log(`    Scrambles: opponent's next Strike hits random resource`);
-        if (card.disruptEffect?.suppress) log(`    Suppresses: opponent cannot play ${card.disruptEffect.suppress} next turn`);
+        // v2.6b: Guardian Stance — guard effect places protective conditions on self
+        if (card.disruptEffect?.guard) {
+          resolveGuardDisrupt(card, side, self, opp, ctx);
+        } else {
+          // Standard disrupt: debuff opponent
+          opp.conditions.push({ type: 'disrupt', effect: card.disruptEffect || {}, source: card.name, placedBy: side });
+          log(`  [${side}] Disrupt: ${card.name} → debuffing ${ctx.opponentSide}`);
+          if (card.disruptEffect?.onStrike) log(`    Thorns: opponent takes ${card.disruptEffect.onStrike.selfDamage?.amount || 0} ${card.disruptEffect.onStrike.selfDamage?.resource || ''} on next Strike`);
+          if (card.disruptEffect?.stripKeywords) log(`    Strips: opponent's next Strike loses all keywords`);
+          if (card.disruptEffect?.randomizeTarget) log(`    Scrambles: opponent's next Strike hits random resource`);
+          if (card.disruptEffect?.suppress) log(`    Suppresses: opponent cannot play ${card.disruptEffect.suppress} next turn`);
+        }
         break;
 
       case 'Counter': {
@@ -451,12 +498,21 @@ function executeTurn(side, sideData, ctx) {
           if (card.counterEffect?.applyFortify) {
             self.conditions.push({
               type: 'fortify', resource: card.counterEffect.fortifyResource || 'structure',
-              reduction: card.counterEffect.applyFortify, duration: 1, source: card.name
+              reduction: card.counterEffect.applyFortify, duration: 1, source: card.name, fresh: true
             });
             log(`    [Setup] Fortify ${card.counterEffect.applyFortify} applied to self`);
           }
+          // v2.6b: Spread Fortify to ally (Mana Shield)
+          if (card.counterEffect?.spreadFortify) {
+            resolveSpreadFortify(card, side, self, opp, ctx);
+          }
         } else {
           log(`  [${side}] Counter: ${card.name} → nothing to remove`);
+          // v2.6b: Even with nothing to remove, still attempt spread Fortify
+          // (the Counter still fires, it just didn't find a condition to strip)
+          if (card.counterEffect?.spreadFortify) {
+            resolveSpreadFortify(card, side, self, opp, ctx);
+          }
         }
         checkTraps('counter_played', side, self, opp, ctx);
         break;
@@ -481,6 +537,122 @@ function executeTurn(side, sideData, ctx) {
   }
 
   return { plays, remainingHand, updatedVisitorHand };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// v2.6b: GUARDIAN STANCE — Guard Disrupt Resolution
+// ═══════════════════════════════════════════════════════════════
+// Guard Disrupts are unique: they place protective conditions on SELF
+// rather than debuffing the opponent. This creates the tank mechanic:
+// the dungeon must either accept reduced power on the guarded target
+// or switch to hitting the Warden (which the party wants).
+
+function resolveGuardDisrupt(card, side, self, opp, ctx) {
+  const log = ctx.log;
+  const guard = card.disruptEffect.guard;
+
+  log(`  [${side}] Disrupt: ${card.name} (Guardian Stance)`);
+
+  // Determine which ally to guard
+  let guardTargetKey = null;
+  if (guard.target === 'lowest_vitality_ally' && self.isParty) {
+    // Find the lowest-vitality active ally (not the card's own member)
+    const active = Object.entries(self.members)
+      .filter(([k, m]) => m.status === 'active' && k !== card.member)
+      .sort(([_, a], [__, b]) => a.vitality - b.vitality);
+    if (active.length > 0) guardTargetKey = active[0][0];
+  } else if (guard.target === 'specific' && guard.memberKey) {
+    guardTargetKey = guard.memberKey;
+  }
+
+  if (guardTargetKey && self.isParty) {
+    const guardedMember = self.members[guardTargetKey];
+    // Remove any existing guard first (one guard at a time)
+    self.conditions = self.conditions.filter(c => c.type !== 'guarded');
+
+    self.conditions.push({
+      type: 'guarded',
+      memberKey: guardTargetKey,
+      powerReduction: guard.powerReduction || 2,
+      duration: guard.duration || 2,
+      source: card.name,
+      placedBy: side,
+      fresh: true,  // v2.6c: survives first end-of-round tick
+    });
+    log(`    [Guard] ${guardedMember.name} is now Guarded (-${guard.powerReduction || 2}P to Strikes targeting them) for ${guard.duration || 2} rounds`);
+  } else {
+    log(`    [Guard] No valid target for Guardian Stance`);
+  }
+
+  // Self-Fortify component (Warden gains Fortify)
+  if (card.disruptEffect.selfFortify) {
+    const sf = card.disruptEffect.selfFortify;
+    self.conditions.push({
+      type: 'fortify',
+      resource: 'vitality',  // Protects Warden from vitality damage
+      reduction: sf.reduction || 1,
+      duration: sf.duration || 1,
+      source: card.name,
+      placedBy: side,
+      fresh: true,  // v2.6c
+    });
+    log(`    [Guard] ${card.member ? self.members[card.member]?.name || side : side} gains Fortify ${sf.reduction || 1}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// v2.6b: SPREAD FORTIFY — Counter Fortify Propagation
+// ═══════════════════════════════════════════════════════════════
+// When a Counter with spreadFortify is played and the caster has
+// an active Fortify, spread Fortify 1 to the weakest ally.
+// (Mana Shield: the Sorcerer's ward cascades outward)
+
+function resolveSpreadFortify(card, side, self, opp, ctx) {
+  const log = ctx.log;
+  const sf = card.counterEffect.spreadFortify;
+
+  // Check spread condition
+  let conditionMet = false;
+  if (sf.condition === 'self_has_fortify') {
+    conditionMet = self.conditions.some(c => c.type === 'fortify');
+  } else {
+    // Default: always spread if no condition specified
+    conditionMet = true;
+  }
+
+  if (conditionMet && self.isParty) {
+    // Find target ally (lowest vitality, not self)
+    let targetName = 'ally';
+    if (sf.target === 'lowest_vitality_ally') {
+      const active = Object.entries(self.members)
+        .filter(([k, m]) => m.status === 'active' && k !== card.member)
+        .sort(([_, a], [__, b]) => a.vitality - b.vitality);
+      if (active.length > 0) targetName = active[0][1].name;
+    }
+
+    self.conditions.push({
+      type: 'fortify',
+      resource: sf.resource || 'vitality',
+      reduction: sf.reduction || 1,
+      duration: sf.duration || 1,
+      source: `${card.name} (spread)`,
+      placedBy: side,
+      fresh: true,  // v2.6c
+    });
+    log(`    [Spread] Fortify ${sf.reduction || 1} spreads to ${targetName} (${card.name})`);
+  } else if (conditionMet && !self.isParty) {
+    // Non-party: just add Fortify to self
+    self.conditions.push({
+      type: 'fortify',
+      resource: sf.resource || 'vitality',
+      reduction: sf.reduction || 1,
+      duration: sf.duration || 1,
+      source: `${card.name} (spread)`,
+      placedBy: side,
+      fresh: true,  // v2.6c
+    });
+    log(`    [Spread] Fortify ${sf.reduction || 1} applied (${card.name})`);
+  }
 }
 
 // ═══ STRIKE RESOLUTION ═══
@@ -601,13 +773,15 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
       fortifyReduction += fc.reduction;
     }
 
+    // v2.6b: Guard reduction — applies when targeting a guarded party member
+    let guardReduction = 0;
+    let guardedMemberName = null;
+
     // Self-cost
     if (card.selfCost) {
       const sCost = R.applyDamage(self, card.selfCost.resource, card.selfCost.amount, 1);
       log(`    Self-cost: ${card.selfCost.resource} -${sCost}`);
     }
-
-    const finalDmg = Math.max(0, rawDmg - reactMitigation - fortifyReduction);
 
     // v2.4: PARTY VITALITY ROUTING
     let applied;
@@ -617,6 +791,14 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
       const strategy = ctx.memberTargetStrategy || 'lowest_vitality';
       const memberKey = R.selectPartyTarget(opp, strategy);
       if (memberKey) {
+        // v2.6b: Check if this member is Guarded
+        const guardCond = opp.conditions.find(c => c.type === 'guarded' && c.memberKey === memberKey);
+        if (guardCond) {
+          guardReduction = guardCond.powerReduction || 0;
+          guardedMemberName = opp.members[memberKey]?.name || memberKey;
+        }
+
+        const finalDmg = Math.max(0, rawDmg - reactMitigation - fortifyReduction - guardReduction);
         const memberResult = R.damagePartyMember(opp, memberKey, finalDmg);
         applied = memberResult.damaged;
         const memberName = opp.members[memberKey].name;
@@ -624,6 +806,7 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
         const mitigationParts = [];
         if (reactMitigation > 0) mitigationParts.push(`${reactMitigation} React`);
         if (fortifyReduction > 0) mitigationParts.push(`${fortifyReduction} Fortify`);
+        if (guardReduction > 0) mitigationParts.push(`${guardReduction} Guard`);
         const mitigationStr = mitigationParts.length > 0 ? ` (${rawDmg} raw - ${mitigationParts.join(' - ')})` : '';
         log(`    → ${memberName} vitality -${applied}${mitigationStr} [${result.tier}: ${damagePower}×${result.atkMult}=${rawDmg}]`);
 
@@ -639,12 +822,22 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
           log(`    [Deck] Removed ${removal.removed.length} cards (hand:${removal.from.hand} draw:${removal.from.draw} discard:${removal.from.discard})`);
           if (removal.removed.length > 0) log(`    [Deck] Removed: ${removal.removed.join(', ')}`);
           log(`    [Party] ${opp.knockoutCount}/${opp.killThreshold} knockouts toward Kill`);
+
+          // v2.6b: Remove guard conditions referencing knocked-out member
+          opp.conditions = opp.conditions.filter(c => {
+            if (c.type === 'guarded' && c.memberKey === memberKey) {
+              log(`    [Guard] ${c.source} expires (${memberName} knocked out)`);
+              return false;
+            }
+            return true;
+          });
         }
       } else {
         applied = 0;
       }
     } else {
       // Standard path: collective pool damage
+      const finalDmg = Math.max(0, rawDmg - reactMitigation - fortifyReduction);
       applied = R.applyDamage(opp, card.target, finalDmg, 1);
       const mitigationParts = [];
       if (reactMitigation > 0) mitigationParts.push(`${reactMitigation} React`);
@@ -752,7 +945,7 @@ function tryReact(defenderSide, defenderHand, defenderState, attackerState, inco
     const fortAmt = react.reactEffect.fortifyAmount || 1;
     defenderState.conditions.push({
       type: 'fortify', resource: fortRes,
-      reduction: fortAmt, duration: 1, source: react.name
+      reduction: fortAmt, duration: 1, source: react.name, fresh: true  // v2.6c
     });
     log(`    [${defenderSide}] React: ${react.name} → Fortify ${fortAmt} (${fortRes})`);
   }
@@ -766,6 +959,21 @@ function tryReact(defenderSide, defenderHand, defenderState, attackerState, inco
       const reflectTarget = attackerState.side === 'dungeon' ? 'structure' : 'vitality';
       const applied = R.applyDamage(attackerState, reflectTarget, reflectDmg, 1);
       log(`    [Reflect] Attacker ${reflectTarget} -${applied}`);
+    }
+
+    // v2.6b: On-success Fortify (Arcane Barrier snowball defense)
+    if (react.reactEffect?.onSuccess?.selfFortify) {
+      const sf = react.reactEffect.onSuccess.selfFortify;
+      defenderState.conditions.push({
+        type: 'fortify',
+        resource: sf.resource || 'vitality',
+        reduction: sf.reduction || 1,
+        duration: sf.duration || 1,
+        source: react.name,
+        placedBy: defenderSide,
+        fresh: true,  // v2.6c
+      });
+      log(`    [${defenderSide}] React Fortify: ${react.name} → Fortify ${sf.reduction || 1} (${sf.resource || 'vitality'}) for ${sf.duration || 1} round`);
     }
 
     return { card: react, mitigation };
@@ -784,27 +992,42 @@ function resolveReshape(card, side, self, opp, ctx) {
   if (!card.reshapeEffect) return;
   const eff = card.reshapeEffect;
 
-  // v2.4: Party member restoration (Healing Word)
-  if (eff.restoreMember && self.isParty) {
+  // v2.6b: Handle `restore` for party knockout recovery (Nature's Renewal, Restoration)
+  // This handles both the legacy `restoreMember` flag and the new `restore` object format.
+  if ((eff.restoreMember || eff.restore) && self.isParty) {
     const knockedOut = Object.entries(self.members)
       .filter(([_, m]) => m.status === 'knocked_out');
 
     if (knockedOut.length > 0) {
       const [targetKey, targetMember] = knockedOut[0];
-      const healAmount = (Array.isArray(eff.heal) ? eff.heal[0]?.amount : eff.heal?.amount) || 4;
+
+      // Determine heal amount: `restore.amount` is a percentage (0.4 = 40%)
+      let healAmount;
+      if (eff.restore && eff.restore.amount) {
+        // Percentage-based restore (e.g., 0.4 = 40% of max vitality)
+        healAmount = Math.max(1, Math.floor(targetMember.maxVitality * eff.restore.amount));
+      } else {
+        // Legacy: fixed heal amount from heal array
+        healAmount = (Array.isArray(eff.heal) ? eff.heal[0]?.amount : eff.heal?.amount) || 4;
+      }
+
       const restoreResult = R.restorePartyMember(self, targetKey, healAmount);
 
       if (restoreResult.restored) {
         const returned = R.returnMemberCards(targetKey, ctx.fullVisitorDeck, ctx.vDiscard);
         log(`    [Restore] ${targetMember.name} returns at ${restoreResult.vitality} vitality!`);
-        log(`    [Deck] ${returned.length} cards returned to discard: ${returned.join(', ')}`);
+        log(`    [Deck] ${returned.length} cards returned to discard${returned.length > 0 ? ': ' + returned.join(', ') : ''}`);
       }
       return; // Restoration consumes the full Reshape action
     }
-    // No one knocked out — fall through to normal heal
+    // No one knocked out — fall through to normal heal effects
+    log(`    [Restore] No knocked-out members to restore — applying standard effects`);
   }
 
-  // v2.4: Self-member healing (e.g., Knight's Second Wind)
+  // v2.6b: Track which member was healed (for extendFortify)
+  let healedMemberKey = null;
+
+  // v2.4 + v2.6b: Self-member healing and weakest_member routing
   if (eff.heal && self.isParty) {
     const heals = Array.isArray(eff.heal) ? eff.heal : [eff.heal];
     for (const h of heals) {
@@ -817,10 +1040,12 @@ function resolveReshape(card, side, self, opp, ctx) {
             .filter(m2 => m2.status === 'active')
             .reduce((s, m2) => s + m2.vitality, 0);
           log(`    → ${m.name} vitality +${heal} (${m.vitality - heal}→${m.vitality})`);
+          healedMemberKey = card.member;
         }
         continue;
       }
-      if (h.target === 'select_member' && self.isParty) {
+      // v2.6b: Handle weakest_member same as select_member
+      if ((h.target === 'select_member' || h.target === 'weakest_member') && self.isParty) {
         const active = Object.entries(self.members)
           .filter(([_, m]) => m.status === 'active')
           .sort(([_, a], [__, b]) => a.vitality - b.vitality);
@@ -832,10 +1057,11 @@ function resolveReshape(card, side, self, opp, ctx) {
             .filter(m => m.status === 'active')
             .reduce((s, m) => s + m.vitality, 0);
           log(`    → ${targetMember.name} vitality +${heal} (now ${targetMember.vitality}/${targetMember.maxVitality})`);
+          healedMemberKey = targetKey;
         }
         continue;
       }
-      // Standard collective pool heal
+      // Standard collective pool heal (resolve, nerve, etc.)
       const before = self[h.resource];
       R.applyBenefit(self, h.resource, h.amount);
       const after = self[h.resource];
@@ -871,13 +1097,39 @@ function resolveReshape(card, side, self, opp, ctx) {
     for (const f of fortifyData) {
       self.conditions.push({
         type: 'fortify',
-        resource: f.resource,
+        resource: f.resource || 'vitality',  // v2.6b: default to vitality for party self-buffs
         reduction: f.reduction || f.amount || 1,
         duration: f.duration || 2,
         source: card.name,
         placedBy: side,
+        fresh: true,  // v2.6c
       });
-      log(`    → Fortified: ${f.resource} -${f.reduction || f.amount || 1} incoming for ${f.duration || 2} rounds`);
+      log(`    → Fortified: ${f.resource || 'vitality'} -${f.reduction || f.amount || 1} incoming for ${f.duration || 2} rounds`);
+    }
+  }
+
+  // v2.6b: Extend Fortify duration on healed target (Healing Touch + Guard/Ward synergy)
+  if (eff.extendFortify) {
+    const extensionRounds = eff.extendFortify.rounds || 1;
+    // Find active Fortify conditions to extend
+    const fortifyConds = self.conditions.filter(c => c.type === 'fortify');
+    if (fortifyConds.length > 0) {
+      let extended = 0;
+      for (const fc of fortifyConds) {
+        fc.duration += extensionRounds;
+        extended++;
+      }
+      if (extended > 0) {
+        log(`    [Extend] Fortify extended by ${extensionRounds} round${extensionRounds > 1 ? 's' : ''} (${extended} effect${extended > 1 ? 's' : ''})`);
+      }
+    }
+    // Also extend Guard conditions if present
+    const guardConds = self.conditions.filter(c => c.type === 'guarded');
+    if (guardConds.length > 0) {
+      for (const gc of guardConds) {
+        gc.duration += extensionRounds;
+      }
+      log(`    [Extend] Guard extended by ${extensionRounds} round${extensionRounds > 1 ? 's' : ''}`);
     }
   }
 }

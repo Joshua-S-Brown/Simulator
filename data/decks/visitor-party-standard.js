@@ -1,10 +1,14 @@
 /**
- * PARTY DECK: The Standard Adventuring Company (v2.4)
+ * PARTY DECK: The Standard Adventuring Company (v2.6b)
  * Combined 40-card deck from 4 members: Knight, Battlemage, Cleric, Rogue
  * 
  * This is the assembled party deck used by the encounter engine.
  * Individual member files exist for design reference; this file is what
  * the simulator loads.
+ * 
+ * v2.6b CHANGES:
+ * [FIX] Divine Ward: alwaysFortify → absorb: true (engine checks `absorb`,
+ *       not `alwaysFortify`; Fortify-on-React was silently doing nothing)
  * 
  * CARD DISTRIBUTION (40 cards):
  *   Energy:  10 (25%)  — Standard ×4, Surge ×2, Attune ×2, Siphon ×2
@@ -224,9 +228,10 @@ module.exports = [
     description: 'Cleanse the corruption and mend what it touched. Remove condition. Restore 1 to party\'s lowest reducer. No chip damage.' },
 
   // ── React (1) ──
+  // v2.6b FIX: alwaysFortify → absorb (engine checks reactEffect.absorb)
   { name: 'Divine Ward', category: 'React', type: 'Social', cost: 0,
     power: 1, member: 'cleric',
-    reactEffect: { alwaysFortify: 1 },
+    reactEffect: { absorb: true, fortifyAmount: 1 },
     description: 'A prayer answered in the nick of time. Contest Power 1. Gain Fortify 1 regardless of outcome.' },
 
   // ═══════════════════════════════════════════════════════════

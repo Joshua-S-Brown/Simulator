@@ -1,0 +1,378 @@
+{
+  "scenario": "Verdant Maw vs Standard Adventuring Company (3-Room)",
+  "iterations": 1000,
+  "outcomeDistribution": {
+    "Kill": {
+      "count": 350,
+      "pct": 35
+    },
+    "Panic": {
+      "count": 254,
+      "pct": 25.4
+    },
+    "Break": {
+      "count": 151,
+      "pct": 15.1
+    },
+    "Survive": {
+      "count": 245,
+      "pct": 24.5
+    }
+  },
+  "avgRounds": 14.5,
+  "avgDecisions": 51.3,
+  "perEncounter": {
+    "Root Hollow": {
+      "timesReached": 1000,
+      "reachedPct": 100,
+      "avgRounds": 11.6,
+      "avgDecisions": 40.7,
+      "outcomes": {
+        "Kill": {
+          "count": 350,
+          "pct": 35
+        },
+        "Panic": {
+          "count": 190,
+          "pct": 19
+        },
+        "Overcome": {
+          "count": 452,
+          "pct": 45.2
+        },
+        "Break": {
+          "count": 7,
+          "pct": 0.7
+        },
+        "Inert": {
+          "count": 1,
+          "pct": 0.1
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 1000,
+          "dungeonPct": 93,
+          "visitorPct": 93,
+          "dungeonLeadPct": 44,
+          "visitorLeadPct": 50
+        },
+        {
+          "round": 2,
+          "samples": 1000,
+          "dungeonPct": 92,
+          "visitorPct": 91,
+          "dungeonLeadPct": 56,
+          "visitorLeadPct": 39
+        },
+        {
+          "round": 3,
+          "samples": 1000,
+          "dungeonPct": 87,
+          "visitorPct": 86,
+          "dungeonLeadPct": 49,
+          "visitorLeadPct": 47
+        },
+        {
+          "round": 4,
+          "samples": 1000,
+          "dungeonPct": 86,
+          "visitorPct": 84,
+          "dungeonLeadPct": 54,
+          "visitorLeadPct": 42
+        },
+        {
+          "round": 5,
+          "samples": 1000,
+          "dungeonPct": 80,
+          "visitorPct": 80,
+          "dungeonLeadPct": 50,
+          "visitorLeadPct": 46
+        },
+        {
+          "round": 6,
+          "samples": 1000,
+          "dungeonPct": 80,
+          "visitorPct": 78,
+          "dungeonLeadPct": 54,
+          "visitorLeadPct": 42
+        },
+        {
+          "round": 7,
+          "samples": 1000,
+          "dungeonPct": 74,
+          "visitorPct": 73,
+          "dungeonLeadPct": 52,
+          "visitorLeadPct": 46
+        },
+        {
+          "round": 8,
+          "samples": 998,
+          "dungeonPct": 72,
+          "visitorPct": 68,
+          "dungeonLeadPct": 56,
+          "visitorLeadPct": 41
+        },
+        {
+          "round": 9,
+          "samples": 982,
+          "dungeonPct": 64,
+          "visitorPct": 61,
+          "dungeonLeadPct": 54,
+          "visitorLeadPct": 42
+        },
+        {
+          "round": 10,
+          "samples": 918,
+          "dungeonPct": 59,
+          "visitorPct": 54,
+          "dungeonLeadPct": 62,
+          "visitorLeadPct": 36
+        },
+        {
+          "round": 11,
+          "samples": 600,
+          "dungeonPct": 51,
+          "visitorPct": 45,
+          "dungeonLeadPct": 68,
+          "visitorLeadPct": 30
+        },
+        {
+          "round": 12,
+          "samples": 126,
+          "dungeonPct": 48,
+          "visitorPct": 34,
+          "dungeonLeadPct": 87,
+          "visitorLeadPct": 12
+        }
+      ]
+    },
+    "Whispering Gallery": {
+      "timesReached": 453,
+      "reachedPct": 45.3,
+      "avgRounds": 4.7,
+      "avgDecisions": 17,
+      "outcomes": {
+        "Break": {
+          "count": 141,
+          "pct": 31.1
+        },
+        "Dominate": {
+          "count": 186,
+          "pct": 41.1
+        },
+        "Overcome": {
+          "count": 94,
+          "pct": 20.8
+        },
+        "Inert": {
+          "count": 18,
+          "pct": 4
+        },
+        "Panic": {
+          "count": 14,
+          "pct": 3.1
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 428,
+          "dungeonPct": 43,
+          "visitorPct": 56,
+          "dungeonLeadPct": 16,
+          "visitorLeadPct": 82
+        },
+        {
+          "round": 2,
+          "samples": 396,
+          "dungeonPct": 40,
+          "visitorPct": 51,
+          "dungeonLeadPct": 22,
+          "visitorLeadPct": 76
+        },
+        {
+          "round": 3,
+          "samples": 317,
+          "dungeonPct": 34,
+          "visitorPct": 47,
+          "dungeonLeadPct": 17,
+          "visitorLeadPct": 80
+        },
+        {
+          "round": 4,
+          "samples": 256,
+          "dungeonPct": 33,
+          "visitorPct": 44,
+          "dungeonLeadPct": 19,
+          "visitorLeadPct": 80
+        },
+        {
+          "round": 5,
+          "samples": 148,
+          "dungeonPct": 29,
+          "visitorPct": 40,
+          "dungeonLeadPct": 19,
+          "visitorLeadPct": 80
+        },
+        {
+          "round": 6,
+          "samples": 95,
+          "dungeonPct": 28,
+          "visitorPct": 38,
+          "dungeonLeadPct": 19,
+          "visitorLeadPct": 79
+        },
+        {
+          "round": 7,
+          "samples": 28,
+          "dungeonPct": 24,
+          "visitorPct": 36,
+          "dungeonLeadPct": 14,
+          "visitorLeadPct": 82
+        }
+      ]
+    },
+    "Veil Breach": {
+      "timesReached": 298,
+      "reachedPct": 29.8,
+      "avgRounds": 2.4,
+      "avgDecisions": 9.7,
+      "outcomes": {
+        "Overcome": {
+          "count": 184,
+          "pct": 61.7
+        },
+        "Panic": {
+          "count": 50,
+          "pct": 16.8
+        },
+        "Inert": {
+          "count": 42,
+          "pct": 14.1
+        },
+        "Dominate": {
+          "count": 19,
+          "pct": 6.4
+        },
+        "Break": {
+          "count": 3,
+          "pct": 1
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 176,
+          "dungeonPct": 29,
+          "visitorPct": 60,
+          "dungeonLeadPct": 1,
+          "visitorLeadPct": 99
+        },
+        {
+          "round": 2,
+          "samples": 131,
+          "dungeonPct": 30,
+          "visitorPct": 58,
+          "dungeonLeadPct": 0,
+          "visitorLeadPct": 100
+        },
+        {
+          "round": 3,
+          "samples": 58,
+          "dungeonPct": 27,
+          "visitorPct": 57,
+          "dungeonLeadPct": 0,
+          "visitorLeadPct": 100
+        },
+        {
+          "round": 4,
+          "samples": 30,
+          "dungeonPct": 26,
+          "visitorPct": 55,
+          "dungeonLeadPct": 0,
+          "visitorLeadPct": 100
+        }
+      ]
+    }
+  },
+  "qualityMetrics": {
+    "agency": {
+      "average": 1.35,
+      "distribution": {
+        "0": {
+          "count": 349,
+          "pct": 34.9
+        },
+        "1": {
+          "count": 262,
+          "pct": 26.2
+        },
+        "2": {
+          "count": 182,
+          "pct": 18.2
+        },
+        "3+": {
+          "count": 207,
+          "pct": 20.7
+        }
+      },
+      "assessment": "HEALTHY"
+    },
+    "closeness": {
+      "average": 20.3,
+      "median": 18.8,
+      "validSamples": 1000,
+      "assessment": "HEALTHY"
+    },
+    "outcomeDiversity": {
+      "raw": 1.941,
+      "normalized": 0.647,
+      "possibleOutcomes": 4,
+      "assessment": "HEALTHY"
+    },
+    "knockoutPatterns": {
+      "distribution": {
+        "cleric": {
+          "count": 295,
+          "pct": 59.7
+        },
+        "rogue": {
+          "count": 136,
+          "pct": 27.5
+        },
+        "battlemage": {
+          "count": 61,
+          "pct": 12.3
+        },
+        "knight": {
+          "count": 2,
+          "pct": 0.4
+        }
+      },
+      "entropy": 1.361,
+      "normalized": 0.681,
+      "assessment": "HEALTHY"
+    },
+    "attritionCurve": {
+      "Room 2 (Whispering Gallery)": {
+        "samples": 428,
+        "avgVitalityPct": 57.6,
+        "avgResolvePct": 66.5,
+        "avgNervePct": 43.9,
+        "overallPct": 56,
+        "assessment": "HEALTHY"
+      },
+      "Room 3 (Veil Breach)": {
+        "samples": 176,
+        "avgVitalityPct": 71.8,
+        "avgResolvePct": 60.8,
+        "avgNervePct": 48,
+        "overallPct": 60.2,
+        "assessment": "HEALTHY"
+      }
+    },
+    "healthIssues": []
+  }
+}

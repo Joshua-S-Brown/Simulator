@@ -1,0 +1,201 @@
+{
+  "scenario": "Verdant Maw vs Arcane Expedition",
+  "iterations": 1000,
+  "outcomeDistribution": {
+    "Kill": {
+      "count": 519,
+      "pct": 51.9
+    },
+    "Break": {
+      "count": 9,
+      "pct": 0.9
+    },
+    "Survive": {
+      "count": 428,
+      "pct": 42.8
+    },
+    "Panic": {
+      "count": 44,
+      "pct": 4.4
+    }
+  },
+  "avgRounds": 10.8,
+  "avgDecisions": 38.8,
+  "perEncounter": {
+    "Root Hollow": {
+      "timesReached": 1000,
+      "reachedPct": 100,
+      "avgRounds": 10.8,
+      "avgDecisions": 38.8,
+      "outcomes": {
+        "Kill": {
+          "count": 519,
+          "pct": 51.9
+        },
+        "Break": {
+          "count": 9,
+          "pct": 0.9
+        },
+        "Overcome": {
+          "count": 428,
+          "pct": 42.8
+        },
+        "Panic": {
+          "count": 44,
+          "pct": 4.4
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 1000,
+          "dungeonPct": 93,
+          "visitorPct": 94,
+          "dungeonLeadPct": 35,
+          "visitorLeadPct": 59
+        },
+        {
+          "round": 2,
+          "samples": 1000,
+          "dungeonPct": 91,
+          "visitorPct": 92,
+          "dungeonLeadPct": 44,
+          "visitorLeadPct": 49
+        },
+        {
+          "round": 3,
+          "samples": 1000,
+          "dungeonPct": 85,
+          "visitorPct": 88,
+          "dungeonLeadPct": 37,
+          "visitorLeadPct": 59
+        },
+        {
+          "round": 4,
+          "samples": 1000,
+          "dungeonPct": 84,
+          "visitorPct": 85,
+          "dungeonLeadPct": 41,
+          "visitorLeadPct": 55
+        },
+        {
+          "round": 5,
+          "samples": 1000,
+          "dungeonPct": 78,
+          "visitorPct": 81,
+          "dungeonLeadPct": 38,
+          "visitorLeadPct": 59
+        },
+        {
+          "round": 6,
+          "samples": 1000,
+          "dungeonPct": 77,
+          "visitorPct": 79,
+          "dungeonLeadPct": 42,
+          "visitorLeadPct": 55
+        },
+        {
+          "round": 7,
+          "samples": 997,
+          "dungeonPct": 71,
+          "visitorPct": 74,
+          "dungeonLeadPct": 40,
+          "visitorLeadPct": 56
+        },
+        {
+          "round": 8,
+          "samples": 980,
+          "dungeonPct": 68,
+          "visitorPct": 67,
+          "dungeonLeadPct": 50,
+          "visitorLeadPct": 48
+        },
+        {
+          "round": 9,
+          "samples": 910,
+          "dungeonPct": 61,
+          "visitorPct": 59,
+          "dungeonLeadPct": 53,
+          "visitorLeadPct": 44
+        },
+        {
+          "round": 10,
+          "samples": 709,
+          "dungeonPct": 57,
+          "visitorPct": 50,
+          "dungeonLeadPct": 67,
+          "visitorLeadPct": 31
+        },
+        {
+          "round": 11,
+          "samples": 234,
+          "dungeonPct": 49,
+          "visitorPct": 39,
+          "dungeonLeadPct": 75,
+          "visitorLeadPct": 24
+        }
+      ]
+    }
+  },
+  "qualityMetrics": {
+    "agency": {
+      "average": 1.31,
+      "distribution": {
+        "0": {
+          "count": 325,
+          "pct": 32.5
+        },
+        "1": {
+          "count": 304,
+          "pct": 30.4
+        },
+        "2": {
+          "count": 183,
+          "pct": 18.3
+        },
+        "3+": {
+          "count": 188,
+          "pct": 18.8
+        }
+      },
+      "assessment": "HEALTHY"
+    },
+    "closeness": {
+      "average": 27.3,
+      "median": 17.2,
+      "validSamples": 1000,
+      "assessment": "HEALTHY"
+    },
+    "outcomeDiversity": {
+      "raw": 1.275,
+      "normalized": 0.425,
+      "possibleOutcomes": 4,
+      "assessment": "HEALTHY"
+    },
+    "knockoutPatterns": {
+      "distribution": {
+        "druid": {
+          "count": 367,
+          "pct": 56.8
+        },
+        "ranger": {
+          "count": 44,
+          "pct": 6.8
+        },
+        "sorcerer": {
+          "count": 234,
+          "pct": 36.2
+        },
+        "warden": {
+          "count": 1,
+          "pct": 0.2
+        }
+      },
+      "entropy": 1.273,
+      "normalized": 0.636,
+      "assessment": "HEALTHY"
+    },
+    "attritionCurve": null,
+    "healthIssues": []
+  }
+}
