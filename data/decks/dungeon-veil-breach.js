@@ -1,14 +1,50 @@
 /**
- * DUNGEON DECK: Veil Breach (v2.2)
- * Identity: Reality fractures, existential dread, high risk/reward
- * Combo lines: Fear Resonance → Nightmare Surge (Overwhelm spill)
- *              Veil Rend (self-cost big damage)
- *              Spatial Distortion strips keywords for clean hits
+ * DUNGEON DECK: Veil Breach (v2.7 — Strike Power Rebalance)
  * 
- * v2.2 ENERGY CHANGES:
- *   3→5 Energy cards (1 Standard, 2 Surge, 1 Attune[Mystical], 1 Siphon)
- *   Veil Rend cost 2→3 (4P Exhaust alpha strike — ultimate premium)
- *   16→18 cards total
+ * Identity: Reality fractures, existential dread, high risk/reward
+ * Tags: Mystical, Environmental, Unstable
+ * 
+ * ═══════════════════════════════════════════════════════════════
+ * v2.7 STRIKE POWER PHILOSOPHY
+ * ═══════════════════════════════════════════════════════════════
+ * 
+ * Veil Breach's hierarchy:
+ *   Chip:     Veil Lash (P2) — reality cuts. Cheap vitality.
+ *   Threat:   Creeping Dread (P3) — slow horror. Resolve + Erode.
+ *   Finisher: Nightmare Surge (P4) — with Fear Resonance = P6.
+ *             Pure terror crashes through. Overwhelm spills excess.
+ *   Alpha:    Veil Rend (P4 Exhaust) — tear the boundary open.
+ *             One use, self-cost 2 veil. The nuclear option.
+ * 
+ * COMBO LINES:
+ * 
+ * PRIMARY: Fear Resonance → Nightmare Surge
+ *   Cost: 1+2 = 3 energy. Adds +2P + Overwhelm to P4 = P6.
+ *   Strong hit = 6 nerve + Overwhelm excess → resolve spill.
+ *   Devastating = 9 nerve. Against nerve 17, that's over half
+ *   in one shot. The visitors MUST respond to the Empower or
+ *   accept catastrophic damage.
+ * 
+ * ALPHA: Surge energy → Veil Rend
+ *   Cost: 3 energy (typically needs Reality Spike or Warped Root).
+ *   P4 nerve, Exhaust, self-cost 2 veil. One devastating strike
+ *   that sacrifices dimensional integrity. Use it when the terror
+ *   is close to breaking them — or don't use it at all.
+ * 
+ * CONTROL: Spatial Distortion → clean Strike
+ *   Strip keywords from opponent's next Strike. In warped reality,
+ *   their preparations fail. Follow with your own uncontested hit.
+ * 
+ * ═══════════════════════════════════════════════════════════════
+ * VERSION HISTORY
+ * ═══════════════════════════════════════════════════════════════
+ * v2.2: Energy system integration. 5 Energy cards. Veil Rend cost
+ *       2→3 (alpha strike premium).
+ * v2.7: Strike power rebalance.
+ *       Nightmare Surge P3→P4. Fear Resonance combo now peaks at
+ *       P6 — the most devastating combo in the gauntlet. The Veil
+ *       Breach is where the dungeon goes all-in on terror.
+ *       Creeping Dread P2→P3. Slow horror should still hurt.
  */
 module.exports = [
   // ── ENERGY (5) ──
@@ -30,16 +66,26 @@ module.exports = [
     siphon: { condition: { type: 'resource_below', resource: 'nerve', pct: 0.5 }, target: 'opponent' },
     description: 'Feed on faltering courage. +1 permanent if visitor nerve below half, else +1 temp.' },
 
-  // ── STRIKES (4) — Each mechanically distinct ──
+  // ── STRIKES (4) — Three-tier hierarchy + alpha ──
+
+  // COMBO FINISHER: Pure terror. P4 base, P6 with Fear Resonance.
+  // v2.7: P3→P4. The breach's signature terror must be devastating.
   { name: 'Nightmare Surge', category: 'Strike', type: 'Social', cost: 2,
-    power: 3, target: 'nerve', keywords: ['Overwhelm'], overwhelmTarget: 'resolve',
-    description: 'Pure terror crashes through defenses. Deal 3 nerve. Overwhelm: excess spills to resolve.' },
+    power: 4, target: 'nerve', keywords: ['Overwhelm'], overwhelmTarget: 'resolve',
+    description: 'Pure terror crashes through defenses. Deal 4 nerve. Overwhelm: excess spills to resolve.' },
+
+  // THREAT: Slow-building existential horror. Resolve attrition.
+  // v2.7: P2→P3. Creeping dread should creep harder.
   { name: 'Creeping Dread', category: 'Strike', type: 'Social', cost: 1,
-    power: 2, target: 'resolve', keywords: ['Erode'],
-    description: 'Slow-building existential horror. Deal 2 resolve. Erode 1.' },
+    power: 3, target: 'resolve', keywords: ['Erode'],
+    description: 'Slow-building existential horror. Deal 3 resolve. Erode 1.' },
+
+  // CHIP: Reality itself cuts. Cheap vitality pressure.
   { name: 'Veil Lash', category: 'Strike', type: 'Mystical', cost: 1,
     power: 2, target: 'vitality', keywords: ['Resonate'],
     description: 'Reality itself cuts. Deal 2 vitality. Resonate: +1P if same type last round.' },
+
+  // ALPHA: Tear the boundary open. One use, massive risk/reward.
   { name: 'Veil Rend', category: 'Strike', type: 'Mystical', cost: 3,
     power: 4, target: 'nerve', exhaust: true,
     selfCost: { resource: 'veil', amount: 2 },
@@ -88,10 +134,10 @@ module.exports = [
     description: 'A controlled vision of what lies beyond the veil. Accept: heal 2 resolve, build trust.' },
 
   // ── RESHAPE (1) ──
-  { name: 'Reality Fold', category: 'Reshape', type: 'Mystical', cost: 2,
+  { name: 'Dimensional Fold', category: 'Reshape', type: 'Mystical', cost: 2,
     reshapeEffect: {
       heal: [{ resource: 'veil', amount: 2 }],
-      fortify: [{ resource: 'veil', reduction: 1, duration: 1 }],
+      fortify: [{ resource: 'veil', amount: 1 }],
     },
-    description: 'Fold the breach partly closed. Heal 2 veil. Fortify veil 1 for 1 round.' },
+    description: 'Fold the breach inward. Heal 2 veil. Fortify veil 1.' },
 ];

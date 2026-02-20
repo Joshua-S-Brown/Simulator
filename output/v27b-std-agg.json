@@ -1,0 +1,199 @@
+{
+  "scenario": "Verdant Maw vs Standard Adventuring Company",
+  "iterations": 1000,
+  "outcomeDistribution": {
+    "Survive": {
+      "count": 783,
+      "pct": 78.3
+    },
+    "Break": {
+      "count": 10,
+      "pct": 1
+    },
+    "Panic": {
+      "count": 189,
+      "pct": 18.9
+    },
+    "Kill": {
+      "count": 18,
+      "pct": 1.8
+    }
+  },
+  "avgRounds": 11,
+  "avgDecisions": 37.6,
+  "perEncounter": {
+    "Root Hollow": {
+      "timesReached": 1000,
+      "reachedPct": 100,
+      "avgRounds": 11,
+      "avgDecisions": 37.6,
+      "outcomes": {
+        "Overcome": {
+          "count": 783,
+          "pct": 78.3
+        },
+        "Break": {
+          "count": 10,
+          "pct": 1
+        },
+        "Panic": {
+          "count": 189,
+          "pct": 18.9
+        },
+        "Kill": {
+          "count": 18,
+          "pct": 1.8
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 1000,
+          "dungeonPct": 92,
+          "visitorPct": 93,
+          "dungeonLeadPct": 35,
+          "visitorLeadPct": 57
+        },
+        {
+          "round": 2,
+          "samples": 1000,
+          "dungeonPct": 91,
+          "visitorPct": 90,
+          "dungeonLeadPct": 47,
+          "visitorLeadPct": 48
+        },
+        {
+          "round": 3,
+          "samples": 1000,
+          "dungeonPct": 85,
+          "visitorPct": 87,
+          "dungeonLeadPct": 38,
+          "visitorLeadPct": 58
+        },
+        {
+          "round": 4,
+          "samples": 1000,
+          "dungeonPct": 83,
+          "visitorPct": 85,
+          "dungeonLeadPct": 42,
+          "visitorLeadPct": 54
+        },
+        {
+          "round": 5,
+          "samples": 1000,
+          "dungeonPct": 77,
+          "visitorPct": 81,
+          "dungeonLeadPct": 35,
+          "visitorLeadPct": 62
+        },
+        {
+          "round": 6,
+          "samples": 1000,
+          "dungeonPct": 76,
+          "visitorPct": 79,
+          "dungeonLeadPct": 40,
+          "visitorLeadPct": 57
+        },
+        {
+          "round": 7,
+          "samples": 1000,
+          "dungeonPct": 70,
+          "visitorPct": 74,
+          "dungeonLeadPct": 35,
+          "visitorLeadPct": 62
+        },
+        {
+          "round": 8,
+          "samples": 996,
+          "dungeonPct": 67,
+          "visitorPct": 71,
+          "dungeonLeadPct": 37,
+          "visitorLeadPct": 60
+        },
+        {
+          "round": 9,
+          "samples": 945,
+          "dungeonPct": 59,
+          "visitorPct": 63,
+          "dungeonLeadPct": 37,
+          "visitorLeadPct": 61
+        },
+        {
+          "round": 10,
+          "samples": 770,
+          "dungeonPct": 55,
+          "visitorPct": 57,
+          "dungeonLeadPct": 42,
+          "visitorLeadPct": 55
+        },
+        {
+          "round": 11,
+          "samples": 256,
+          "dungeonPct": 49,
+          "visitorPct": 46,
+          "dungeonLeadPct": 56,
+          "visitorLeadPct": 39
+        }
+      ]
+    }
+  },
+  "qualityMetrics": {
+    "agency": {
+      "average": 1.07,
+      "distribution": {
+        "0": {
+          "count": 426,
+          "pct": 42.6
+        },
+        "1": {
+          "count": 255,
+          "pct": 25.5
+        },
+        "2": {
+          "count": 190,
+          "pct": 19
+        },
+        "3+": {
+          "count": 129,
+          "pct": 12.9
+        }
+      },
+      "assessment": "HEALTHY"
+    },
+    "closeness": {
+      "average": 50,
+      "median": 50,
+      "validSamples": 1000,
+      "assessment": "MODERATE — primary win condition dominates"
+    },
+    "outcomeDiversity": {
+      "raw": 0.901,
+      "normalized": 0.3,
+      "possibleOutcomes": 4,
+      "assessment": "LOW — severe outcome concentration"
+    },
+    "knockoutPatterns": {
+      "distribution": {
+        "rogue": {
+          "count": 96,
+          "pct": 54.2
+        },
+        "cleric": {
+          "count": 39,
+          "pct": 22
+        },
+        "battlemage": {
+          "count": 42,
+          "pct": 23.7
+        }
+      },
+      "entropy": 1.452,
+      "normalized": 0.916,
+      "assessment": "HIGH — targeting may be unfocused"
+    },
+    "attritionCurve": null,
+    "healthIssues": [
+      "Outcome diversity too low (0.3) — severe concentration"
+    ]
+  }
+}

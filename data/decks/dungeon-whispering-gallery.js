@@ -1,16 +1,43 @@
 /**
- * DUNGEON DECK: Whispering Gallery (v2.3)
+ * DUNGEON DECK: Whispering Gallery (v2.7 — Strike Power Rebalance)
+ * 
  * Identity: Echoes, psychological warfare, redirected reality
- * Combo lines: Erode resolve via whispers (persistent attrition)
- *              Redirect opponent Strikes via Spatial Distortion
- *              Steal Empowers via Absorbing Silence
+ * Tags: Social, Mystical, Open
  * 
- * v2.3 BALANCE CHANGES:
- *   Crushing Silence cost 3→2 (signature resolve card was priced out of playability)
+ * ═══════════════════════════════════════════════════════════════
+ * v2.7 STRIKE POWER PHILOSOPHY
+ * ═══════════════════════════════════════════════════════════════
  * 
- * v2.2 ENERGY CHANGES (preserved):
- *   5 Energy cards (2 Standard, 1 Surge, 1 Attune[Social], 1 Siphon)
- *   17 cards total
+ * Whispering Gallery's hierarchy:
+ *   Chip:     Sonic Lash (P2) — sound made sharp. Physical chip.
+ *   Threat:   Dread Whisper (P3) — named fear. Nerve + Erode.
+ *   Finisher: Crushing Silence (P4 base, P5 if unprotected) —
+ *             absolute quiet that shatters resolve.
+ * 
+ * COMBO LINES:
+ * 
+ * PRIMARY: Voices in Chorus → Crushing Silence
+ *   Cost: 1+2 = 3 energy. Adds +1P + Erode to P4 base = P5.
+ *   Strong hit = 5 resolve + Erode 1. The Gallery weaponizes
+ *   silence — many whispers focus into a single devastating void.
+ * 
+ * SECONDARY: Absorbing Silence → steal Empower → use it
+ *   Counter their preparation, take it for yourself. The Gallery
+ *   consumes intent before it becomes action.
+ * 
+ * CONTROL: Echoing Confusion → randomize next Strike target
+ *   You can't defend what you can't predict. The Gallery distorts
+ *   spatial awareness, making targeting decisions meaningless.
+ * 
+ * ═══════════════════════════════════════════════════════════════
+ * VERSION HISTORY
+ * ═══════════════════════════════════════════════════════════════
+ * v2.2: Energy system integration. 5 Energy cards.
+ * v2.3: Crushing Silence cost 3→2 (affordable with pool growth).
+ * v2.7: Strike power rebalance.
+ *       Crushing Silence P3→P4 (P5 conditional). Gallery signature
+ *       must be the scariest resolve card in the gauntlet.
+ *       Dread Whisper P2→P3. Named whispers should be frightening.
  */
 module.exports = [
   // ── ENERGY (5) ──
@@ -32,16 +59,23 @@ module.exports = [
     siphon: { condition: { type: 'has_condition', condition: 'empower' }, target: 'opponent' },
     description: 'Feed on their preparations. +1 permanent if opponent is Empowered, else +1 temp.' },
 
-  // ── STRIKES (3) — Each mechanically distinct ──
-  // v2.3: Crushing Silence cost 3→2 (affordable with basic pool growth)
+  // ── STRIKES (3) — Three-tier hierarchy ──
+
+  // COMBO FINISHER: Absolute silence. P4 base, P5 when unprotected.
+  // v2.7: P3→P4. The Gallery's signature must command respect.
   { name: 'Crushing Silence', category: 'Strike', type: 'Social', cost: 2,
-    power: 3, target: 'resolve',
+    power: 4, target: 'resolve',
     trigger: { condition: { type: 'no_condition', target: 'opponent', condition: 'empower' }, bonus: 1,
       description: 'If opponent has no Empower, +1 Power' },
-    description: 'Absolute quiet crushes the will. Deal 3 resolve. If opponent has no active Empower, deal 4.' },
+    description: 'Absolute quiet crushes the will. Deal 4 resolve. If opponent has no active Empower, deal 5.' },
+
+  // THREAT: A voice from nowhere speaks your name. Personal terror.
+  // v2.7: P2→P3. Named whispers should be genuinely frightening.
   { name: 'Dread Whisper', category: 'Strike', type: 'Social', cost: 1,
-    power: 2, target: 'nerve', keywords: ['Erode'],
-    description: 'A voice from nowhere speaks their name. Deal 2 nerve. Erode 1.' },
+    power: 3, target: 'nerve', keywords: ['Erode'],
+    description: 'A voice from nowhere speaks their name. Deal 3 nerve. Erode 1.' },
+
+  // CHIP: Sound as a physical weapon. Cheap vitality pressure.
   { name: 'Sonic Lash', category: 'Strike', type: 'Environmental', cost: 1,
     power: 2, target: 'vitality', keywords: ['Resonate'],
     description: 'Sound made sharp enough to cut. Deal 2 vitality. Resonate: +1P if same type played last round.' },

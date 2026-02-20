@@ -1,20 +1,73 @@
 /**
- * DUNGEON DECK: Root Hollow (v2.3)
+ * DUNGEON DECK: Root Hollow (v2.7 — Strike Power Rebalance)
+ * 
  * Identity: Crushing earth, ensnaring roots, slow decay
- * Combo lines: Entangle → Crushing Grip (+2P conditional) — now targets resolve (Break path)
- *              Erode attrition via Tremor Slam (buffed P2)
- *              Drain sustain via Soul Leech (cost 2 — accessible)
+ * Tags: Physical, Environmental, Enclosed
  * 
- * v2.3 BALANCE CHANGES:
- *   - Crushing Grip: target vitality → resolve (opens Break path in Room 1)
- *   - Tremor Slam: power 1 → 2 (meaningful nerve pressure)
- *   - Soul Leech: cost 3 → 2 (affordable nerve+drain)
- *   Strike targeting now: vitality×1, resolve×1, nerve×2
+ * ═══════════════════════════════════════════════════════════════
+ * v2.7 STRIKE POWER PHILOSOPHY
+ * ═══════════════════════════════════════════════════════════════
  * 
- * v2.2 ENERGY CHANGES (preserved):
- *   - 5 Energy cards (28% of 18-card deck)
- *   - Resonant Core as Attune (Environmental)
- *   - Predatory Surge (Surge) and Root Siphon (Siphon: Entangle)
+ * With v2.7's reduced auto-effects, card plays must be the primary
+ * damage source. Each deck has a three-tier Strike hierarchy:
+ * 
+ *   CHIP (P2, cost 1): Cheap, frequent, setup-oriented. Maintains
+ *     pressure while setting up combos. Every roll matters but
+ *     Partials are survivable.
+ * 
+ *   THREAT (P3, cost 1–2): Reliably dangerous. Devastatings hurt,
+ *     Strongs are significant, Partials are chip. The bread and butter.
+ * 
+ *   COMBO FINISHER (P4+ after setup): Demands a response. The payoff
+ *     for executing the room's combo line. Visitors MUST Counter,
+ *     React, or Fortify — or take serious damage.
+ * 
+ * Root Hollow's hierarchy:
+ *   Chip:     Entombing Grasp (P2) — the grab. Setup, not finisher.
+ *   Chip:     Tremor Slam (P2) — cheap nerve attrition.
+ *   Threat:   Soul Leech (P3) — Drain sustain. Feeds the dungeon.
+ *   Finisher: Crushing Grip (P3 base, P5 with Entangle) — the crush.
+ * 
+ * ═══════════════════════════════════════════════════════════════
+ * COMBO LINES
+ * ═══════════════════════════════════════════════════════════════
+ * 
+ * PRIMARY: Entombing Grasp → Crushing Grip
+ *   Cost: 2+2 = 4 energy. Setup: Entangle target.
+ *   Payoff: P5 resolve damage + Erode. Strong hit = 5 resolve,
+ *   nearly 36% of Standard's resolve 14 in one shot.
+ *   Counterplay: Counter the Entangle, Disrupt before Crush,
+ *   React the Strike, or Fortify in advance. The visitors have
+ *   tools — but they have to use them.
+ * 
+ * SECONDARY: Predatory Stance → Any Strike (Advantage)
+ *   Cost: 2 + Strike cost. Better rolls = more Devastatings.
+ *   Combo: Predatory Stance + Entangled = Double Advantage.
+ *   With Crushing Grip: Double Advantage on P5 Strike. Terrifying.
+ * 
+ * SUSTAIN: Soul Leech Drain
+ *   Cost: 2 energy. P3 nerve damage, Drain converts to presence.
+ *   The dungeon heals while dealing damage. Rewards aggression.
+ * 
+ * ATTRITION: Tremor Slam Erode
+ *   Cost: 1 energy. P2 nerve + Erode 1 next round.
+ *   Cheap, persistent, grinds nerve over time.
+ * 
+ * TRAP: Buried Snare → Entombing Grasp → Crushing Grip
+ *   Set snare, wait for visitor Strike, spring for Entangle,
+ *   then follow up with Crushing Grip next round. Three-card
+ *   sequence that punishes visitor aggression.
+ * 
+ * ═══════════════════════════════════════════════════════════════
+ * VERSION HISTORY
+ * ═══════════════════════════════════════════════════════════════
+ * v2.2: Energy system integration. 5 Energy cards added.
+ * v2.3: Crushing Grip retargeted vitality → resolve. Tremor Slam
+ *       buffed P1→P2. Soul Leech cost 3→2.
+ * v2.7: Strike power rebalance for card-driven outcomes.
+ *       Crushing Grip P2→P3 (P5 with Entangle conditional).
+ *       Soul Leech P2→P3 (Drain sustain worth the investment).
+ *       Auto-effects reduced; cards are now primary damage source.
  */
 module.exports = [
   // ── ENERGY (5) ──
@@ -40,29 +93,32 @@ module.exports = [
     siphon: { condition: { type: 'has_condition', condition: 'entangled' }, target: 'opponent' },
     description: 'Roots drink deeper when prey cannot flee. +1 permanent if opponent Entangled, else +1 temp.' },
 
-  // ── STRIKES (4) — Each mechanically distinct ──
-  // v2.3: targeting spread is now vitality×1, resolve×1, nerve×2
+  // ── STRIKES (4) — Three-tier hierarchy ──
 
+  // CHIP: The grab. Setup for Crushing Grip combo.
   { name: 'Entombing Grasp', category: 'Strike', type: 'Environmental', cost: 2,
     power: 2, target: 'vitality', keywords: ['Entangle'],
     description: 'Roots erupt to pin the intruder. Deal 2 vitality damage. Entangle.' },
 
-  // v2.3: RETARGETED vitality → resolve. Opens Break path in Room 1.
+  // COMBO FINISHER: The crush. P3 base, P5 with Entangle.
+  // v2.7: P2→P3. The Entangle→Crush payoff must be worth the setup.
+  // v2.3: retargeted vitality → resolve. Opens Break path.
   { name: 'Crushing Grip', category: 'Strike', type: 'Environmental', cost: 2,
-    power: 2, target: 'resolve', keywords: ['Erode'],
+    power: 3, target: 'resolve', keywords: ['Erode'],
     trigger: { condition: { type: 'has_condition', condition: 'entangled' }, bonus: 2,
       description: 'If Entangled, +2 Power' },
-    description: 'Tighten the hold until resistance crumbles. Deal 2 resolve. Erode 1. If Entangled, deal 4.' },
+    description: 'Tighten the hold until resistance crumbles. Deal 3 resolve. Erode 1. If Entangled, deal 5.' },
 
-  // v2.3: BUFFED power 1 → 2. Meaningful nerve pressure.
+  // CHIP: Cheap nerve attrition. Persistent grind.
   { name: 'Tremor Slam', category: 'Strike', type: 'Environmental', cost: 1,
     power: 2, target: 'nerve', keywords: ['Erode'],
     description: 'The ground shakes with malice. Deal 2 nerve damage. Erode 1.' },
 
-  // v2.3: REDUCED cost 3 → 2. Now affordable in mid-game.
+  // THREAT: Drain sustain. Nerve damage funds presence recovery.
+  // v2.7: P2→P3. Drain is the dungeon's sustain engine — worth investment.
   { name: 'Soul Leech', category: 'Strike', type: 'Social', cost: 2,
-    power: 2, target: 'nerve', keywords: ['Drain'], drainTarget: 'presence',
-    description: 'Feed on the visitor\'s dread. Deal 2 nerve damage. Drain to presence (max 2).' },
+    power: 3, target: 'nerve', keywords: ['Drain'], drainTarget: 'presence',
+    description: 'Feed on the visitor\'s dread. Deal 3 nerve damage. Drain to presence (max 2).' },
 
   // ── EMPOWER (1) — Conditional double-advantage ──
   { name: 'Predatory Stance', category: 'Empower', type: 'Environmental', cost: 2,
