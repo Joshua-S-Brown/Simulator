@@ -1,0 +1,209 @@
+{
+  "scenario": "Verdant Maw vs Standard Adventuring Company",
+  "iterations": 1000,
+  "outcomeDistribution": {
+    "Panic": {
+      "count": 177,
+      "pct": 17.7
+    },
+    "Survive": {
+      "count": 466,
+      "pct": 46.6
+    },
+    "Kill": {
+      "count": 354,
+      "pct": 35.4
+    },
+    "Break": {
+      "count": 3,
+      "pct": 0.3
+    }
+  },
+  "avgRounds": 11.7,
+  "avgDecisions": 41,
+  "perEncounter": {
+    "Root Hollow": {
+      "timesReached": 1000,
+      "reachedPct": 100,
+      "avgRounds": 11.7,
+      "avgDecisions": 41,
+      "outcomes": {
+        "Panic": {
+          "count": 177,
+          "pct": 17.7
+        },
+        "Overcome": {
+          "count": 466,
+          "pct": 46.6
+        },
+        "Kill": {
+          "count": 354,
+          "pct": 35.4
+        },
+        "Break": {
+          "count": 3,
+          "pct": 0.3
+        }
+      },
+      "momentum": [
+        {
+          "round": 1,
+          "samples": 1000,
+          "dungeonPct": 93,
+          "visitorPct": 94,
+          "dungeonLeadPct": 39,
+          "visitorLeadPct": 55
+        },
+        {
+          "round": 2,
+          "samples": 1000,
+          "dungeonPct": 92,
+          "visitorPct": 91,
+          "dungeonLeadPct": 52,
+          "visitorLeadPct": 43
+        },
+        {
+          "round": 3,
+          "samples": 1000,
+          "dungeonPct": 86,
+          "visitorPct": 86,
+          "dungeonLeadPct": 46,
+          "visitorLeadPct": 49
+        },
+        {
+          "round": 4,
+          "samples": 1000,
+          "dungeonPct": 86,
+          "visitorPct": 84,
+          "dungeonLeadPct": 52,
+          "visitorLeadPct": 43
+        },
+        {
+          "round": 5,
+          "samples": 1000,
+          "dungeonPct": 80,
+          "visitorPct": 80,
+          "dungeonLeadPct": 46,
+          "visitorLeadPct": 50
+        },
+        {
+          "round": 6,
+          "samples": 1000,
+          "dungeonPct": 79,
+          "visitorPct": 78,
+          "dungeonLeadPct": 53,
+          "visitorLeadPct": 44
+        },
+        {
+          "round": 7,
+          "samples": 1000,
+          "dungeonPct": 74,
+          "visitorPct": 73,
+          "dungeonLeadPct": 49,
+          "visitorLeadPct": 48
+        },
+        {
+          "round": 8,
+          "samples": 1000,
+          "dungeonPct": 71,
+          "visitorPct": 69,
+          "dungeonLeadPct": 52,
+          "visitorLeadPct": 44
+        },
+        {
+          "round": 9,
+          "samples": 985,
+          "dungeonPct": 63,
+          "visitorPct": 62,
+          "dungeonLeadPct": 50,
+          "visitorLeadPct": 47
+        },
+        {
+          "round": 10,
+          "samples": 928,
+          "dungeonPct": 59,
+          "visitorPct": 55,
+          "dungeonLeadPct": 56,
+          "visitorLeadPct": 41
+        },
+        {
+          "round": 11,
+          "samples": 647,
+          "dungeonPct": 50,
+          "visitorPct": 46,
+          "dungeonLeadPct": 58,
+          "visitorLeadPct": 39
+        },
+        {
+          "round": 12,
+          "samples": 150,
+          "dungeonPct": 46,
+          "visitorPct": 36,
+          "dungeonLeadPct": 74,
+          "visitorLeadPct": 24
+        }
+      ]
+    }
+  },
+  "qualityMetrics": {
+    "agency": {
+      "average": 1.22,
+      "distribution": {
+        "0": {
+          "count": 354,
+          "pct": 35.4
+        },
+        "1": {
+          "count": 308,
+          "pct": 30.8
+        },
+        "2": {
+          "count": 181,
+          "pct": 18.1
+        },
+        "3+": {
+          "count": 157,
+          "pct": 15.7
+        }
+      },
+      "assessment": "HEALTHY"
+    },
+    "closeness": {
+      "average": 29.2,
+      "median": 33.3,
+      "validSamples": 1000,
+      "assessment": "HEALTHY"
+    },
+    "outcomeDiversity": {
+      "raw": 1.511,
+      "normalized": 0.504,
+      "possibleOutcomes": 4,
+      "assessment": "HEALTHY"
+    },
+    "knockoutPatterns": {
+      "distribution": {
+        "cleric": {
+          "count": 269,
+          "pct": 54.7
+        },
+        "battlemage": {
+          "count": 74,
+          "pct": 15
+        },
+        "rogue": {
+          "count": 141,
+          "pct": 28.7
+        },
+        "knight": {
+          "count": 8,
+          "pct": 1.6
+        }
+      },
+      "entropy": 1.501,
+      "normalized": 0.75,
+      "assessment": "HEALTHY"
+    },
+    "attritionCurve": null,
+    "healthIssues": []
+  }
+}
