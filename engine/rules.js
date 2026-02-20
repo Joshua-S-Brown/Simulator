@@ -161,8 +161,16 @@ function applyDamage(state, resource, basePower, multiplier) {
 }
 
 function applyBenefit(state, resource, amount) {
-  if (state[resource] !== undefined) state[resource] += amount;
-  return amount;
+  if (state[resource] === undefined) return 0;
+  const before = state[resource];
+  state[resource] += amount;
+  // Cap reducer resources at starting values (no overheal)
+  // Promoters (trust, rapport) are uncapped — they must grow toward Bond threshold
+  if (state.startingValues && state.startingValues[resource] !== undefined
+      && resource !== 'trust' && resource !== 'rapport') {
+    state[resource] = Math.min(state[resource], state.startingValues[resource]);
+  }
+  return state[resource] - before;
 }
 
 // ═══ PARTY DAMAGE & RESTORATION ═══

@@ -154,7 +154,7 @@ module.exports = [
   // ═══ COVENANT (1) — Bond Finisher ═══
   { name: 'Pact of the Living Root', category: 'Offer', subtype: 'Covenant',
     type: 'Environmental', cost: 3,
-    covenantRequirement: { minTrust: 9 },
+    covenantRequirement: { minTrust: 15 },
     bondTrigger: true,
     offer: {
       benefit: { type: 'full_restore', resource: 'lowest_reducer' },
