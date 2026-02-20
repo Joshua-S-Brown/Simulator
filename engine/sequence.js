@@ -1,9 +1,15 @@
 /**
- * SHATTERED DUNGEON — Sequence Runner v1.4
+ * SHATTERED DUNGEON — Sequence Runner v1.5
  * [ADD] Round snapshots passed through from encounters
  * [ADD] Batch aggregation of per-round momentum data
  * [ADD] v2.5: Encounter quality metrics (GDD Section 18)
  * [ADD] v2.5: Short Rest — party recovery between encounters
+ * [ADD] v2.8: Dungeon Short Rest — between-room resource recovery
+ *       Each room is a fresh part of the dungeon's domain. The dungeon
+ *       gains baseline integrity from transitioning to a new room, but
+ *       attrition still carries forward. Floor + heal model mirrors the
+ *       visitor Short Rest philosophy.
+ * [ADD] v2.8: Dungeon entry state tracking for quality metrics
  */
 
 const { runEncounter } = require('./encounter');
@@ -23,17 +29,47 @@ function runSequence(scenario, dungeonAI, visitorAI, config = {}) {
       // Clear combat conditions between encounters (room-specific)
       v.conditions = [];
     }
-    // Dungeon carries damage but depleted reducers get partial restoration for new room
+
+    // ─── DUNGEON SHORT REST: Between-room resource recovery ───
+    // Each room is a fresh part of the dungeon's domain. The dungeon
+    // gains home-field advantage when transitioning: a minimum viable
+    // resource level (floor) plus partial healing of accumulated damage.
+    // This prevents the dungeon from entering later rooms functionally
+    // dead while still preserving meaningful attrition pressure.
+    //
+    // THEMATIC: The Verdant Maw's Root Hollow may have crumbled, but
+    // the Whispering Gallery is a new chamber with its own walls, its
+    // own veil resonance, its own commanding presence. The dungeon
+    // isn't rebuilding — it's moving to a room that hasn't been damaged.
+    //
+    // v2.8: Replaces the old depleted-only restoration (0 → 30%).
+    // The floor subsumes that behavior while also preventing the more
+    // common problem: resources at 40-50% getting crushed in Room 2.
     if (carryover?.dungeon) {
       const d = carryover.dungeon;
       const sv = d.startingValues || { structure: 16, veil: 14, presence: 12 };
-      // If a reducer was depleted (visitor won that room), restore to 30% of starting
-      // This represents the new room's baseline while keeping overall attrition pressure
+      const restConfig = config.dungeonRest || {};
+
+      // Recovery rates (configurable, sensible defaults)
+      const FLOOR_PCT = restConfig.floorPct || 0.40;   // No resource enters below 40% of starting
+      const HEAL_PCT  = restConfig.healPct  || 0.25;    // Heal 25% of missing (after floor)
+
       for (const res of ['structure', 'veil', 'presence']) {
-        if (d[res] <= 0) {
-          d[res] = Math.max(1, Math.round(sv[res] * 0.3));
+        const starting = sv[res] || 0;
+        if (starting <= 0) continue;
+
+        // 1. Floor: resource can't enter a new room below minimum viability
+        const floor = Math.max(1, Math.round(starting * FLOOR_PCT));
+        d[res] = Math.max(d[res], floor);
+
+        // 2. Heal: partial recovery of remaining damage
+        const missing = starting - d[res];
+        if (missing > 0) {
+          d[res] += Math.round(missing * HEAL_PCT);
+          d[res] = Math.min(d[res], starting); // Cap at starting value
         }
       }
+
       // Clear combat conditions between encounters (room-specific)
       d.conditions = [];
     }
@@ -151,6 +187,7 @@ function runBatch(scenario, dungeonAI, visitorAI, iterations = 1000, config = {}
     closeness: [],          // Per-iteration: closeness at resolution
     firstKnockouts: {},     // Member key → count (party scenarios only)
     roomEntryStates: {},    // Room name → { vitality: [], resolve: [], nerve: [] }
+    dungeonEntryStates: {}, // v2.8: Room name → { structure: [], veil: [], presence: [] }
     hasParty: false,
     isMultiRoom: scenario.encounters.length > 1,
   };
@@ -217,6 +254,15 @@ function runBatch(scenario, dungeonAI, visitorAI, iterations = 1000, config = {}
           entry.vitality.push(firstSnap.visitor.vitality);
           entry.resolve.push(firstSnap.visitor.resolve);
           entry.nerve.push(firstSnap.visitor.nerve);
+
+          // v2.8: Track dungeon entry state too
+          if (!qualityData.dungeonEntryStates[roomKey]) {
+            qualityData.dungeonEntryStates[roomKey] = { structure: [], veil: [], presence: [] };
+          }
+          const dEntry = qualityData.dungeonEntryStates[roomKey];
+          dEntry.structure.push(firstSnap.dungeon.structure ?? firstSnap.dungeon.pct);
+          dEntry.veil.push(firstSnap.dungeon.veil ?? 0);
+          dEntry.presence.push(firstSnap.dungeon.presence ?? 0);
         }
       }
     }
@@ -320,6 +366,30 @@ function runBatch(scenario, dungeonAI, visitorAI, iterations = 1000, config = {}
       ? QM.computeAttritionCurve(qualityData.roomEntryStates, visitorStarting)
       : null,
   };
+
+  // v2.8: Dungeon attrition curve (raw data for analysis)
+  if (qualityData.isMultiRoom && Object.keys(qualityData.dungeonEntryStates).length > 0) {
+    const dungeonStarting = { structure: 16, veil: 14, presence: 12 }; // Verdant Maw defaults
+    const ds = scenario.dungeonTemplate || {};
+    if (ds.structure) dungeonStarting.structure = ds.structure;
+    if (ds.veil) dungeonStarting.veil = ds.veil;
+    if (ds.presence) dungeonStarting.presence = ds.presence;
+
+    summary.qualityMetrics.dungeonAttrition = {};
+    for (const [room, data] of Object.entries(qualityData.dungeonEntryStates)) {
+      const n = data.structure.length;
+      if (n === 0) continue;
+      const avgStr = +(data.structure.reduce((s, v) => s + v, 0) / n).toFixed(1);
+      const avgVeil = +(data.veil.reduce((s, v) => s + v, 0) / n).toFixed(1);
+      const avgPres = +(data.presence.reduce((s, v) => s + v, 0) / n).toFixed(1);
+      summary.qualityMetrics.dungeonAttrition[room] = {
+        samples: n,
+        avgStructure: avgStr, avgStructurePct: +((avgStr / dungeonStarting.structure) * 100).toFixed(1),
+        avgVeil: avgVeil, avgVeilPct: +((avgVeil / dungeonStarting.veil) * 100).toFixed(1),
+        avgPresence: avgPres, avgPresencePct: +((avgPres / dungeonStarting.presence) * 100).toFixed(1),
+      };
+    }
+  }
 
   summary.qualityMetrics.healthIssues = QM.assessHealth(summary.qualityMetrics);
 

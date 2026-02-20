@@ -1,5 +1,5 @@
 /**
- * SHATTERED DUNGEON — Encounter Engine v2.6c
+ * SHATTERED DUNGEON — Encounter Engine v2.7
  * 
  * v2.2: Energy card type resolution, Attune discount
  * v2.4: Party system — member targeting, knockout mechanics, card removal,
@@ -7,7 +7,22 @@
  * v2.6b: Defensive mechanics rework — Guard, React Fortify, Fortify spread,
  *        Fortify extension, party restore via Reshape
  * v2.6c: Fortify/Guard duration timing fix
+ * v2.7:  Bond v3.0 integration — transactional Offers, trust decay,
+ *        betrayal conversion, Binding/Dependency EoR processing,
+ *        Betrayed/Scorned/Exposure combat bonuses, Covenant win condition,
+ *        dungeon strike tracking for Covenant suspicion
  * 
+ * v2.7 CHANGES (Bond v3.0):
+ * [ADD] Offer resolution delegates to Bond.resolveTransactionalOffer()
+ * [ADD] Bond win condition check after each turn (Covenant accepted)
+ * [ADD] Trust decay on dungeon Strikes via Bond.applyTrustDecay()
+ * [ADD] Betrayal conversion via Bond.checkBetrayal()
+ * [ADD] EoR: Binding drains, Dependency checks, bond condition ticking
+ * [ADD] Strike power: Betrayed bonus (Bond.getBetrayedBonus)
+ * [ADD] Strike defense: Scorned bonus (Bond.getScornedBonus)
+ * [ADD] Strike damage: Exposure bonus (Bond.checkExposure)
+ * [ADD] Dungeon strike counter (ctx.stats.dStrikesPlayed) for Covenant suspicion
+ *
  * v2.6c CHANGES:
  * [FIX] Fortify and Guard conditions now carry a `fresh` flag when placed.
  *       Fresh conditions skip their first end-of-round tick-down, ensuring
@@ -40,6 +55,7 @@
 
 const R = require('./rules');
 const { resolveEnergy, consumeAttune } = require('./energy');
+const Bond = require('./bond');
 
 /**
  * Apply a promoter gain (trust or rapport) with per-round cap.
@@ -123,6 +139,7 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
   const stats = {
     rounds: 0, dCardsPlayed: 0, vCardsPlayed: 0, decisions: 0,
     dDamageDealt: {}, vDamageDealt: {}, dLastType: null, vLastType: null,
+    dStrikesPlayed: 0,  // v2.7: Track dungeon strikes for Covenant suspicion
   };
   const roundSnapshots = [];
 
@@ -227,6 +244,13 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
       if (firstSide === 'dungeon') stats.dCardsPlayed++; else stats.vCardsPlayed++;
     }
 
+    // v2.7: Bond win check after first turn (Covenant accepted during Offer resolution)
+    if (firstCtx.bondTriggered) {
+      outcome = { winner: 'both', condition: 'Bond', desc: 'Covenant accepted' };
+      log(`  >>> Bond: Covenant accepted`);
+      break;
+    }
+
     outcome = R.checkWinConditions(visitor, dungeon, config);
     if (outcome) { log(`  >>> ${outcome.condition}: ${outcome.desc}`); break; }
 
@@ -249,6 +273,13 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
       if (!p.card._exhausted) sides[secondSide].discard.push(p.card);
       if (p.card.category && cardTracker[secondSide]) cardTracker[secondSide][p.card.category] = (cardTracker[secondSide][p.card.category] || 0) + 1;
       if (secondSide === 'dungeon') stats.dCardsPlayed++; else stats.vCardsPlayed++;
+    }
+
+    // v2.7: Bond win check after second turn
+    if (secondCtx.bondTriggered) {
+      outcome = { winner: 'both', condition: 'Bond', desc: 'Covenant accepted' };
+      log(`  >>> Bond: Covenant accepted`);
+      break;
     }
 
     outcome = R.checkWinConditions(visitor, dungeon, config);
@@ -293,6 +324,13 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
         return true;
       });
     }
+
+    // v2.7: Bond v3.0 — Process Binding drains, Dependency checks, tick bond conditions
+    Bond.resolveBindings(visitor, { log });
+    Bond.resolveBindings(dungeon, { log });
+    Bond.checkDependencies(visitor, { log });
+    Bond.tickBondConditions(visitor);
+    Bond.tickBondConditions(dungeon);
 
     // v2.4: Party-aware EoR logging
     if (visitor.isParty) {
@@ -419,25 +457,12 @@ function executeTurn(side, sideData, ctx) {
       case 'Strike':
         resolveStrike(card, side, self, opp, energy, ctx, sideData);
         checkTraps('strike_played', side, self, opp, ctx);
-        // BETRAYAL
-        if (side === 'dungeon' && self.rapport > 3) {
-          const lost = Math.ceil(self.rapport * 0.5);
-          self.rapport = Math.max(0, self.rapport - lost);
-          log(`    [Betrayal] dungeon rapport -${lost} (aggression during cooperation)`);
-          if (opp.trust > 3) {
-            const trustLost = Math.ceil(opp.trust * 0.5);
-            opp.trust = Math.max(0, opp.trust - trustLost);
-            log(`    [Betrayal] visitor trust -${trustLost}`);
-          }
-        } else if (side === 'visitor' && self.trust > 3) {
-          const lost = Math.ceil(self.trust * 0.5);
-          self.trust = Math.max(0, self.trust - lost);
-          log(`    [Betrayal] visitor trust -${lost} (aggression during cooperation)`);
-          if (opp.rapport > 3) {
-            const rapLost = Math.ceil(opp.rapport * 0.5);
-            opp.rapport = Math.max(0, opp.rapport - rapLost);
-            log(`    [Betrayal] dungeon rapport -${rapLost}`);
-          }
+        // BOND v3.0: Trust decay + Betrayal conversion
+        Bond.applyTrustDecay(side, self, opp, ctx);
+        Bond.checkBetrayal(side, self, opp, ctx);
+        // v2.7: Track dungeon strikes for Covenant suspicion
+        if (side === 'dungeon') {
+          ctx.stats.dStrikesPlayed = (ctx.stats.dStrikesPlayed || 0) + 1;
         }
         break;
 
@@ -685,6 +710,9 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
     }
   }
 
+  // v2.7 Bond v3.0: Betrayed power bonus
+  powerBonus += Bond.getBetrayedBonus(self);
+
   // Consume Disrupt on self
   const dis = R.removeCondition(self, 'disrupt', oppSide);
   if (dis) {
@@ -740,12 +768,14 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   // ── DEFENDER ROLL ──
   const defRoll = R.contestedRoll(0);
   const defMod = R.getModifierBonus(card, opp);
-  const defTotal = defRoll.total + defMod;
+  // v2.7 Bond v3.0: Scorned bonus adds to defender's roll
+  const scornedBonus = Bond.getScornedBonus(opp);
+  const defTotal = defRoll.total + defMod + scornedBonus;
 
   const result = R.resolveTier(atkTotal, defTotal);
   const damagePower = (card.power || 0) + powerBonus + triggerBonus;
 
-  log(`  [${side}] Strike: ${card.name} (P:${card.power}${powerBonus ? `+${powerBonus}e` : ''}${triggerBonus ? `+${triggerBonus}t` : ''} = ${damagePower} dmg) | Roll: ${atkRollStr}+${atkMod}mod = ${atkTotal} vs 2d6[${defRoll.kept}]+${defMod}mod = ${defTotal} → ${result.tier}`);
+  log(`  [${side}] Strike: ${card.name} (P:${card.power}${powerBonus ? `+${powerBonus}e` : ''}${triggerBonus ? `+${triggerBonus}t` : ''} = ${damagePower} dmg) | Roll: ${atkRollStr}+${atkMod}mod = ${atkTotal} vs 2d6[${defRoll.kept}]+${defMod}mod${scornedBonus ? `+${scornedBonus}scorned` : ''} = ${defTotal} → ${result.tier}`);
 
   // ── REACT CHECK ──
   let reactMitigation = 0;
@@ -765,6 +795,13 @@ function resolveStrike(card, side, self, opp, energy, ctx, sideData) {
   if (result.atkMult > 0 && card.target) {
     let rawDmg = Math.floor(damagePower * result.atkMult);
     if (damagePower > 0 && rawDmg < 1) rawDmg = 1;
+
+    // v2.7 Bond v3.0: Exposure bonus damage
+    const exposureBonus = Bond.checkExposure(opp, card);
+    if (exposureBonus > 0) {
+      rawDmg += exposureBonus;
+      log(`    [Exposure] +${exposureBonus} bonus damage`);
+    }
 
     // Fortify reduction
     let fortifyReduction = 0;
@@ -1218,80 +1255,11 @@ function resolveTest(card, side, self, opp, ctx) {
 // ═══ OFFER RESOLUTION ═══
 
 function resolveOffer(card, side, self, opp, ctx) {
-  const log = ctx.log;
-  const trustLevel = side === 'dungeon' ? opp.trust : self.trust;
-  const acceptChance = Math.min(0.9, 0.3 + (trustLevel * 0.1));
-  const accepted = Math.random() < acceptChance;
-
-  if (accepted) {
-    log(`  [${side}] Offer: ${card.name} → ACCEPTED (trust:${trustLevel}, chance:${(acceptChance * 100).toFixed(0)}%)`);
-    if (card.offerPayload) {
-      const payloads = Array.isArray(card.offerPayload) ? card.offerPayload : [card.offerPayload];
-      for (const effect of payloads) {
-        if (effect.heal) {
-          const target = opp;
-          R.applyBenefit(target, effect.heal.resource, effect.heal.amount);
-          log(`    Payload: ${effect.heal.resource} +${effect.heal.amount}`);
-        } else if (effect.resource) {
-          const target = effect.target === 'opponent' ? opp : self;
-          if (effect.amount > 0) {
-            if (effect.resource === 'trust' || effect.resource === 'rapport') {
-              const actual = applyPromoterGain(target, effect.resource, effect.amount, ctx);
-              log(`    Payload: ${effect.resource} +${actual}${actual < effect.amount ? ` (capped, wanted +${effect.amount})` : ''}`);
-            } else {
-              R.applyBenefit(target, effect.resource, effect.amount);
-              log(`    Payload: ${effect.resource} +${effect.amount}`);
-            }
-          } else {
-            R.applyDamage(target, effect.resource, Math.abs(effect.amount), 1);
-            log(`    Payload: ${effect.resource} ${effect.amount}`);
-          }
-        }
-      }
-    }
-    if (card.offerTrustGain) {
-      const visitorState = side === 'dungeon' ? opp : self;
-      const actual = applyPromoterGain(visitorState, 'trust', card.offerTrustGain, ctx);
-      log(`    → trust +${actual}`);
-    }
-    if (card.offerRapportGain) {
-      const dungeonState = side === 'dungeon' ? self : opp;
-      const actual = applyPromoterGain(dungeonState, 'rapport', card.offerRapportGain, ctx);
-      log(`    → rapport +${actual}`);
-    }
-    // Trap check on Offer acceptance
-    const traps = self.conditions.filter(c => c.type === 'trap' && c.trigger === 'offer_accepted');
-    for (const trap of traps) {
-      log(`    TRAP SPRINGS: ${trap.card.name}`);
-      self.conditions = self.conditions.filter(c => c !== trap);
-      if (trap.card.trapEffect) {
-        const effects = Array.isArray(trap.card.trapEffect) ? trap.card.trapEffect : [trap.card.trapEffect];
-        for (const eff of effects) {
-          if (eff.damage) {
-            const dmg = R.applyDamage(opp, eff.damage.resource, eff.damage.amount, 1);
-            log(`      → ${eff.damage.resource} -${dmg}`);
-          }
-          if (eff.resource) {
-            const t = eff.target === 'triggerer' ? opp : self;
-            const dmg = R.applyDamage(t, eff.resource, Math.abs(eff.amount), 1);
-            log(`      → ${eff.resource} -${dmg}`);
-          }
-        }
-      }
-      if (trap.card.keywords?.length) {
-        R.applyKeywords(trap.card, opp, self, { autoResource: ctx.autoResource, log, activeSide: side });
-      }
-    }
-  } else {
-    log(`  [${side}] Offer: ${card.name} → REFUSED (trust:${trustLevel}, chance:${(acceptChance * 100).toFixed(0)}%)`);
-    if (side === 'dungeon' && self.rapport > 0) {
-      self.rapport = Math.max(0, self.rapport - 1);
-      log(`    → rapport -1 (offer rejected)`);
-    } else if (side === 'visitor' && opp.rapport > 0) {
-      opp.rapport = Math.max(0, opp.rapport - 1);
-      log(`    → rapport -1 (offer rejected)`);
-    }
+  const result = Bond.resolveTransactionalOffer(card, side, self, opp, ctx);
+  if (result.bond) {
+    ctx.bondTriggered = true;
   }
+  return result;
 }
 
 // ═══ TRIGGER EVALUATION ═══

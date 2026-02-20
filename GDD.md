@@ -1159,3 +1159,456 @@ The simulation engine's batch reporting must compute and output all five quality
 - `outcomeDiversity`: Shannon entropy (raw and normalized), per-outcome percentages
 - `knockoutPatterns` (party scenarios only): first-knockout distribution, knockout order entropy
 - `attritionCurve` (multi-room scenarios only): per-room entry state averages, per-room outcome distributions, effective room percentages
+
+
+# GDD AMENDMENT: Bond System Redesign v3.0
+
+**Shattered Dungeon — Second Self Studios**
+**February 2026**
+
+*Replaces GDD Sections 4.5–4.8 and Section 6. Extends Section 17.*
+
+---
+
+## 1. Design Problem
+
+The current Bond system produces 0% Bond outcomes across all 8 party matchups (v2.8, 1000 iterations each). The Nurturing AI profile — specifically designed to pursue Bond — instead plays as a weak combat dungeon that occasionally offers free healing. Offers are refused ~70% of the time at low trust. When accepted, they provide unilateral gifts with no strategic depth.
+
+**Root causes:**
+
+1. **No motivation.** The dungeon has no reason to Offer except altruism. A sentient predator doesn't give things away.
+2. **No stakes for the visitor.** Refusing an Offer is free. There's no cost to saying no, so the rational play is almost always to refuse and fight.
+3. **No escalation.** Trust at 2 plays identically to trust at 8. The system has no power curve.
+4. **Bond is all-or-nothing.** Reaching threshold 12 for both promoters in a single encounter requires 8-12 rounds of dedicated cooperative play with no combat — an unrealistic ask against any party that came to fight.
+5. **Bond doesn't fit multi-room gauntlets.** After two rooms of combat, neither side has a credible reason to suddenly cooperate in Room 3.
+
+## 2. Design Philosophy: Farming vs. Hunting
+
+The Bond redesign starts from a single insight: **the dungeon is always the predator.** The question isn't whether the dungeon wants something from visitors — it's how patient it is about extracting it.
+
+A **hunter** (aggressive dungeon) kills visitors and takes what it can from the corpse. Maximum extraction per encounter, but the resource is destroyed.
+
+A **farmer** (nurturing dungeon) keeps visitors alive, comfortable, and returning. Less extraction per encounter, but the resource is renewable and compounds over time.
+
+The farmer isn't kind. It's *strategic.* It discovered that a well-fed visitor comes back, brings friends, and produces more Essence over a lifetime than a single corpse ever could. The moss-covered rest chamber isn't hospitality — it's infrastructure. The warm glow isn't welcome — it's an anesthetic.
+
+This reframe eliminates the good/evil binary that makes Bond uncompetitive. Bond isn't the "nice" win condition. It's the **long-game** win condition. The dungeon invests resources now to extract more later. The party accepts because they need the healing — and because maybe, just maybe, this dungeon really is different.
+
+Every Offer the dungeon makes should carry a silent subtext: *"I'm helping you because you're more useful alive."* Every acceptance by the party carries the counter-subtext: *"I know what you are, but I need this."*
+
+## 3. Core Mechanic: Offers as Transactions
+
+### 3.1 Current System (Being Replaced)
+
+Offers bypass contested rolls. Acceptance is probabilistic (30% + Trust × 10%). Accepted Offers deliver unilateral payloads (heal nerve, build trust). The dungeon gives; the visitor receives or refuses.
+
+### 3.2 New System: Transactional Offers
+
+Every Offer has three components:
+
+| Component | Description | Example |
+|---|---|---|
+| **Benefit** | What the acceptor gains | Heal 3 nerve |
+| **Cost** | What the acceptor pays | Binding: -1 resolve/round for 2 rounds |
+| **Investment** | Trust/Rapport advancement | +1 trust, +1 rapport |
+
+**Visibility Rules** determine what the acceptor can see before deciding, based on current Trust tier (see Section 4):
+
+| Trust Tier | Benefit | Cost | Investment |
+|---|---|---|---|
+| Tier 0 (Trust 0–2) | Visible | Visible | Visible |
+| Tier 1 (Trust 3–5) | Visible | **Hidden** | Visible |
+| Tier 2 (Trust 6–8) | Visible | Hidden | N/A (auto-accepted) |
+
+At **Tier 0**, both sides see everything. The party evaluates a transparent trade: "Heal 3 nerve, but lose 2 resolve over 2 rounds. Worth it?" This is strangers haggling. Acceptance depends on whether the net is positive enough given current resource pressures.
+
+At **Tier 1**, the party sees the benefit but not the cost. "Heal 3 nerve. The cost is... unknown." The dungeon could be offering a fair trade (cost: -1 resolve once) or a terrible one (cost: Binding -1 resolve/round for 3 rounds). The party gambles based on how much they trust the dungeon and how badly they need the heal. This is the poker moment.
+
+At **Tier 2**, Offers are **Binding** — auto-accepted. The party trusted the dungeon enough to reach Trust 6+, and now the dungeon has leverage. Binding Offers tend to be stronger in both directions — bigger heals, bigger costs. The party benefits, but the dungeon is extracting real value. This is the farm operating at full capacity.
+
+### 3.3 Offer Card Data Format
+
+```javascript
+// Old format
+{ name: 'Mossy Rest', category: 'Offer', type: 'Environmental', cost: 1,
+  offerPayload: [
+    { heal: { resource: 'nerve', amount: 3 } },
+    { resource: 'trust', amount: 1, target: 'opponent' },
+    { resource: 'rapport', amount: 1, target: 'self' },
+  ],
+}
+
+// New format
+{ name: 'Mossy Rest', category: 'Offer', type: 'Environmental', cost: 1,
+  offer: {
+    benefit: { resource: 'nerve', amount: 3 },
+    cost: { type: 'binding', resource: 'resolve', amount: 1, duration: 2 },
+    investment: { trust: 1, rapport: 1 },
+  },
+}
+```
+
+### 3.4 Cost Types
+
+| Cost Type | Description | Example |
+|---|---|---|
+| **Flat** | Immediate one-time resource loss | -2 resolve |
+| **Binding** | Persistent drain over N rounds | -1 resolve/round for 2 rounds |
+| **Exposure** | Vulnerability — next incoming Strike of type X deals +N | Next Physical Strike deals +2 |
+| **Extraction** | Dungeon gains a permanent benefit | Dungeon: +1 permanent energy next encounter |
+| **Dependency** | Benefit reverses if trust drops | If trust drops below current, lose 2× the original heal |
+
+Different cost types support different dungeon identities:
+
+- **Nurturing** favors Flat and Extraction costs — fair trades that build long-term value.
+- **Deceptive** favors Binding and Dependency costs — deals that look fair but compound.
+- **Tactical** uses context-appropriate costs — Exposure when the party is healthy, Flat when they're desperate.
+
+### 3.5 Acceptance Logic (Simulation)
+
+In the actual game, the player decides. In simulation, the visitor AI evaluates:
+
+**Tier 0 (transparent):** Accept if `benefit_value - cost_value > threshold`, where threshold depends on resource desperation. A party at 3 nerve accepts almost any nerve heal regardless of cost.
+
+**Tier 1 (hidden cost):** Accept based on `benefit_value × trust_factor`, where `trust_factor` scales from 0.4 (trust 3, skeptical) to 0.7 (trust 5, cautiously trusting). The AI assumes the hidden cost is moderate and decides based on whether the visible benefit is worth the expected risk.
+
+**Tier 2 (binding):** Auto-accepted. The dungeon has earned the leverage.
+
+The exact formulas:
+
+```
+Tier 0: accept if (benefit_score - cost_score) > desperation_threshold
+  desperation_threshold = max(0, 2 - (3 × resource_pressure))
+  resource_pressure = count of resources below 40% / total resources
+
+Tier 1: accept if benefit_score × trust_factor > risk_threshold
+  trust_factor = 0.3 + (trust × 0.08)
+  risk_threshold = 1.5 (lower when desperate)
+
+Tier 2: always accept (Binding Offers)
+```
+
+## 4. Trust as Leverage
+
+### 4.1 Trust Tier System
+
+Trust is no longer just a threshold counter. It's a **leverage meter** that unlocks escalating mechanical advantages for the dungeon:
+
+| Tier | Trust Range | Name | Dungeon Capability | Visitor Experience |
+|---|---|---|---|---|
+| 0 | 0–2 | Strangers | Transparent Offers only | Full information, low acceptance |
+| 1 | 3–5 | Familiar | Veiled Offers (hidden costs) | Partial information, gambling |
+| 2 | 6–8 | Entrusted | Binding Offers (auto-accept) | Loss of refusal, stronger effects |
+| 3 | 9+ | Covenant | Covenant attempt eligible | Final decision: Bond or refuse |
+
+### 4.2 Building Trust
+
+Trust still advances through Offers (+1 per accepted), Tests (+2 on cooperation), and Restraint (+1 for discarding a Strike). The existing per-round promoter cap of +2 still applies.
+
+**New:** Failed Offers at Tier 0 no longer cost -1 Rapport. Instead, they provide +0.5 trust (rounded down, tracked fractionally) — the act of offering, even when refused, demonstrates non-hostility. This prevents the current death spiral where early refusals prevent any trust accumulation.
+
+### 4.3 Trust Decay
+
+Trust is not permanent. If the dungeon plays a Strike (any Strike, not just betrayal-threshold Strikes), trust decays:
+
+- **Trust 1–5:** -1 trust per Strike
+- **Trust 6+:** -2 trust per Strike (higher trust is more fragile — one aggressive act shatters deep trust faster)
+
+This creates a real commitment cost. Once the dungeon starts building trust, every Strike card it plays erodes that investment. The dungeon must choose: play this Strike to deal 3 nerve damage, or preserve my trust investment? That's a meaningful tactical decision every turn.
+
+### 4.4 Trust Persistence Across Rooms
+
+Trust carries over between rooms with decay:
+
+- **Room transition:** Trust drops by 2 (the party's guard comes back up in a new environment)
+- **Minimum carryover:** Trust floors at 1 if it was ≥ 3 in the previous room (the memory of cooperation persists even with renewed caution)
+
+This makes multi-room Bond possible but expensive. A dungeon that builds to Trust 5 in Room 1 enters Room 2 at Trust 3 (Tier 1) — still in Veiled Offer territory, but not starting from zero. A dungeon that reached Trust 8 enters at Trust 6 — still Tier 2, still has Binding Offers. The investment partially persists.
+
+## 5. Per-Room Bond Outcomes
+
+### 5.1 Current System (Being Replaced)
+
+Bond requires Trust ≥ 12 AND Rapport ≥ 12, checked at end of round. Bond ends the gauntlet as a mutual win condition.
+
+### 5.2 New System: Room-Level Bond
+
+Bond is now a **room-level outcome** triggered by the Covenant mechanic (see Section 6). When Bond occurs in a room, it doesn't end the gauntlet — it **transforms the trajectory.** The specific transformation depends on which room Bond occurred in:
+
+**Bond in Room 1:**
+- Visitor recovers 30% of all reducer maximums (significant heal)
+- Dungeon gains a permanent Insight marker (+1 to all contested rolls for the rest of the gauntlet, representing knowledge gained from cooperation)
+- Trust carries to Room 2 at full value (no transition decay)
+- The dungeon may redirect the party to a different Room 2 (design space for room routing)
+- Economy: Dungeon earns moderate World Knowledge, visitor earns bonus gold
+
+**Bond in Room 2:**
+- Visitor recovers 20% of all reducer maximums
+- Dungeon gains 2 Insight markers
+- Trust carries to Room 3 at full value
+- Economy: Dungeon earns high World Knowledge, visitor earns high gold
+
+**Bond in Room 3 (Final Room):**
+- **Full Mutual Bond** — the run ends with the highest-tier cooperative outcome
+- Economy: Maximum World Knowledge for dungeon, maximum gold + rare item chance for visitor
+- Reputation: Large Hospitality boost, large Lethality decrease
+- This is the "true ending" for a nurturing dungeon run
+
+**Bond in ANY Room + Subsequent Betrayal:**
+- If the dungeon Bonds in Room 1 then plays aggressively in Room 2, the party enters with high trust but faces a predator with Insight bonuses. This is the ultimate deceptive play — and the party should *fear* it.
+- Betrayal after Bond converts ALL accumulated trust to damage (see Section 7) plus the Insight bonus makes the dungeon's Strikes more effective.
+- The deceptive dream: Bond Room 1, Betray Room 2, finish in Room 3.
+
+### 5.3 Bond No Longer Requires Dual Threshold
+
+The old system required Trust ≥ 12 AND Rapport ≥ 12. The new system triggers Bond through the Covenant mechanic when Trust reaches Tier 3 (9+). Rapport is removed as a separate tracker — it was always mechanically redundant with Trust (both advanced simultaneously and served the same purpose). Rapport's thematic role ("dungeon's willingness to cooperate") is now expressed through the dungeon's choice to play Offers, Tests, and ultimately Covenant.
+
+**Implication:** The dungeon side no longer has a separate promoter resource to track. The dungeon's "cooperation" is expressed through action (playing Offers/Tests) rather than a number. This simplifies the resource model and makes the dungeon's choice more legible: you can see what the dungeon *does* rather than watching a number tick up.
+
+## 6. The Covenant Mechanic
+
+### 6.1 Covenant: The Bond Finisher
+
+Covenant is a new card subtype available only at Trust Tier 3 (Trust 9+). It represents the dungeon's formal proposal for mutual cooperation — the moment the dungeon says, in effect: *"I could kill you. I'm choosing not to. Here's proof."*
+
+**Covenant cards** are powerful Offers with three distinct properties:
+
+1. **Massive benefit:** The biggest heal or buff in the game (e.g., full restore of lowest reducer resource)
+2. **Massive cost:** The biggest commitment (e.g., the dungeon permanently weakens one of its own reducers for this gauntlet)
+3. **Bond trigger:** If accepted, the encounter ends with Bond outcome
+
+### 6.2 The Final Decision
+
+When the dungeon plays a Covenant, the party faces the single most important decision in the game:
+
+**Accept:** Bond triggers. Both sides gain the Covenant's effects. The encounter ends. Trust carries forward at full value.
+
+**Refuse:** The Covenant is wasted. Trust crashes by 50% (the rejection of a genuine offer of peace destabilizes the relationship). The dungeon just spent its turn and energy on a card that did nothing. The encounter continues as combat.
+
+The acceptance logic for Covenant is unique:
+
+```
+Covenant acceptance = trust_factor × desperation_factor × suspicion_modifier
+
+trust_factor: 0.5 + (trust × 0.04)  // 0.86 at trust 9, 0.90 at trust 10
+desperation_factor: 1.0 + (0.3 × resources_below_40%)  // more desperate = more accepting
+suspicion_modifier: 0.7 if dungeon played any Strikes this encounter, else 1.0
+```
+
+At Trust 9 with no dungeon Strikes this encounter and moderate desperation: ~86% acceptance. At Trust 9 after the dungeon played a Strike earlier: ~60% acceptance. The party remembers aggression.
+
+### 6.3 Covenant Card Design
+
+Each dungeon encounter room should have one Covenant card in its deck — expensive, powerful, and only playable at Trust 9+:
+
+```javascript
+{ name: 'Pact of Living Stone', category: 'Offer', subtype: 'Covenant',
+  type: 'Environmental', cost: 4,
+  covenantRequirement: { minTrust: 9 },
+  offer: {
+    benefit: { type: 'full_restore', resource: 'lowest_reducer' },
+    cost: { type: 'extraction', effect: 'dungeon_insight_2' },
+    investment: { trust: 3 },
+  },
+  bondTrigger: true,
+  description: 'The walls part to reveal a sanctum of ancient warmth. The dungeon offers its deepest chamber — and asks only that you remember the way back.',
+}
+```
+
+### 6.4 Covenant and Deception
+
+A deceptive dungeon reaches Trust 9 through seemingly genuine cooperation. It *could* play the Covenant and Bond. Instead, it plays a Strike — triggering the Betrayal conversion (Section 7). The party trusted the dungeon enough to reach Tier 3, and now all that trust is converted to damage.
+
+The Covenant card's existence in the deck is visible during play — the party knows the dungeon *could* Bond. The tension of watching the dungeon draw that card and choose not to play it is peak deceptive gameplay.
+
+## 7. Betrayal Conversion
+
+### 7.1 Current System
+
+Betrayal triggers when either side Strikes while the opponent has Trust > 3 or Rapport > 3. Both promoters crash by 50%.
+
+### 7.2 New System: Trust-to-Damage Conversion
+
+Betrayal is now a devastating, calculated weapon:
+
+**Trigger:** The dungeon plays a Strike while Trust ≥ 4 (Tier 1+). The dungeon *chooses* to betray — this is not accidental.
+
+**Effect:**
+1. The Strike resolves normally (full damage)
+2. **Trust Conversion:** Each point of Trust converts to 1 damage applied to the visitor's **lowest reducer** (the resource closest to depletion)
+3. Trust resets to 0
+4. The visitor gains a **Betrayed** condition: +2 power on all Strikes for 3 rounds (fury response) and all future Offers from this dungeon are auto-refused for the rest of the encounter
+
+**Example:** Trust at 8. Dungeon plays Crushing Grip (3P resolve Strike). The Strike deals its normal damage. Then 8 additional damage hits the visitor's lowest resource (say, nerve at 5 → nerve drops to 0 → Panic). The party that trusted the dungeon is destroyed by that trust.
+
+### 7.3 Betrayal Risk Curve
+
+| Trust at Betrayal | Conversion Damage | Risk Assessment |
+|---|---|---|
+| 4 | 4 | Moderate — a sharp hit to weakest resource |
+| 6 | 6 | Severe — can deplete a resource from half |
+| 8 | 8 | Devastating — likely triggers a win condition |
+| 10+ | 10+ | Lethal — almost guaranteed immediate win |
+
+This makes Trust a double-edged sword for the visitor. High Trust means better Offers, bigger heals, and access to Covenant/Bond — but also exponentially higher betrayal damage. The party must constantly evaluate: *"Is this dungeon building trust to Bond, or building trust to kill us?"*
+
+### 7.4 Visitor-Side Betrayal
+
+If the visitor plays a Strike while the dungeon is in cooperative mode (Trust ≥ 4), a smaller betrayal triggers:
+- Trust crashes to 0
+- The dungeon gains **Scorned** condition: +1 to all contested rolls for 3 rounds
+- No damage conversion (the visitor doesn't have leveraged trust)
+
+This is asymmetric by design. The dungeon has more to gain from betrayal because it's the one building trust as an investment. The visitor's betrayal is simpler — they just decided to fight instead of cooperate.
+
+## 8. AI Profile Updates
+
+### 8.1 Nurturing AI (Bond Path)
+
+**Current problem:** Plays Offers with weight 3 but also plays Strikes, doesn't understand trust tiers, doesn't save energy for Covenant.
+
+**Redesign priorities:**
+- **Phase 1 (Trust 0–2):** Play transparent Offers aggressively. Accept the low acceptance rate. Every refused Offer still contributes +0.5 fractional trust. Play Reshapes for self-sustain. Suppress Strikes entirely — every Strike costs trust.
+- **Phase 2 (Trust 3–5):** Switch to Veiled Offers with favorable benefit-to-cost ratios. Build toward Tier 2 through Tests. Save energy for expensive Offers.
+- **Phase 3 (Trust 6–8):** Binding Offers extract real value while healing the party. Build energy reserve for Covenant. No Strikes under any circumstances.
+- **Phase 4 (Trust 9+):** Play Covenant at first opportunity. Bond.
+
+**Key behavior:** The Nurturing AI never plays Strikes once trust > 0. It accepts attrition from auto-effects and visitor attacks, relying on Reshapes and Binding Offer extraction to sustain itself. This creates a distinctive play pattern that is visibly different from combat dungeons.
+
+### 8.2 Deceptive AI (Trust-and-Betray)
+
+**Current problem:** Has `betrayalThreshold: 8` but betrayal doesn't do much. Plays Strikes alongside Offers, preventing trust accumulation.
+
+**Redesign priorities:**
+- **Phase 1 (Trust 0–5):** Mirror Nurturing behavior exactly. Play Offers, suppress Strikes, build trust. The party cannot distinguish Deceptive from Nurturing during this phase. That's the point.
+- **Phase 2 (Trust 6–8):** Continue building trust. Play Binding Offers that extract Exposure costs (setting up vulnerability for the betrayal Strike). The party is getting healed but becoming fragile.
+- **Betrayal (Trust reaches threshold):** Play the highest-power Strike available. Trust converts to damage. Follow up with aggressive play — the Betrayed condition prevents future Offers, so the dungeon switches to full combat mode.
+
+**Key behavior:** Deceptive and Nurturing are *mechanically identical* until the betrayal moment. The party's only clue is meta-game: what reputation does this dungeon have? What costs were hidden in the Veiled Offers? Did those Binding Offers leave us weaker than expected?
+
+### 8.3 Tactical AI (Adaptive)
+
+The Tactical AI evaluates whether Bond is achievable based on resource states and trust trajectory. If Bond looks viable (party is cooperating, trust is rising, visitor AI is accepting Offers), it shifts to Nurturing-style play. If Bond looks unviable (party is aggressive, trust is stalling), it abandons the cooperative path and fights. It should never betray — that's the Deceptive identity.
+
+### 8.4 Party Visitor AI (Acceptance Behavior)
+
+The visitor AI's Offer acceptance logic needs to account for trust tiers and hidden costs:
+
+- **Low trust (Tier 0):** Evaluate transparent trades rationally. Accept if net benefit exceeds threshold.
+- **Mid trust (Tier 1):** Evaluate visible benefit against expected hidden cost. More desperate parties accept more readily.
+- **High trust (Tier 2):** Accept automatically (Binding). This represents the party deciding to trust the dungeon — a decision they made at Tier 1 that now has consequences.
+- **Covenant (Tier 3):** High acceptance rate scaled by trust, desperation, and whether the dungeon played Strikes this encounter.
+
+## 9. Economy Integration
+
+Bond outcomes now integrate cleanly with the Dual Economy (GDD Section 17):
+
+| Outcome | Dungeon Earns | Visitor Earns | Strategic Value |
+|---|---|---|---|
+| Kill | High Essence, minimal Knowledge | Nothing | Maximum short-term extraction |
+| Break/Panic | Moderate Essence, low Knowledge | Low gold | High extraction, moderate sustainability |
+| Survive | Low Essence, low Knowledge | Moderate gold | Low extraction, visitor may return |
+| **Bond (Room 1)** | Moderate Knowledge, low Essence | Bonus gold, minor items | Investment — visitor returns with friends |
+| **Bond (Room 2)** | High Knowledge, low Essence | High gold, items | Deep investment — dungeon gains sophistication |
+| **Bond (Room 3)** | Maximum Knowledge, moderate Essence | Maximum gold, rare items | Full cooperative reward |
+| **Bond → Betray** | Moderate Essence + moderate Knowledge | Nothing (dead) | Deceptive extraction — best of both worlds |
+
+The nurturing dungeon trades Essence for Knowledge. Since Knowledge buys sophistication (complex cards, new room templates, tactical flexibility), the nurturing path creates a dungeon that's harder to fight *next time* even though it was gentle *this time*. The party's reward for surviving a nurturing dungeon is gold and items — making *them* stronger too. The meta-game becomes an arms race of escalating sophistication.
+
+The deceptive dungeon gets moderate amounts of both currencies. It's not the best at either extraction path, but it's the only strategy that collects both. The risk is reputation — a dungeon caught betraying faces suspicious parties with high starting refusal rates.
+
+## 10. What Changes vs. What Stays
+
+### 10.1 Removed
+
+- **Rapport** as a separate dungeon promoter resource (trust is now the single cooperative tracker)
+- **Dual-threshold Bond** (Trust ≥ 12 AND Rapport ≥ 12) → replaced by Covenant mechanic at Trust 9+
+- **Unilateral Offers** (free gifts with no cost to acceptor)
+- **Flat betrayal** (50% promoter crash) → replaced by trust-to-damage conversion
+
+### 10.2 Modified
+
+- **Offer resolution** → now transactional with benefit/cost/investment components
+- **Trust** → now a tiered leverage system (0–2, 3–5, 6–8, 9+) with mechanical tier effects
+- **Betrayal** → now converts trust to targeted damage against lowest reducer
+- **Bond win condition** → now per-room via Covenant, not per-gauntlet via threshold
+- **Trust/Rapport carry-over** → Trust carries between rooms with -2 decay (Rapport removed)
+- **Restraint** → unchanged in function, still +1 trust for discarding a Strike
+
+### 10.3 New
+
+- **Offer cost types** (Flat, Binding, Exposure, Extraction, Dependency)
+- **Trust tiers** with visibility rules (Transparent → Veiled → Binding → Covenant)
+- **Trust decay** on dungeon Strikes (-1 at low trust, -2 at high trust)
+- **Covenant** card subtype (Bond finisher at Trust 9+)
+- **Betrayed condition** (+2 power for 3 rounds, auto-refuse all Offers)
+- **Scorned condition** (+1 contested rolls for 3 rounds when visitor betrays)
+- **Fractional trust** from refused Offers (+0.5)
+- **Insight markers** from Bond outcomes (+1 contested roll bonus per marker)
+- **Trust decay on room transition** (-2, floor at 1 if previously ≥ 3)
+
+### 10.4 Unchanged
+
+- **Test cards** (prisoner's dilemma mechanic, cooperation/defection)
+- **Per-round promoter cap** (+2 per side per round)
+- **Restraint action** (discard Strike for +1 own promoter)
+- **Seven win conditions** (Kill, Break, Panic, Overcome, Inert, Dominate, Bond)
+- **All combat mechanics** (Strikes, Empowers, Disrupts, Counters, Reacts, Traps, Reshapes)
+
+## 11. Implementation Plan
+
+### Phase 1: Single-Room Prototype (Next Sprint)
+
+**Goal:** Get the Offer/Trust/Betrayal loop feeling right in isolation before multi-room complexity.
+
+**Scope:**
+- Implement transactional Offer format (benefit + cost + investment)
+- Implement trust tiers (visibility rules, Binding at Tier 2)
+- Implement trust decay on Strikes
+- Implement betrayal conversion (trust → damage to lowest reducer)
+- Redesign 2–3 Offer cards per dungeon encounter deck with new format
+- Update Nurturing AI for trust-tier-aware play
+- Update Deceptive AI for build-then-betray strategy
+- Add Covenant card to one encounter deck
+
+**Test scenario:** Verdant Maw vs Drift Symbiote (cooperative visitor, single room). This is the easiest Bond matchup — if Bond doesn't work here, the mechanics need adjustment before testing against parties.
+
+**Success criteria:**
+- Nurturing vs Symbiote: Bond rate 40–70% (down from the old 63% — harder but achievable)
+- Deceptive vs Symbiote: Betrayal rate 30–50%, Bond rate 5–15%
+- Trust reaches Tier 2 in at least 20% of Nurturing games
+- Trust reaches Tier 3 (Covenant eligible) in at least 10% of Nurturing games
+- Betrayal damage produces decisive outcomes when it fires
+- Agency score ≥ 1.0 for Bond-path encounters
+
+### Phase 2: Party Integration
+
+**Goal:** Test the Bond system against intelligent parties that have a choice about whether to cooperate.
+
+**Scope:**
+- Update party visitor AI with tier-aware acceptance logic
+- Add Offer cards to party decks (cooperative members: Cleric, Druid)
+- Test Bond viability against Standard Adventuring Company and Arcane Expedition
+- Tune acceptance thresholds for party context (parties are more skeptical than solo visitors)
+
+**Success criteria:**
+- Nurturing vs Standard Party: Bond rate 5–20% (rare but achievable)
+- Nurturing vs Arcane Party: Bond rate 5–20%
+- Deceptive betrayal produces win condition in 60%+ of betrayal attempts
+- Survive rate doesn't collapse (parties that refuse cooperation should still have a path)
+
+### Phase 3: Multi-Room Bond
+
+**Goal:** Test per-room Bond in 3-room gauntlets.
+
+**Scope:**
+- Implement trust carry-over with decay between rooms
+- Implement per-room Bond outcomes (healing, Insight markers, routing)
+- Implement Bond-then-Betray deceptive arc
+- Create nurturing-themed encounter rooms (not just repurposed aggressive rooms)
+
+**Success criteria:**
+- Full-gauntlet Bond (Bond in all 3 rooms) rate: 1–5% (rare, prestigious)
+- Room 1 Bond + Room 2/3 combat: produces distinctive play pattern
+- Bond-then-Betray arc: trust conversion damage is decisive
+- Nurturing produces a visibly different gauntlet experience from other profiles

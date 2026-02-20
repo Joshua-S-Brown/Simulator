@@ -96,15 +96,23 @@ function selectMemberTarget(visitor, dungeon, profileName) {
       return active.sort((a, b) => b.vitality - a.vitality)[0].key;
 
     case 'deceptive': {
-      // Target anti-deception tools: flex > support > others
-      // Rogue has Flash Bomb, Disarm Trap, Sleight of Hand — kill first
-      const deceptivePriority = { flex: 4, support: 3, dps: 2, tank: 1 };
-      return active.sort((a, b) => {
-        const pA = deceptivePriority[a.role] || 0;
-        const pB = deceptivePriority[b.role] || 0;
-        if (pB !== pA) return pB - pA;
-        return a.vitality - b.vitality;
-      })[0].key;
+      // Deception means misdirection — vary targets to be unpredictable.
+      // Still favors anti-deception tools (flex) and sustain (support),
+      // but weighted random ensures the party can't predict who's next.
+      const deceptivePriority = { flex: 3, support: 2.5, dps: 1.5, tank: 1 };
+      const weights = active.map(m => {
+        const priority = deceptivePriority[m.role] || 1;
+        // Slight bias toward wounded targets (easier kills)
+        const vulnBonus = m.maxVitality ? (1 + 0.3 * (1 - m.vitality / m.maxVitality)) : 1;
+        return { key: m.key, weight: priority * vulnBonus };
+      });
+      const totalWeight = weights.reduce((s, w) => s + w.weight, 0);
+      let roll = Math.random() * totalWeight;
+      for (const w of weights) {
+        roll -= w.weight;
+        if (roll <= 0) return w.key;
+      }
+      return weights[weights.length - 1].key;
     }
 
     default:

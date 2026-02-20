@@ -1,0 +1,119 @@
+{
+  "scenario": "Verdant Maw vs Arcane Expedition (3-Room)",
+  "iterations": 1000,
+  "outcomeDistribution": {
+    "Panic": {
+      "count": 217,
+      "pct": 21.7
+    },
+    "Break": {
+      "count": 471,
+      "pct": 47.1
+    },
+    "Survive": {
+      "count": 254,
+      "pct": 25.4
+    },
+    "Kill": {
+      "count": 58,
+      "pct": 5.8
+    }
+  },
+  "avgRounds": 19.7,
+  "avgDecisions": 72.9,
+  "perEncounter": {},
+  "qualityMetrics": {
+    "agency": {
+      "average": 1.69,
+      "distribution": {
+        "0": {
+          "count": 284,
+          "pct": 28.4
+        },
+        "1": {
+          "count": 224,
+          "pct": 22.4
+        },
+        "2": {
+          "count": 224,
+          "pct": 22.4
+        },
+        "3+": {
+          "count": 268,
+          "pct": 26.8
+        }
+      },
+      "assessment": "HEALTHY"
+    },
+    "closeness": {
+      "average": 35.2,
+      "median": 35.3,
+      "validSamples": 1000,
+      "assessment": "HEALTHY"
+    },
+    "outcomeDiversity": {
+      "raw": 1.73,
+      "normalized": 0.577,
+      "possibleOutcomes": 4,
+      "assessment": "HEALTHY"
+    },
+    "knockoutPatterns": {
+      "distribution": {
+        "ranger": {
+          "count": 55,
+          "pct": 24.2
+        },
+        "sorcerer": {
+          "count": 83,
+          "pct": 36.6
+        },
+        "druid": {
+          "count": 89,
+          "pct": 39.2
+        }
+      },
+      "entropy": 1.556,
+      "normalized": 0.982,
+      "assessment": "HIGH — targeting may be unfocused"
+    },
+    "attritionCurve": {
+      "Room 2 (Whispering Gallery)": {
+        "samples": 797,
+        "avgVitalityPct": 69.8,
+        "avgResolvePct": 67.1,
+        "avgNervePct": 54.7,
+        "overallPct": 63.9,
+        "assessment": "HEALTHY"
+      },
+      "Room 3 (Veil Breach)": {
+        "samples": 353,
+        "avgVitalityPct": 78.6,
+        "avgResolvePct": 49.3,
+        "avgNervePct": 56.7,
+        "overallPct": 61.5,
+        "assessment": "HEALTHY"
+      }
+    },
+    "dungeonAttrition": {
+      "Room 2 (Whispering Gallery)": {
+        "samples": 797,
+        "avgStructure": 8,
+        "avgStructurePct": 50,
+        "avgVeil": 9.4,
+        "avgVeilPct": 67.1,
+        "avgPresence": 7.7,
+        "avgPresencePct": 64.2
+      },
+      "Room 3 (Veil Breach)": {
+        "samples": 353,
+        "avgStructure": 6.6,
+        "avgStructurePct": 41.3,
+        "avgVeil": 7,
+        "avgVeilPct": 50,
+        "avgPresence": 7.1,
+        "avgPresencePct": 59.2
+      }
+    },
+    "healthIssues": []
+  }
+}

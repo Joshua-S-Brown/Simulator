@@ -187,6 +187,17 @@ function printQualityMetrics(qm) {
     }
   }
 
+  // 6. Dungeon Attrition Curve (v2.8)
+  if (qm.dungeonAttrition) {
+    console.log(`\n  Dungeon Attrition (post-Short Rest entry health):`);
+    for (const [room, data] of Object.entries(qm.dungeonAttrition)) {
+      const overallPct = +((data.avgStructurePct + data.avgVeilPct + data.avgPresencePct) / 3).toFixed(1);
+      const tag = overallPct >= 50 ? '✅' : overallPct >= 35 ? '⚠️' : '🔴';
+      console.log(`    ${room}: ${overallPct}% overall  ${tag}`);
+      console.log(`      Str:${data.avgStructure} (${data.avgStructurePct}%)  Veil:${data.avgVeil} (${data.avgVeilPct}%)  Pres:${data.avgPresence} (${data.avgPresencePct}%)  (${data.samples} samples)`);
+    }
+  }
+
   // Health Issues Summary
   if (qm.healthIssues && qm.healthIssues.length > 0) {
     console.log(`\n  ⚠️  HEALTH ISSUES (${qm.healthIssues.length}):`);
