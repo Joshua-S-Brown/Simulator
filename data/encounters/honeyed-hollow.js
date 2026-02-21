@@ -25,8 +25,8 @@ module.exports = {
   description: 'A fragrant chamber dripping with amber light. Everything here invites trust.',
   initiative: 'dungeon',
   autoEffects: [
-    { resource: 'trust', amount: 1, target: 'visitor', frequency: 'other' },
-    { resource: 'presence', amount: -1, target: 'dungeon', frequency: 'other' },
-  ],
+  { resource: 'nerve', amount: -1, target: 'visitor', frequency: 'other' },
+  { resource: 'veil', amount: -1, target: 'dungeon', frequency: 'other' },
+],
   tags: ['Social', 'Environmental', 'Deceptive'],
 };

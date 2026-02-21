@@ -28,8 +28,13 @@ function applyBondV3Scoring(card, baseScore, self, opponent, ctx, profile, extra
   const round = extras.round || 1;
 
   // Deceptive: check betrayal trigger
-  if (strategy === 'deceptive' && trust >= (profile.betrayalThreshold || 6)) {
-    return scoreBetrayalPhase(card, self, opponent, trust, extras);
+  // Trust-based OR timeout-based (patience runs out)
+  if (strategy === 'deceptive') {
+    const trustReached = trust >= (profile.betrayalThreshold || 8);
+    const patienceExpired = (extras.round || 1) >= 10 && trust >= 3;
+    if (trustReached || patienceExpired) {
+      return scoreBetrayalPhase(card, self, opponent, trust, extras);
+    }
   }
 
   // Nurturing + Deceptive pre-betrayal: trust-building phases
@@ -227,7 +232,7 @@ const PROFILES_PATCH = {
     scoreThreshold: 1, preferredTargets: ['trust', 'rapport'],
     energyEagerness: 0.5, comboAwareness: 0.8,
     bondStrategy: 'deceptive',
-    betrayalThreshold: 6,
+    betrayalThreshold: 8,
   },
 };
 

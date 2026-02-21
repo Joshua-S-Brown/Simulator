@@ -1,44 +1,36 @@
 {
-  "scenario": "Verdant Maw vs Drift Symbiote (3-Room)",
+  "scenario": "Deceptive Dungeon vs Drift Symbiote (2-Room)",
   "iterations": 1000,
   "outcomeDistribution": {
-    "Break": {
-      "count": 32,
-      "pct": 3.2
-    },
-    "Bond": {
-      "count": 584,
-      "pct": 58.4
+    "Panic": {
+      "count": 588,
+      "pct": 58.8
     },
     "Kill": {
-      "count": 384,
-      "pct": 38.4
+      "count": 371,
+      "pct": 37.1
+    },
+    "Survive": {
+      "count": 26,
+      "pct": 2.6
+    },
+    "Break": {
+      "count": 15,
+      "pct": 1.5
     }
   },
-  "avgRounds": 12.4,
-  "avgDecisions": 38.5,
+  "avgRounds": 14.5,
+  "avgDecisions": 45,
   "perEncounter": {
-    "Living Root Sanctuary": {
+    "Honeyed Hollow": {
       "timesReached": 1000,
       "reachedPct": 100,
-      "avgRounds": 11.8,
-      "avgDecisions": 37.1,
+      "avgRounds": 8,
+      "avgDecisions": 24.1,
       "outcomes": {
-        "Overcome": {
-          "count": 41,
-          "pct": 4.1
-        },
-        "Bond": {
-          "count": 584,
-          "pct": 58.4
-        },
-        "Inert": {
-          "count": 68,
-          "pct": 6.8
-        },
-        "Kill": {
-          "count": 307,
-          "pct": 30.7
+        "Survive": {
+          "count": 1000,
+          "pct": 100
         }
       },
       "momentum": [
@@ -47,237 +39,225 @@
           "samples": 1000,
           "dungeonPct": 96,
           "visitorPct": 97,
-          "dungeonLeadPct": 36,
-          "visitorLeadPct": 30
+          "dungeonLeadPct": 35,
+          "visitorLeadPct": 33
         },
         {
           "round": 2,
           "samples": 1000,
-          "dungeonPct": 93,
-          "visitorPct": 94,
-          "dungeonLeadPct": 31,
-          "visitorLeadPct": 66
+          "dungeonPct": 95,
+          "visitorPct": 96,
+          "dungeonLeadPct": 39,
+          "visitorLeadPct": 47
         },
         {
           "round": 3,
           "samples": 1000,
-          "dungeonPct": 90,
-          "visitorPct": 92,
-          "dungeonLeadPct": 19,
-          "visitorLeadPct": 61
+          "dungeonPct": 92,
+          "visitorPct": 94,
+          "dungeonLeadPct": 33,
+          "visitorLeadPct": 65
         },
         {
           "round": 4,
           "samples": 1000,
-          "dungeonPct": 88,
-          "visitorPct": 90,
-          "dungeonLeadPct": 22,
-          "visitorLeadPct": 78
+          "dungeonPct": 92,
+          "visitorPct": 94,
+          "dungeonLeadPct": 33,
+          "visitorLeadPct": 64
         },
         {
           "round": 5,
           "samples": 1000,
-          "dungeonPct": 85,
-          "visitorPct": 88,
-          "dungeonLeadPct": 23,
-          "visitorLeadPct": 74
+          "dungeonPct": 90,
+          "visitorPct": 92,
+          "dungeonLeadPct": 21,
+          "visitorLeadPct": 63
         },
         {
           "round": 6,
           "samples": 1000,
-          "dungeonPct": 83,
-          "visitorPct": 86,
-          "dungeonLeadPct": 28,
-          "visitorLeadPct": 68
+          "dungeonPct": 90,
+          "visitorPct": 92,
+          "dungeonLeadPct": 24,
+          "visitorLeadPct": 62
         },
         {
           "round": 7,
-          "samples": 995,
-          "dungeonPct": 80,
-          "visitorPct": 83,
-          "dungeonLeadPct": 18,
-          "visitorLeadPct": 65
+          "samples": 1000,
+          "dungeonPct": 87,
+          "visitorPct": 90,
+          "dungeonLeadPct": 23,
+          "visitorLeadPct": 77
         },
         {
           "round": 8,
-          "samples": 897,
-          "dungeonPct": 77,
-          "visitorPct": 80,
-          "dungeonLeadPct": 23,
-          "visitorLeadPct": 71
-        },
-        {
-          "round": 9,
-          "samples": 841,
-          "dungeonPct": 73,
-          "visitorPct": 76,
-          "dungeonLeadPct": 20,
-          "visitorLeadPct": 67
-        },
-        {
-          "round": 10,
-          "samples": 688,
-          "dungeonPct": 67,
-          "visitorPct": 70,
-          "dungeonLeadPct": 25,
-          "visitorLeadPct": 69
-        },
-        {
-          "round": 11,
-          "samples": 632,
-          "dungeonPct": 61,
-          "visitorPct": 65,
-          "dungeonLeadPct": 22,
-          "visitorLeadPct": 69
-        },
-        {
-          "round": 12,
-          "samples": 461,
-          "dungeonPct": 54,
-          "visitorPct": 58,
-          "dungeonLeadPct": 26,
-          "visitorLeadPct": 68
-        },
-        {
-          "round": 13,
-          "samples": 331,
-          "dungeonPct": 46,
-          "visitorPct": 52,
-          "dungeonLeadPct": 10,
-          "visitorLeadPct": 82
+          "samples": 1000,
+          "dungeonPct": 85,
+          "visitorPct": 89,
+          "dungeonLeadPct": 21,
+          "visitorLeadPct": 78
         }
       ]
     },
-    "Whispering Gallery": {
-      "timesReached": 109,
-      "reachedPct": 10.9,
-      "avgRounds": 4.8,
-      "avgDecisions": 12.9,
+    "Root Hollow": {
+      "timesReached": 1000,
+      "reachedPct": 100,
+      "avgRounds": 6.5,
+      "avgDecisions": 20.9,
       "outcomes": {
-        "Break": {
-          "count": 32,
-          "pct": 29.4
+        "Panic": {
+          "count": 588,
+          "pct": 58.8
         },
         "Kill": {
-          "count": 77,
-          "pct": 70.6
+          "count": 371,
+          "pct": 37.1
+        },
+        "Overcome": {
+          "count": 25,
+          "pct": 2.5
+        },
+        "Break": {
+          "count": 15,
+          "pct": 1.5
+        },
+        "Dominate": {
+          "count": 1,
+          "pct": 0.1
         }
       },
       "momentum": [
         {
           "round": 1,
-          "samples": 89,
-          "dungeonPct": 66,
-          "visitorPct": 44,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
+          "samples": 926,
+          "dungeonPct": 82,
+          "visitorPct": 73,
+          "dungeonLeadPct": 78,
+          "visitorLeadPct": 19
         },
         {
           "round": 2,
-          "samples": 83,
-          "dungeonPct": 65,
-          "visitorPct": 43,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
+          "samples": 871,
+          "dungeonPct": 81,
+          "visitorPct": 69,
+          "dungeonLeadPct": 88,
+          "visitorLeadPct": 11
         },
         {
           "round": 3,
-          "samples": 67,
-          "dungeonPct": 60,
-          "visitorPct": 42,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
+          "samples": 777,
+          "dungeonPct": 76,
+          "visitorPct": 64,
+          "dungeonLeadPct": 89,
+          "visitorLeadPct": 10
         },
         {
           "round": 4,
-          "samples": 61,
-          "dungeonPct": 60,
-          "visitorPct": 41,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
+          "samples": 744,
+          "dungeonPct": 76,
+          "visitorPct": 62,
+          "dungeonLeadPct": 92,
+          "visitorLeadPct": 7
         },
         {
           "round": 5,
-          "samples": 48,
-          "dungeonPct": 55,
-          "visitorPct": 39,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
+          "samples": 624,
+          "dungeonPct": 71,
+          "visitorPct": 57,
+          "dungeonLeadPct": 91,
+          "visitorLeadPct": 8
         },
         {
           "round": 6,
-          "samples": 41,
-          "dungeonPct": 55,
-          "visitorPct": 39,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
+          "samples": 576,
+          "dungeonPct": 71,
+          "visitorPct": 55,
+          "dungeonLeadPct": 93,
+          "visitorLeadPct": 6
         },
         {
           "round": 7,
-          "samples": 25,
-          "dungeonPct": 50,
-          "visitorPct": 38,
-          "dungeonLeadPct": 100,
-          "visitorLeadPct": 0
+          "samples": 431,
+          "dungeonPct": 65,
+          "visitorPct": 51,
+          "dungeonLeadPct": 92,
+          "visitorLeadPct": 7
+        },
+        {
+          "round": 8,
+          "samples": 314,
+          "dungeonPct": 63,
+          "visitorPct": 46,
+          "dungeonLeadPct": 95,
+          "visitorLeadPct": 5
+        },
+        {
+          "round": 9,
+          "samples": 145,
+          "dungeonPct": 56,
+          "visitorPct": 40,
+          "dungeonLeadPct": 96,
+          "visitorLeadPct": 2
         }
       ]
     }
   },
   "qualityMetrics": {
     "agency": {
-      "average": 1.23,
+      "average": 1.04,
       "distribution": {
         "0": {
-          "count": 372,
-          "pct": 37.2
+          "count": 343,
+          "pct": 34.3
         },
         "1": {
-          "count": 276,
-          "pct": 27.6
+          "count": 380,
+          "pct": 38
         },
         "2": {
-          "count": 188,
-          "pct": 18.8
+          "count": 189,
+          "pct": 18.9
         },
         "3+": {
-          "count": 164,
-          "pct": 16.4
+          "count": 88,
+          "pct": 8.8
         }
       },
       "assessment": "HEALTHY"
     },
     "closeness": {
-      "average": 27.2,
-      "median": 27.8,
-      "validSamples": 416,
-      "assessment": "HEALTHY"
+      "average": 51.2,
+      "median": 55.6,
+      "validSamples": 1000,
+      "assessment": "MODERATE — primary win condition dominates"
     },
     "outcomeDiversity": {
-      "raw": 1.142,
-      "normalized": 0.381,
-      "possibleOutcomes": 3,
+      "raw": 1.209,
+      "normalized": 0.403,
+      "possibleOutcomes": 4,
       "assessment": "HEALTHY"
     },
     "knockoutPatterns": null,
     "attritionCurve": {
-      "Room 2 (Whispering Gallery)": {
-        "samples": 89,
-        "avgVitalityPct": 5.3,
-        "avgResolvePct": 31.3,
-        "avgNervePct": 128.6,
-        "overallPct": 55.1,
+      "Room 2 (Root Hollow)": {
+        "samples": 926,
+        "avgVitalityPct": 47.7,
+        "avgResolvePct": 120.1,
+        "avgNervePct": 66.7,
+        "overallPct": 78.2,
         "assessment": "HEALTHY"
       }
     },
     "dungeonAttrition": {
-      "Room 2 (Whispering Gallery)": {
-        "samples": 89,
-        "avgStructure": 9,
-        "avgStructurePct": 56.3,
-        "avgVeil": 7.9,
-        "avgVeilPct": 56.4,
-        "avgPresence": 10.1,
-        "avgPresencePct": 84.2
+      "Room 2 (Root Hollow)": {
+        "samples": 926,
+        "avgStructure": 12.8,
+        "avgStructurePct": 80,
+        "avgVeil": 11.2,
+        "avgVeilPct": 80,
+        "avgPresence": 10.3,
+        "avgPresencePct": 85.8
       }
     },
     "healthIssues": []
