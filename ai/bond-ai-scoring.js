@@ -37,6 +37,23 @@ function applyBondV3Scoring(card, baseScore, self, opponent, ctx, profile, extra
     }
   }
 
+  // Nurturing frustration: if trust isn't advancing despite offers,
+  // the dungeon stops being passive. "I offered peace and you hit me."
+  if (strategy === 'nurturing' && round >= 5) {
+    const trustStalled = trust < 3;          // Barely any trust after 5+ rounds
+    const dungeonHurt = self.startingValues && (
+      Math.min(
+        self.structure / (self.startingValues.structure || 16),
+        self.veil / (self.startingValues.veil || 14),
+        self.presence / (self.startingValues.presence || 12)
+      ) < 0.5
+    );
+    if (trustStalled && dungeonHurt) {
+      // Frustrated — revert to base combat scoring with slight cooperative memory
+      return scoreFrustratedPhase(card, baseScore, self, opponent, trust, extras);
+    }
+  }
+
   // Nurturing + Deceptive pre-betrayal: trust-building phases
   return scoreTrustBuildingPhase(card, baseScore, self, opponent, ctx, tier, trust, round, strategy);
 }
@@ -185,6 +202,47 @@ function scoreBetrayalPhase(card, self, opponent, trust, extras) {
 
     default:
       return 0;
+  }
+}
+
+// ═══ FRUSTRATED PHASE (Nurturing only) ═══
+
+/**
+ * The dungeon offered peace, the visitor kept attacking, trust stalled.
+ * The dungeon gets angry — not full betrayal (no trust conversion), 
+ * just "fine, I'll defend myself."
+ * 
+ * Scoring: standard combat weights, not the all-out betrayal of deceptive.
+ * Reshapes still high (survival), Strikes moderate (fighting back, not 
+ * going for the kill), Offers suppressed (done trying).
+ */
+function scoreFrustratedPhase(card, baseScore, self, opponent, trust, extras) {
+  switch (card.category) {
+    case 'Strike':
+      // Fight back — not maximum aggression, but real damage
+      return baseScore * 1.5 + 5;
+
+    case 'Empower':
+      return extras.hasStrike ? 8 : 1;
+
+    case 'Reshape':
+      // Still prioritize survival — frustrated, not suicidal
+      return baseScore + 5;
+
+    case 'Offer':
+    case 'Test':
+      // Done offering for now. Slight chance if trust somehow recovers
+      return trust >= 3 ? baseScore * 0.5 : -5;
+
+    case 'Counter':
+    case 'Disrupt':
+      return baseScore + 2;
+
+    case 'Trap':
+      return baseScore + 1;
+
+    default:
+      return baseScore;
   }
 }
 
