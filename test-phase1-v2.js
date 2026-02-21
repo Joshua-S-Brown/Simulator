@@ -25,6 +25,17 @@
 const registry = require('./lib/registry');
 const { buildDungeonTemplate, buildPartyTemplate, buildPartyDeck } = require('./lib/template-builder');
 const { buildScenario } = require('./lib/scenario-builder');
+// Helper: compute expected party stats from member data
+function expectedPartyStats(memberKeys) {
+  let resolve = 0, nerve = 0;
+  for (const key of memberKeys) {
+    const m = registry.getMember(key);
+    resolve += m.resolveContribution;
+    nerve += m.nerveContribution;
+  }
+  return { resolve, nerve };
+}
+
 
 // ═══════════════════════════════════════════════════════════════
 // TEST INFRASTRUCTURE
@@ -180,9 +191,11 @@ function testTemplateBuilder() {
   section('TEMPLATE BUILDER — Party');
 
   // Standard Party baseline
-  const standard = buildPartyTemplate(['knight', 'battlemage', 'cleric', 'rogue']);
-  assert(standard.resolve === 14, `standard resolve: ${standard.resolve} === 14`);
-  assert(standard.nerve === 16, `standard nerve: ${standard.nerve} === 16`);
+  const standardMembers = ['knight', 'battlemage', 'cleric', 'rogue'];
+  const standardExpected = expectedPartyStats(standardMembers);
+  const standard = buildPartyTemplate(standardMembers);
+  assert(standard.resolve === standardExpected.resolve, `standard resolve: ${standard.resolve} === ${standardExpected.resolve}`);
+  assert(standard.nerve === standardExpected.nerve, `standard nerve: ${standard.nerve} === ${standardExpected.nerve}`);
   assert(standard.trust === 0, `standard trust: ${standard.trust} === 0`);
   assert(standard.type === 'party', 'standard type is party');
   assert(standard.partySize === 4, 'standard partySize is 4');
@@ -193,17 +206,20 @@ function testTemplateBuilder() {
   assert(standard.modifiers.resilience === 0, `standard resilience: ${standard.modifiers.resilience} === 0`);
 
   // Arcane Expedition baseline
-  const arcane = buildPartyTemplate(['warden', 'sorcerer', 'druid', 'ranger']);
-  assert(arcane.resolve === 12, `arcane resolve: ${arcane.resolve} === 12`);
-  assert(arcane.nerve === 17, `arcane nerve: ${arcane.nerve} === 17`);
+  const arcaneMembers = ['warden', 'sorcerer', 'druid', 'ranger'];
+  const arcaneExpected = expectedPartyStats(arcaneMembers);
+  const arcane = buildPartyTemplate(arcaneMembers);
+  assert(arcane.resolve === arcaneExpected.resolve, `arcane resolve: ${arcane.resolve} === ${arcaneExpected.resolve}`);
+  assert(arcane.nerve === arcaneExpected.nerve, `arcane nerve: ${arcane.nerve} === ${arcaneExpected.nerve}`);
   assert(arcane.modifiers.perception === 2, `arcane perception: ${arcane.modifiers.perception} === 2`);
 
   // Cross-party composition
-  const crossParty = buildPartyTemplate(['knight', 'sorcerer', 'druid', 'rogue']);
-  const expectedResolve = 5 + 2 + 3 + 2; // knight + sorcerer + druid + rogue
-  const expectedNerve = 4 + 5 + 5 + 4;   // knight + sorcerer + druid + rogue
-  assert(crossParty.resolve === expectedResolve, `cross resolve: ${crossParty.resolve} === ${expectedResolve}`);
-  assert(crossParty.nerve === expectedNerve, `cross nerve: ${crossParty.nerve} === ${expectedNerve}`);
+  // Cross-party composition
+  const crossMembers = ['knight', 'sorcerer', 'druid', 'rogue'];
+  const crossExpected = expectedPartyStats(crossMembers);
+  const crossParty = buildPartyTemplate(crossMembers);
+  assert(crossParty.resolve === crossExpected.resolve, `cross resolve: ${crossParty.resolve} === ${crossExpected.resolve}`);
+  assert(crossParty.nerve === crossExpected.nerve, `cross nerve: ${crossParty.nerve} === ${crossExpected.nerve}`);
   console.log(`  Cross-party Knight+Sorcerer+Druid+Rogue: res:${crossParty.resolve} nrv:${crossParty.nerve}`);
 
   // Party deck
@@ -235,7 +251,8 @@ function testScenarioBuilder() {
   assert(partyScenario.name, `has name: ${partyScenario.name}`);
   assert(partyScenario.description, 'has description');
   assert(partyScenario.visitorTemplate.type === 'party', 'visitor is party');
-  assert(partyScenario.visitorTemplate.resolve === 14, 'visitor resolve: 14');
+  const scenarioExpected = expectedPartyStats(['knight', 'battlemage', 'cleric', 'rogue']);
+  assert(partyScenario.visitorTemplate.resolve === scenarioExpected.resolve, `visitor resolve: ${partyScenario.visitorTemplate.resolve} === ${scenarioExpected.resolve}`);
   assert(partyScenario.dungeonTemplate.structure === 16, 'dungeon structure: 16');
   assert(partyScenario.encounters.length === 3, '3 encounters');
 

@@ -10,8 +10,8 @@ module.exports = {
   name: 'Druid',
   role: 'support',
   vitality: 6,
-  resolveContribution: 3,
-  nerveContribution: 5,
+  resolveContribution: 5,
+  nerveContribution: 6,
   modifierContributions: { strength: 0, cunning: 0, perception: 1, resilience: 0 },
   deck: [
     { name: 'Natural Harmony', category: 'Energy', type: 'Environmental', cost: 0, energyType: 'attune',

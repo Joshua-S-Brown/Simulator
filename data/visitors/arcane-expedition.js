@@ -188,8 +188,8 @@ module.exports = {
   partySize: 4,
 
   // ── COLLECTIVE POOLS ──
-  resolve: 12,    // Lower than Standard (14) → Break-vulnerable
-  nerve: 17,      // Higher than Standard (16) → Panic-resistant
+  resolve: 20,    // Lower than Standard (14) → Break-vulnerable
+  nerve: 21,      // Higher than Standard (16) → Panic-resistant
   trust: 0,
 
   // ── INDIVIDUAL MEMBERS ──
@@ -198,29 +198,29 @@ module.exports = {
       name: 'Warden',
       role: 'tank',
       vitality: 11,
-      resolveContribution: 4,
-      nerveContribution: 3,
+      resolveContribution: 6,
+      nerveContribution: 4,
     },
     sorcerer: {
       name: 'Sorcerer',
       role: 'dps',
       vitality: 5,
-      resolveContribution: 2,
-      nerveContribution: 5,
+      resolveContribution: 4,
+      nerveContribution: 6,
     },
     druid: {
       name: 'Druid',
       role: 'support',
       vitality: 6,
-      resolveContribution: 3,
-      nerveContribution: 5,
+      resolveContribution: 5,
+      nerveContribution: 6,
     },
     ranger: {
       name: 'Ranger',
       role: 'dps',
       vitality: 7,
-      resolveContribution: 3,
-      nerveContribution: 4,
+      resolveContribution: 5,
+      nerveContribution: 5,
     },
   },
 

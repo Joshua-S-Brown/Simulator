@@ -10,8 +10,8 @@ module.exports = {
   name: 'Ranger',
   role: 'dps',
   vitality: 7,
-  resolveContribution: 3,
-  nerveContribution: 4,
+  resolveContribution: 5,
+  nerveContribution: 5,
   modifierContributions: { strength: 0, cunning: 1, perception: 0, resilience: 0 },
   deck: [
     { name: 'Focused Aim', category: 'Energy', type: 'Physical', cost: 0, energyType: 'standard',

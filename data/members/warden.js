@@ -10,8 +10,8 @@ module.exports = {
   name: 'Warden',
   role: 'tank',
   vitality: 11,
-  resolveContribution: 4,
-  nerveContribution: 3,
+  resolveContribution: 6,
+  nerveContribution: 4,
   modifierContributions: { strength: 1, cunning: 0, perception: 0, resilience: 0 },
   deck: [
     { name: 'Steadfast Will', category: 'Energy', type: 'Physical', cost: 0, energyType: 'standard',

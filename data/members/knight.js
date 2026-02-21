@@ -10,8 +10,8 @@ module.exports = {
   name: 'Knight',
   role: 'tank',
   vitality: 10,
-  resolveContribution: 5,
-  nerveContribution: 4,
+  resolveContribution: 7,
+  nerveContribution: 5,
   modifierContributions: { strength: 1, cunning: 0, perception: 0, resilience: 0 },
   deck: [
     { name: 'Steadfast Resolve', category: 'Energy', type: 'Physical', cost: 0, energyType: 'standard',

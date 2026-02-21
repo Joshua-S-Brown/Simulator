@@ -296,8 +296,8 @@ module.exports = {
   partySize: 4,
 
   // ── COLLECTIVE POOLS ──
-  resolve: 14,
-  nerve: 16,
+  resolve: 22,
+  nerve: 20,
   trust: 0,
 
   // ── INDIVIDUAL MEMBERS ──
@@ -306,29 +306,29 @@ module.exports = {
       name: 'Knight',
       role: 'tank',
       vitality: 10,
-      resolveContribution: 5,
-      nerveContribution: 4,
+      resolveContribution: 7,
+      nerveContribution: 5,
     },
     battlemage: {
       name: 'Battlemage',
       role: 'dps',
       vitality: 7,
-      resolveContribution: 3,
-      nerveContribution: 4,
+      resolveContribution: 5,
+      nerveContribution: 5,
     },
     cleric: {
       name: 'Cleric',
       role: 'support',
       vitality: 7,
-      resolveContribution: 4,
-      nerveContribution: 4,
+      resolveContribution: 6,
+      nerveContribution: 5,
     },
     rogue: {
       name: 'Rogue',
       role: 'flex',
       vitality: 6,
-      resolveContribution: 2,
-      nerveContribution: 4,
+      resolveContribution: 4,
+      nerveContribution: 5,
     },
   },
 

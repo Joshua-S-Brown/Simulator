@@ -10,8 +10,8 @@ module.exports = {
   name: 'Rogue',
   role: 'flex',
   vitality: 6,
-  resolveContribution: 2,
-  nerveContribution: 4,
+  resolveContribution: 4,
+  nerveContribution: 5,
   modifierContributions: { strength: 0, cunning: 1, perception: 0, resilience: 0 },
   deck: [
     { name: 'Quick Fingers', category: 'Energy', type: 'Physical', cost: 0, energyType: 'standard',

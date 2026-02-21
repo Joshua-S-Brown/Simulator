@@ -10,167 +10,180 @@
   Running...
 
   1/50 (2%) ΓÇö 0.2s elapsed, ~10s remaining   
-  2/50 (4%) ΓÇö 0.3s elapsed, ~7s remaining   
+  2/50 (4%) ΓÇö 0.4s elapsed, ~10s remaining   
   3/50 (6%) ΓÇö 0.5s elapsed, ~8s remaining   
-  4/50 (8%) ΓÇö 0.6s elapsed, ~7s remaining   
+  4/50 (8%) ΓÇö 0.7s elapsed, ~8s remaining   
   5/50 (10%) ΓÇö 0.8s elapsed, ~7s remaining   
-  6/50 (12%) ΓÇö 0.9s elapsed, ~7s remaining   
-  7/50 (14%) ΓÇö 1.0s elapsed, ~6s remaining   
-  8/50 (16%) ΓÇö 1.1s elapsed, ~6s remaining   
-  9/50 (18%) ΓÇö 1.2s elapsed, ~5s remaining   
-  10/50 (20%) ΓÇö 1.3s elapsed, ~5s remaining   
-  11/50 (22%) ΓÇö 1.3s elapsed, ~5s remaining   
-  12/50 (24%) ΓÇö 1.4s elapsed, ~4s remaining   
-  13/50 (26%) ΓÇö 1.6s elapsed, ~5s remaining   
-  14/50 (28%) ΓÇö 1.6s elapsed, ~4s remaining   
-  15/50 (30%) ΓÇö 1.7s elapsed, ~4s remaining   
-  16/50 (32%) ΓÇö 1.9s elapsed, ~4s remaining   
-  17/50 (34%) ΓÇö 2.0s elapsed, ~4s remaining   
-  18/50 (36%) ΓÇö 2.0s elapsed, ~4s remaining   
-  19/50 (38%) ΓÇö 2.2s elapsed, ~4s remaining   
-  20/50 (40%) ΓÇö 2.4s elapsed, ~4s remaining   
-  21/50 (42%) ΓÇö 2.5s elapsed, ~3s remaining   
-  22/50 (44%) ΓÇö 2.6s elapsed, ~3s remaining   
-  23/50 (46%) ΓÇö 2.7s elapsed, ~3s remaining   
-  24/50 (48%) ΓÇö 2.8s elapsed, ~3s remaining   
-  25/50 (50%) ΓÇö 2.9s elapsed, ~3s remaining   
-  26/50 (52%) ΓÇö 3.1s elapsed, ~3s remaining   
-  27/50 (54%) ΓÇö 3.1s elapsed, ~3s remaining   
-  28/50 (56%) ΓÇö 3.2s elapsed, ~3s remaining   
-  29/50 (58%) ΓÇö 3.3s elapsed, ~2s remaining   
-  30/50 (60%) ΓÇö 3.4s elapsed, ~2s remaining   
-  31/50 (62%) ΓÇö 3.6s elapsed, ~2s remaining   
-  32/50 (64%) ΓÇö 3.7s elapsed, ~2s remaining   
-  33/50 (66%) ΓÇö 3.8s elapsed, ~2s remaining   
-  34/50 (68%) ΓÇö 3.9s elapsed, ~2s remaining   
-  35/50 (70%) ΓÇö 4.0s elapsed, ~2s remaining   
-  36/50 (72%) ΓÇö 4.2s elapsed, ~2s remaining   
-  37/50 (74%) ΓÇö 4.3s elapsed, ~2s remaining   
-  38/50 (76%) ΓÇö 4.4s elapsed, ~1s remaining   
-  39/50 (78%) ΓÇö 4.5s elapsed, ~1s remaining   
-  40/50 (80%) ΓÇö 4.6s elapsed, ~1s remaining   
-  41/50 (82%) ΓÇö 4.7s elapsed, ~1s remaining   
-  42/50 (84%) ΓÇö 4.9s elapsed, ~1s remaining   
-  43/50 (86%) ΓÇö 5.0s elapsed, ~1s remaining   
-  44/50 (88%) ΓÇö 5.1s elapsed, ~1s remaining   
-  45/50 (90%) ΓÇö 5.2s elapsed, ~1s remaining   
-  46/50 (92%) ΓÇö 5.3s elapsed, ~0s remaining   
-  47/50 (94%) ΓÇö 5.5s elapsed, ~0s remaining   
-  48/50 (96%) ΓÇö 5.5s elapsed, ~0s remaining   
-  49/50 (98%) ΓÇö 5.7s elapsed, ~0s remaining   
-  50/50 (100%) ΓÇö 5.9s elapsed, ~0s remaining   
+  6/50 (12%) ΓÇö 1.0s elapsed, ~7s remaining   
+  7/50 (14%) ΓÇö 1.2s elapsed, ~7s remaining   
+  8/50 (16%) ΓÇö 1.4s elapsed, ~7s remaining   
+  9/50 (18%) ΓÇö 1.5s elapsed, ~7s remaining   
+  10/50 (20%) ΓÇö 1.7s elapsed, ~7s remaining   
+  11/50 (22%) ΓÇö 1.8s elapsed, ~6s remaining   
+  12/50 (24%) ΓÇö 2.0s elapsed, ~6s remaining   
+  13/50 (26%) ΓÇö 2.2s elapsed, ~6s remaining   
+  14/50 (28%) ΓÇö 2.3s elapsed, ~6s remaining   
+  15/50 (30%) ΓÇö 2.4s elapsed, ~6s remaining   
+  16/50 (32%) ΓÇö 2.6s elapsed, ~6s remaining   
+  17/50 (34%) ΓÇö 2.7s elapsed, ~5s remaining   
+  18/50 (36%) ΓÇö 2.9s elapsed, ~5s remaining   
+  19/50 (38%) ΓÇö 3.0s elapsed, ~5s remaining   
+  20/50 (40%) ΓÇö 3.1s elapsed, ~5s remaining   
+  21/50 (42%) ΓÇö 3.3s elapsed, ~5s remaining   
+  22/50 (44%) ΓÇö 3.3s elapsed, ~4s remaining   
+  23/50 (46%) ΓÇö 3.4s elapsed, ~4s remaining   
+  24/50 (48%) ΓÇö 3.5s elapsed, ~4s remaining   
+  25/50 (50%) ΓÇö 3.7s elapsed, ~4s remaining   
+  26/50 (52%) ΓÇö 3.8s elapsed, ~4s remaining   
+  27/50 (54%) ΓÇö 3.9s elapsed, ~3s remaining   
+  28/50 (56%) ΓÇö 4.1s elapsed, ~3s remaining   
+  29/50 (58%) ΓÇö 4.2s elapsed, ~3s remaining   
+  30/50 (60%) ΓÇö 4.3s elapsed, ~3s remaining   
+  31/50 (62%) ΓÇö 4.4s elapsed, ~3s remaining   
+  32/50 (64%) ΓÇö 4.6s elapsed, ~3s remaining   
+  33/50 (66%) ΓÇö 4.7s elapsed, ~2s remaining   
+  34/50 (68%) ΓÇö 4.9s elapsed, ~2s remaining   
+  35/50 (70%) ΓÇö 5.0s elapsed, ~2s remaining   
+  36/50 (72%) ΓÇö 5.1s elapsed, ~2s remaining   
+  37/50 (74%) ΓÇö 5.3s elapsed, ~2s remaining   
+  38/50 (76%) ΓÇö 5.4s elapsed, ~2s remaining   
+  39/50 (78%) ΓÇö 5.6s elapsed, ~2s remaining   
+  40/50 (80%) ΓÇö 5.8s elapsed, ~1s remaining   
+  41/50 (82%) ΓÇö 5.9s elapsed, ~1s remaining   
+  42/50 (84%) ΓÇö 6.0s elapsed, ~1s remaining   
+  43/50 (86%) ΓÇö 6.1s elapsed, ~1s remaining   
+  44/50 (88%) ΓÇö 6.3s elapsed, ~1s remaining   
+  45/50 (90%) ΓÇö 6.4s elapsed, ~1s remaining   
+  46/50 (92%) ΓÇö 6.5s elapsed, ~1s remaining   
+  47/50 (94%) ΓÇö 6.7s elapsed, ~0s remaining   
+  48/50 (96%) ΓÇö 6.8s elapsed, ~0s remaining   
+  49/50 (98%) ΓÇö 7.0s elapsed, ~0s remaining   
+  50/50 (100%) ΓÇö 7.1s elapsed, ~0s remaining   
                                                                                 
-  Γ£ô Complete: 50 matchups in 5.9s
-  Avg: 117ms per matchup
+  Γ£ô Complete: 50 matchups in 7.1s
+  Avg: 141ms per matchup
 
 ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
 Γòæ  COMPOSITION MATRIX ΓÇö Analysis Report                   Γòæ
 ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
 
-  Matchups: 50 | Iterations: 200 each | Elapsed: 5.9s
-  Healthy: 17 | Unhealthy: 33
+  Matchups: 50 | Iterations: 200 each | Elapsed: 7.1s
+  Healthy: 14 | Unhealthy: 36
 
   ΓöÇΓöÇ Quality Averages ΓöÇΓöÇ
-  Agency:    1.30 (target: 1.5ΓÇô4.0)
-  Closeness: 40.5% (target: 15ΓÇô40%)
-  Diversity: 0.426 (target: 0.35ΓÇô0.85)
-  Avg Rounds: 23.0
+  Agency:    1.45 (target: 1.5ΓÇô4.0)
+  Closeness: 39.6% (target: 15ΓÇô40%)
+  Diversity: 0.353 (target: 0.35ΓÇô0.85)
+  Avg Rounds: 27.6
 
   ΓöÇΓöÇ Outcome Averages Across All Matchups ΓöÇΓöÇ
-  Kill       avg: 20.4%  min:    0%  max:   99%  ╧â: 22.6
-  Break      avg: 33.4%  min:    0%  max: 94.5%  ╧â: 26.2
-  Panic      avg: 16.1%  min:    0%  max: 64.5%  ╧â: 18.1
-  Bond       avg:    0%  min:    0%  max:  0.5%  ╧â:  0.1
-  Survive    avg:   30%  min:    0%  max:   92%  ╧â: 25.9
+  Kill       avg: 19.5%  min:    1%  max: 94.5%  ╧â: 24.4
+  Break      avg:   12%  min:    0%  max: 53.5%  ╧â: 16.7
+  Panic      avg: 16.8%  min:    0%  max:   85%  ╧â: 23.1
+  Bond       avg:  0.1%  min:    0%  max:    2%  ╧â:  0.3
+  Survive    avg: 51.6%  min:    0%  max:   98%  ╧â: 31.8
 
-  ΓöÇΓöÇ Anomalies (57) ΓöÇΓöÇ
-  ≡ƒö┤ [HIGH] Dungeon wins 70%+ against drift-symbiote in ALL 3 matchups (avg 100.0%)
-  ≡ƒö┤ [HIGH] 12/50 matchups have agency < 1.0 (24.0%)
-  ≡ƒƒí [MEDIUM] Overcome never fires for encounter sequence [root-hollow ΓåÆ veil-breach ΓåÆ living-root-sanctuary] across 3 matchups
-  ≡ƒƒí [MEDIUM] Inert never fires for encounter sequence [root-hollow ΓåÆ veil-breach ΓåÆ living-root-sanctuary] across 3 matchups
-  ≡ƒƒí [MEDIUM] Dominate never fires for encounter sequence [root-hollow ΓåÆ veil-breach ΓåÆ living-root-sanctuary] across 3 matchups
-  ≡ƒö┤ [HIGH] 17/50 matchups have outcome diversity < 0.35 (34.0%)
-  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0) ΓÇö 4 matchups (8.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.342) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.8) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.9) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 3 (Veil Breach) entry too low (20.1%) ΓÇö visitors entering nearly dead ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.95) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Closeness too low (67.8%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.129) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.79) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Closeness too low (80.4%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.276) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Honeyed Hollow) entry too high (83.9%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 3 (Living Root Sanctuary) entry too high (83.2%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.182) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Honeyed Hollow) entry too high (82.4%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.86) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.345) ΓÇö severe concentration ΓÇö 2 matchups (4.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.94) ΓÇö one side dominates from start ΓÇö 3 matchups (6.0%)
-  ≡ƒö╡ [LOW] Closeness too low (60.7%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.261) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.346) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Closeness too low (61.8%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.03) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Root Hollow) entry too high (83.6%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0.359) ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.93) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.333) ΓÇö severe concentration ΓÇö 2 matchups (4.0%)
-  ≡ƒö╡ [LOW] Room 2 (Root Hollow) entry too high (85.5%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (82.3%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.97) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Root Hollow) entry too high (83.4%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Agency too low (0.88) ΓÇö one side dominates from start ΓÇö 2 matchups (4.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.348) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.168) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 3 (Honeyed Hollow) entry too low (28.1%) ΓÇö visitors entering nearly dead ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0.378) ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.298) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Living Root Sanctuary) entry too high (88.2%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 3 (Whispering Gallery) entry too high (81.8%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Whispering Gallery) entry too high (82%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (86.6%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ΓöÇΓöÇ Anomalies (70) ΓöÇΓöÇ
+  ≡ƒƒí [MEDIUM] 4/50 matchups have agency < 1.0 (8.0%)
+  ≡ƒƒí [MEDIUM] Overcome never fires for encounter sequence [root-hollow ΓåÆ living-root-sanctuary ΓåÆ whispering-gallery] across 3 matchups
+  ≡ƒƒí [MEDIUM] Inert never fires for encounter sequence [root-hollow ΓåÆ living-root-sanctuary ΓåÆ whispering-gallery] across 3 matchups
+  ≡ƒƒí [MEDIUM] Dominate never fires for encounter sequence [root-hollow ΓåÆ living-root-sanctuary ΓåÆ whispering-gallery] across 3 matchups
+  ≡ƒö┤ [HIGH] 25/50 matchups have outcome diversity < 0.35 (50.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.227) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (86%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Agency too low (0.99) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.321) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Root Hollow) entry too high (82.8%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.128) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.326) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.145) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (84.4%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 3 (Whispering Gallery) entry too high (80.9%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Closeness too low (66.9%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.088) ΓÇö severe concentration ΓÇö 2 matchups (4.0%)
+  ≡ƒö╡ [LOW] Room 2 (Whispering Gallery) entry too high (88.6%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.093) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Living Root Sanctuary) entry too high (91.5%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 3 (Whispering Gallery) entry too high (84.7%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Agency too low (0.89) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Closeness too low (65%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
   ≡ƒö╡ [LOW] Outcome diversity too low (0.31) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Closeness too low (61.6%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.314) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Whispering Gallery) entry too high (85.2%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Closeness too low (64%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Outcome diversity too low (0.193) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0.382) ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 2 (Honeyed Hollow) entry too high (86.8%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Room 3 (Root Hollow) entry too high (82.8%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
-  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0.372) ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Root Hollow) entry too high (90.1%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.071) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Whispering Gallery) entry too high (90.5%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.238) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Honeyed Hollow) entry too high (87.9%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 3 (Root Hollow) entry too high (85.2%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Whispering Gallery) entry too high (87%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.322) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (85.5%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.102) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.302) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Agency too low (0.62) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Honeyed Hollow) entry too high (81.9%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 3 (Whispering Gallery) entry too low (26.8%) ΓÇö visitors entering nearly dead ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.252) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (84%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.292) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Whispering Gallery) entry too high (91.6%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.047) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Living Root Sanctuary) entry too high (84.9%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 3 (Honeyed Hollow) entry too high (81.7%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.171) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Root Hollow) entry too high (89.2%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Closeness too low (72.6%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.117) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Honeyed Hollow) entry too high (83.4%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0.488) ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Living Root Sanctuary) entry too high (89.2%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 3 (Whispering Gallery) entry too high (81.2%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Closeness too low (72.4%) ΓÇö only one win condition in play ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.313) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Agency too low (0.93) ΓÇö one side dominates from start ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Root Hollow) entry too high (93.9%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0.338) ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Honeyed Hollow) entry too high (82%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0.235) ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (85.1%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.249) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.325) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (81.8%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.308) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.254) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Outcome diversity too low (0.134) ΓÇö severe concentration ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 2 (Veil Breach) entry too high (88.5%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Room 3 (Whispering Gallery) entry too high (84.8%) ΓÇö previous room has little impact ΓÇö 1 matchups (2.0%)
+  ≡ƒö╡ [LOW] Knockout targeting too deterministic (0.423) ΓÇö 1 matchups (2.0%)
 
   ΓöÇΓöÇ By Dungeon Profile ΓöÇΓöÇ
-  tactical     (8) DWR:88.9%  Agency:1.25  Div:0.397  Rnd:17.6
-  nurturing    (15) DWR:52.8%  Agency:1.44  Div:0.473  Rnd:28.1
-  deceptive    (15) DWR:65.6%  Agency:1.4  Div:0.425  Rnd:25.4
-  aggressive   (12) DWR:84.2%  Agency:1.01  Div:0.389  Rnd:17.3
+  nurturing    (12) DWR:27.8%  Agency:1.52  Div:0.234  Rnd:30.8
+  tactical     (13) DWR:68.2%  Agency:1.57  Div:0.514  Rnd:25.9
+  aggressive   (10) DWR:66%  Agency:1.29  Div:0.443  Rnd:24.4
+  deceptive    (15) DWR:35.8%  Agency:1.38  Div:0.25  Rnd:28.8
 
   ΓöÇΓöÇ By Visitor Type ΓöÇΓöÇ
-  party        (38) DWR:66%  Agency:1.38  Div:0.445  Rnd:24.5
-  creature     (12) DWR:82.5%  Agency:1.04  Div:0.366  Rnd:18.5
+  party        (40) DWR:43.6%  Agency:1.52  Div:0.346  Rnd:28.8
+  creature     (10) DWR:67.2%  Agency:1.17  Div:0.382  Rnd:23
 
   ΓöÇΓöÇ Highest Dungeon Win Rate ΓöÇΓöÇ
-    100%  drift-symbiote                  [whispering-gallery ΓåÆ root-hollow ΓåÆ livin]  aggressive
-    100%  drift-symbiote                  [root-hollow ΓåÆ honeyed-hollow ΓåÆ living-ro]  deceptive
-    100%  drift-symbiote                  [whispering-gallery ΓåÆ living-root-sanctua]  aggressive
-   99.5%  thornback-boar                  [whispering-gallery ΓåÆ root-hollow ΓåÆ veil-]  aggressive
-   99.5%  sorcerer+cleric+rogue+warden    [veil-breach ΓåÆ whispering-gallery ΓåÆ livin]  aggressive
+    100%  drift-symbiote                  [honeyed-hollow ΓåÆ living-root-sanctuary ΓåÆ]  deceptive
+    100%  drift-symbiote                  [honeyed-hollow ΓåÆ living-root-sanctuary ΓåÆ]  deceptive
+   98.5%  thornback-boar                  [root-hollow ΓåÆ living-root-sanctuary ΓåÆ wh]  tactical
+     90%  rogue+cleric+ranger+knight      [veil-breach ΓåÆ honeyed-hollow ΓåÆ root-holl]  aggressive
+   88.5%  warden+knight+druid+cleric      [root-hollow ΓåÆ veil-breach ΓåÆ living-root-]  aggressive
 
   ΓöÇΓöÇ Lowest Dungeon Win Rate ΓöÇΓöÇ
-      8%  warden+druid+battlemage+cleric  [whispering-gallery ΓåÆ veil-breach ΓåÆ honey]  nurturing
-   10.5%  ranger+knight+cleric+battlemag  [living-root-sanctuary ΓåÆ honeyed-hollow ΓåÆ]  deceptive
-   20.5%  warden+ranger+knight+battlemag  [root-hollow ΓåÆ veil-breach ΓåÆ whispering-g]  nurturing
-   22.5%  rogue+ranger+battlemage+sorcer  [whispering-gallery ΓåÆ honeyed-hollow ΓåÆ li]  deceptive
-     31%  knight+sorcerer+warden+battlem  [veil-breach ΓåÆ living-root-sanctuary ΓåÆ wh]  deceptive
+      2%  warden+rogue+ranger+sorcerer    [whispering-gallery ΓåÆ living-root-sanctua]  nurturing
+      3%  sorcerer+druid+ranger+warden    [veil-breach ΓåÆ whispering-gallery ΓåÆ honey]  deceptive
+      4%  knight+cleric+ranger+sorcerer   [honeyed-hollow ΓåÆ whispering-gallery ΓåÆ li]  nurturing
+      4%  druid+ranger+battlemage+knight  [veil-breach ΓåÆ living-root-sanctuary ΓåÆ wh]  deceptive
+      4%  warden+battlemage+sorcerer+kni  [living-root-sanctuary ΓåÆ root-hollow ΓåÆ ho]  deceptive
 
   ΓöÇΓöÇ Lowest Agency ΓöÇΓöÇ
-   0.79  rogue+ranger+battlemage+sorcer  [whispering-gallery ΓåÆ honeyed-hollow ΓåÆ li]  DWR:22.5%
-   0.80  veil-moth                       [root-hollow ΓåÆ living-root-sanctuary ΓåÆ ve]  DWR:84.5%
-   0.86  sorcerer+cleric+rogue+warden    [veil-breach ΓåÆ whispering-gallery ΓåÆ livin]  DWR:99.5%
-   0.88  thornback-boar                  [whispering-gallery ΓåÆ veil-breach ΓåÆ livin]  DWR:98.5%
-   0.88  druid+sorcerer+knight+ranger    [living-root-sanctuary ΓåÆ whispering-galle]  DWR:94%
+   0.62  thornback-boar                  [whispering-gallery ΓåÆ veil-breach ΓåÆ root-]  DWR:82%
+   0.89  sorcerer+cleric+battlemage+kni  [honeyed-hollow ΓåÆ root-hollow ΓåÆ living-ro]  DWR:31%
+   0.93  warden+battlemage+sorcerer+kni  [living-root-sanctuary ΓåÆ root-hollow ΓåÆ ho]  DWR:4%
+   0.99  veil-moth                       [veil-breach ΓåÆ living-root-sanctuary ΓåÆ ro]  DWR:78%
+   1.00  battlemage+rogue+warden+ranger  [veil-breach ΓåÆ root-hollow ΓåÆ living-root-]  DWR:80%
 
-  JSON saved: C:\Users\brown\Simulator\output\matrix-2026-02-21T14-28-40.json
+  JSON saved: C:\Users\brown\Simulator\output\matrix-2026-02-21T19-44-14.json

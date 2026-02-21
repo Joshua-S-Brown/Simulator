@@ -10,8 +10,8 @@ module.exports = {
   name: 'Cleric',
   role: 'support',
   vitality: 7,
-  resolveContribution: 4,
-  nerveContribution: 4,
+  resolveContribution: 6,
+  nerveContribution: 5,
   modifierContributions: { strength: 0, cunning: 0, perception: 0, resilience: 0 },
   deck: [
     { name: 'Prayer of Devotion', category: 'Energy', type: 'Social', cost: 0, energyType: 'standard',

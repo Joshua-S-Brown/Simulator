@@ -10,8 +10,8 @@ module.exports = {
   name: 'Sorcerer',
   role: 'dps',
   vitality: 5,
-  resolveContribution: 2,
-  nerveContribution: 5,
+  resolveContribution: 4,
+  nerveContribution: 6,
   modifierContributions: { strength: 0, cunning: 0, perception: 1, resilience: 0 },
   deck: [
     { name: 'Arcane Focus', category: 'Energy', type: 'Mystical', cost: 0, energyType: 'standard',
