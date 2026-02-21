@@ -1,5 +1,5 @@
 /**
- * SHATTERED DUNGEON — Sequence Runner v1.5
+ * SHATTERED DUNGEON — Sequence Runner v1.6
  * [ADD] Round snapshots passed through from encounters
  * [ADD] Batch aggregation of per-round momentum data
  * [ADD] v2.5: Encounter quality metrics (GDD Section 18)
@@ -10,6 +10,11 @@
  *       attrition still carries forward. Floor + heal model mirrors the
  *       visitor Short Rest philosophy.
  * [ADD] v2.8: Dungeon entry state tracking for quality metrics
+ * [MOD] v2.9: Attrition rebalance — Dungeon Short Rest now full reset
+ *       (each room is a fresh chamber, floorPct 1.0, healPct 0.0).
+ *       Visitor Short Rest drastically reduced (pool 5%, heal 10%,
+ *       downed 25%). Creates asymmetric attrition: dungeon fresh per
+ *       room, visitors carry damage across the gauntlet.
  */
 
 const { runEncounter } = require('./encounter');
@@ -51,8 +56,8 @@ function runSequence(scenario, dungeonAI, visitorAI, config = {}) {
       const restConfig = config.dungeonRest || {};
 
       // Recovery rates (configurable, sensible defaults)
-      const FLOOR_PCT = restConfig.floorPct || 0.40;   // No resource enters below 40% of starting
-      const HEAL_PCT  = restConfig.healPct  || 0.25;    // Heal 25% of missing (after floor)
+      const FLOOR_PCT = restConfig.floorPct ?? 0.85;   // No resource enters below 40% of starting
+      const HEAL_PCT  = restConfig.healPct  ?? 0.50;    // Heal 25% of missing (after floor)
 
       for (const res of ['structure', 'veil', 'presence']) {
         const starting = sv[res] || 0;
@@ -84,9 +89,12 @@ function runSequence(scenario, dungeonAI, visitorAI, config = {}) {
       const restConfig = config.shortRest || {};
 
       // Recovery rates (configurable via scenario config, sensible defaults)
-      const DOWNED_RESTORE_PCT = restConfig.downedRestorePct || 0.40;   // Downed members return at 40% max vit
-      const ACTIVE_HEAL_PCT    = restConfig.activeHealPct   || 0.25;    // Active members heal 25% of missing vit
-      const POOL_RESTORE_PCT   = restConfig.poolRestorePct  || 0.20;    // Collective pools restore 20% of starting
+      // v2.9: Reduced recovery — the gauntlet should attrit visitors.
+      // Downed members barely functional, active members patch wounds,
+      // collective morale/nerve recover minimally between rooms.
+      const DOWNED_RESTORE_PCT = restConfig.downedRestorePct ?? 0.25;   // Downed members return at 25% max vit (fragile)
+      const ACTIVE_HEAL_PCT    = restConfig.activeHealPct   ?? 0.15;    // Active members heal 10% of missing vit (bandages, not magic)
+      const POOL_RESTORE_PCT   = restConfig.poolRestorePct  ?? 0.15;    // Collective pools restore 5% of starting (barely catches breath)
 
       // 1. Restore downed members
       for (const [key, member] of Object.entries(v.members)) {
