@@ -140,6 +140,7 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
     rounds: 0, dCardsPlayed: 0, vCardsPlayed: 0, decisions: 0,
     dDamageDealt: {}, vDamageDealt: {}, dLastType: null, vLastType: null,
     dStrikesPlayed: 0,  // v2.7: Track dungeon strikes for Covenant suspicion
+    roundsSinceDungeonStrike: 0,  // Bond fix: cooperation detection
   };
   const roundSnapshots = [];
 
@@ -151,6 +152,7 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
 
     const roundStartTrust = visitor.trust || 0;
     const roundStartRapport = dungeon.rapport || 0;
+    const roundStartDungeonStrikes = ctx.stats.dStrikesPlayed || 0;
     const promoterGainCap = config.promoterGainCap || 2;
 
     // 1. ENVIRONMENT PRESSURE (bidirectional)
@@ -366,6 +368,13 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
       }
       snapshot.knockoutCount = visitor.knockoutCount;
     }
+
+    // Bond fix: track non-aggression streak for cooperation detection
+    // If dStrikesPlayed didn't change this round, dungeon didn't strike
+    if (ctx.stats.dStrikesPlayed === roundStartDungeonStrikes) {
+      ctx.stats.roundsSinceDungeonStrike = (ctx.stats.roundsSinceDungeonStrike || 0) + 1;
+    }
+
     roundSnapshots.push(snapshot);
   }
 
@@ -463,6 +472,7 @@ function executeTurn(side, sideData, ctx) {
         // v2.7: Track dungeon strikes for Covenant suspicion
         if (side === 'dungeon') {
           ctx.stats.dStrikesPlayed = (ctx.stats.dStrikesPlayed || 0) + 1;
+          ctx.stats.roundsSinceDungeonStrike = 0;  // Bond fix: reset cooperation timer
         }
         break;
 

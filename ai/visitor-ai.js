@@ -121,6 +121,21 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
   else if (winProb < 0.35) mode = 'defensive';     // We're losing — survive and disrupt
   else if (winProb < 0.2) mode = 'desperate';       // Critical — hail mary strikes
 
+ // ── COOPERATION DETECTION (Bond fix) ──
+  // Track how many rounds since dungeon last played a Strike.
+  // If dungeon hasn't struck in 3+ rounds and trust > 0, de-escalate.
+  const dungeonStrikesThisGame = ctx.stats?.dStrikesPlayed || 0;
+  const roundsSinceLastDungeonStrike = ctx.stats?.roundsSinceDungeonStrike ?? round;
+  const trust = self.trust || 0;
+
+  let cooperationLevel = 0; // 0 = combat, 1 = cautious, 2 = cooperative
+  if (roundsSinceLastDungeonStrike >= 5 && trust >= 3) {
+    cooperationLevel = 2;  // Fully cooperative — dungeon is clearly nurturing
+  } else if (roundsSinceLastDungeonStrike >= 3 && trust > 0) {
+    cooperationLevel = 1;  // Cautious — dungeon seems non-hostile
+  } 
+
+
   // ── LOOP DETECTION ──
   const oppCounteredUs = ctx.lastRoundEvents?.opponentCountered || false;
   if (oppCounteredUs) history.counterCount++;
@@ -171,9 +186,17 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
     let score = 0;
     const w = p.baseWeights[card.category] || 1;
 
-    // COOPERATIVE STRIKE SUPPRESSION
-    if (card.category === 'Strike' && p.preferredTargets?.includes('trust') && (self.trust || 0) > 2) {
-      return 0;
+   // ── COOPERATION RESPONSE (Bond fix) ──
+    // Suppress Strikes when dungeon appears cooperative
+    if (card.category === 'Strike' && cooperationLevel >= 2) {
+      score *= 0.1;  // Heavy suppression — prefer non-combat
+    } else if (card.category === 'Strike' && cooperationLevel >= 1) {
+      score *= 0.4;  // Moderate suppression — still cautious
+    }
+
+    // Boost Offers/Tests when cooperating
+    if ((card.category === 'Offer' || card.category === 'Test') && cooperationLevel >= 1) {
+      score += 5 + (cooperationLevel * 3);  // +8 at cautious, +11 at cooperative
     }
 
     // Mode adjustments

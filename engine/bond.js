@@ -31,10 +31,11 @@ const R = require('./rules');
 // TRUST TIER SYSTEM
 // ═══════════════════════════════════════════════════════════════
 
+
 function getTrustTier(trust) {
-  if (trust >= 9) return 3;
-  if (trust >= 6) return 2;
-  if (trust >= 3) return 1;
+  if (trust >= 7) return 3;  // Covenant eligible (was 9)
+  if (trust >= 5) return 2;  // Binding Offers (was 6)
+  if (trust >= 3) return 1;  // Veiled Offers (unchanged)
   return 0;
 }
 
@@ -217,7 +218,7 @@ function computeVeiledAcceptance(benefit, trust, visitor) {
  * Covenant: High-stakes final decision.
  */
 function computeCovenantAcceptance(trust, visitor, dungeon, ctx) {
-  const trustFactor = 0.5 + (trust * 0.04);
+  const trustFactor = 0.5 + (trust * 0.06);  // Steeper scaling to compensate for lower threshold
   const pressure = computeResourcePressure(visitor);
   const desperationFactor = 1.0 + (0.3 * pressure);
 
@@ -476,7 +477,10 @@ function checkBetrayal(side, self, opp, ctx) {
   const dungeon = side === 'dungeon' ? self : opp;
   const trust = visitor.trust || 0;
 
-  if (trust < 4) return { betrayed: false, damage: 0 };
+  // Dungeon betrayal still requires trust >= 4
+  // Visitor strikes now cause gradual trust decay at any trust > 0
+  if (side === 'dungeon' && trust < 4) return { betrayed: false, damage: 0 };
+  if (side !== 'dungeon' && trust <= 0) return { betrayed: false, damage: 0 };
 
   if (side === 'dungeon') {
     // ── Dungeon betrays visitor ──
@@ -521,23 +525,30 @@ function checkBetrayal(side, self, opp, ctx) {
     return { betrayed: true, damage: dmg };
 
   } else {
-    // ── Visitor betrays dungeon ──
-    log(`    ★ VISITOR BETRAYAL! Trust ${trust} crashes to 0`);
-    visitor.trust = 0;
-    visitor._fractionalTrust = 0;
+    // ── Visitor Strike trust erosion (replaces binary betrayal) ──
+    // Gradual decay instead of crash-to-zero. Parties naturally attack
+    // early; this lets trust survive initial aggression while still
+    // penalizing Strikes at high trust.
+    const decay = trust >= 7 ? 3 : trust >= 4 ? 2 : 1;
+    const newTrust = Math.max(0, trust - decay);
+    const lost = trust - newTrust;
+    visitor.trust = newTrust;
+    log(`    [Visitor Strike] trust -${lost} (was ${trust}, now ${newTrust})`);
 
-    // Dungeon gains Scorned condition
-    dungeon.conditions = dungeon.conditions || [];
-    dungeon.conditions.push({
-      type: 'scorned',
-      rollBonus: 1,
-      duration: 3,
-      source: 'Visitor Betrayal',
-      placedBy: 'visitor',
-    });
-    log(`    [Scorned] dungeon gains +1 contested rolls for 3 rounds`);
+    // Scorned only triggers at high trust (real betrayal, not early combat)
+    if (trust >= 6) {
+      dungeon.conditions = dungeon.conditions || [];
+      dungeon.conditions.push({
+        type: 'scorned',
+        rollBonus: 1,
+        duration: 3,
+        source: 'Visitor Betrayal',
+        placedBy: side,
+      });
+      log(`    [Scorned] dungeon gains +1 contested rolls for 3 rounds`);
+    }
 
-    return { betrayed: true, damage: 0 };
+    return { betrayed: lost > 0, damage: 0 };
   }
 }
 
@@ -606,7 +617,7 @@ function applyRoomTransitionDecay(visitor) {
   if (trust <= 0) return;
 
   const floor = trust >= 3 ? 1 : 0;
-  const newTrust = Math.max(floor, trust - 2);
+  const newTrust = Math.max(floor, trust - 1);  // was -2
   visitor.trust = newTrust;
   visitor._fractionalTrust = 0; // Reset fractional on room change
   return { before: trust, after: newTrust };

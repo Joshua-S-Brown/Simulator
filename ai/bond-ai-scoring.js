@@ -232,7 +232,7 @@ const PROFILES_PATCH = {
     scoreThreshold: 1, preferredTargets: ['trust', 'rapport'],
     energyEagerness: 0.5, comboAwareness: 0.8,
     bondStrategy: 'deceptive',
-    betrayalThreshold: 8,
+    betrayalThreshold: 6,
   },
 };
 
