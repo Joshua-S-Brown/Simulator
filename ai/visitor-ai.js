@@ -33,7 +33,7 @@ const PROFILES = {
   },
   cooperative: {
     description: 'Cooperative creature. Seeks Bond. Symbiote-like.',
-    baseWeights: { Strike: 0.5, Empower: 1, Disrupt: 0.5, Counter: 1, Trap: 0, Offer: 3, Reshape: 0, React: 1, Test: 2.5 },
+    baseWeights: { Strike: 0, Empower: 1, Disrupt: 0.5, Counter: 1, Trap: 0, Offer: 3, Reshape: 0, React: 1, Test: 2.5 },
     scoreThreshold: 1, preferredTargets: ['trust'],
     energyEagerness: 0.5, comboAwareness: 0.5,
   },

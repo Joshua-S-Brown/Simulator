@@ -152,7 +152,7 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
 
     const roundStartTrust = visitor.trust || 0;
     const roundStartRapport = dungeon.rapport || 0;
-    const roundStartDungeonStrikes = ctx.stats.dStrikesPlayed || 0;
+    const roundStartDungeonStrikes = stats.dStrikesPlayed || 0;
     const promoterGainCap = config.promoterGainCap || 2;
 
     // 1. ENVIRONMENT PRESSURE (bidirectional)
@@ -371,8 +371,9 @@ function runEncounter(encounter, dungeonDeck, visitorDeck, visitorTemplate,
 
     // Bond fix: track non-aggression streak for cooperation detection
     // If dStrikesPlayed didn't change this round, dungeon didn't strike
-    if (ctx.stats.dStrikesPlayed === roundStartDungeonStrikes) {
-      ctx.stats.roundsSinceDungeonStrike = (ctx.stats.roundsSinceDungeonStrike || 0) + 1;
+    // Bond fix: track non-aggression streak for cooperation detection
+    if (stats.dStrikesPlayed === roundStartDungeonStrikes) {
+      stats.roundsSinceDungeonStrike = (stats.roundsSinceDungeonStrike || 0) + 1;
     }
 
     roundSnapshots.push(snapshot);

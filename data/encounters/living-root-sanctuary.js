@@ -40,7 +40,7 @@ module.exports = {
   autoEffects: [
   { resource: 'veil', amount: -1, target: 'dungeon', frequency: 'every' },
   { resource: 'resolve', amount: -1, target: 'visitor', frequency: 'every' },
-  { resource: 'trust', amount: -1, target: 'visitor', frequency: 'other' },
+  { resource: 'trust', amount: 1, target: 'visitor', frequency: 'other' },
 ],
   tags: ['Social', 'Environmental', 'Nurturing'],
 };
