@@ -46,9 +46,14 @@ const PROFILES = {
   },
 };
 
-function createVisitorAI(profileName) {
-  const p = PROFILES[profileName];
-  if (!p) throw new Error(`Unknown visitor profile: ${profileName}. Options: ${Object.keys(PROFILES).join(', ')}`);
+function createVisitorAI(profileOrName) {
+  let p;
+  if (typeof profileOrName === 'object' && profileOrName !== null) {
+    p = profileOrName;
+  } else {
+    p = PROFILES[profileOrName];
+    if (!p) throw new Error(`Unknown visitor profile: ${profileOrName}. Options: ${Object.keys(PROFILES).join(', ')}`);
+  }
   const history = { counterCount: 0, loopDetected: false };
   return {
     profile: p,

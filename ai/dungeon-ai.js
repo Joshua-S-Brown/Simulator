@@ -55,9 +55,18 @@ const PROFILES = {
   },
 };
 
-function createDungeonAI(profileName) {
-  const p = PROFILES[profileName];
-  if (!p) throw new Error(`Unknown dungeon profile: ${profileName}. Options: ${Object.keys(PROFILES).join(', ')}`);
+function createDungeonAI(profileOrName) {
+  // Accept either a profile object (from profile-builder) or a string (legacy)
+  let p;
+  let profileName;
+  if (typeof profileOrName === 'object' && profileOrName !== null) {
+    p = profileOrName;
+    profileName = profileOrName._baseName || 'custom';
+  } else {
+    profileName = profileOrName;
+    p = PROFILES[profileName];
+    if (!p) throw new Error(`Unknown dungeon profile: ${profileName}. Options: ${Object.keys(PROFILES).join(', ')}`);
+  }
   const history = { counterCount: 0, loopDetected: false };
   return {
     profile: p,
@@ -67,66 +76,55 @@ function createDungeonAI(profileName) {
     },
     // v2.4: Party member targeting
     selectMemberTarget(visitor, dungeon) {
-      return selectMemberTarget(visitor, dungeon, profileName);
+      return selectMemberTarget(visitor, dungeon, p);
     },
   };
 }
 
 // ═══ PARTY MEMBER TARGETING (v2.4) ═══
 
-function selectMemberTarget(visitor, dungeon, profileName) {
+function selectMemberTarget(visitor, dungeon, profile) {
   if (!visitor.isParty) return null;
 
   const active = Object.entries(visitor.members)
     .filter(([_, m]) => m.status === 'active')
     .map(([key, m]) => ({ key, ...m }));
 
-  if (active.length <= 1) return active.length === 1 ? active[0].key : null;
+  if (active.length === 0) return null;
+  if (active.length === 1) return active[0].key;
 
-  switch (profileName) {
-    case 'aggressive':
-    case 'desperate':
-      // Target lowest vitality → fastest knockout
-      return active.sort((a, b) => a.vitality - b.vitality)[0].key;
+  // Use targeting weights from inferred profile, or fall back to defaults
+  const tw = profile.targetingWeights || { rolePriority: { support: 4, flex: 3, dps: 2, tank: 1 }, vitalityBias: -1, randomness: 0 };
 
-    case 'tactical': {
-      // Target most valuable member: support > flex > dps > tank
-      const rolePriority = { support: 4, flex: 3, dps: 2, tank: 1 };
-      return active.sort((a, b) => {
-        const pA = rolePriority[a.role] || 0;
-        const pB = rolePriority[b.role] || 0;
-        if (pB !== pA) return pB - pA; // Higher priority first
-        return a.vitality - b.vitality; // Tiebreak: lower vitality
-      })[0].key;
+  // Score each active member
+  const scored = active.map(m => {
+    const roleScore = tw.rolePriority[m.role] || 1;
+
+    // Vitality factor: ratio of current to max (0 = dead, 1 = full)
+    const vitRatio = m.maxVitality ? m.vitality / m.maxVitality : 1;
+    // vitalityBias < 0 means prefer low vitality (kill), > 0 means prefer high (protect)
+    const vitScore = tw.vitalityBias < 0
+      ? (1 - vitRatio) * Math.abs(tw.vitalityBias) * 3  // wounded = higher score
+      : vitRatio * tw.vitalityBias * 3;                  // healthy = higher score
+
+    return { key: m.key, weight: roleScore + vitScore };
+  });
+
+  // Deterministic or random selection based on randomness parameter
+  if (tw.randomness > 0 && Math.random() < tw.randomness) {
+    // Weighted random selection
+    const totalWeight = scored.reduce((s, m) => s + Math.max(m.weight, 0.1), 0);
+    let roll = Math.random() * totalWeight;
+    for (const m of scored) {
+      roll -= Math.max(m.weight, 0.1);
+      if (roll <= 0) return m.key;
     }
-
-    case 'nurturing':
-      // Target highest vitality → avoid kills, want Bond
-      return active.sort((a, b) => b.vitality - a.vitality)[0].key;
-
-    case 'deceptive': {
-      // Deception means misdirection — vary targets to be unpredictable.
-      // Still favors anti-deception tools (flex) and sustain (support),
-      // but weighted random ensures the party can't predict who's next.
-      const deceptivePriority = { flex: 3, support: 2.5, dps: 1.5, tank: 1 };
-      const weights = active.map(m => {
-        const priority = deceptivePriority[m.role] || 1;
-        // Slight bias toward wounded targets (easier kills)
-        const vulnBonus = m.maxVitality ? (1 + 0.3 * (1 - m.vitality / m.maxVitality)) : 1;
-        return { key: m.key, weight: priority * vulnBonus };
-      });
-      const totalWeight = weights.reduce((s, w) => s + w.weight, 0);
-      let roll = Math.random() * totalWeight;
-      for (const w of weights) {
-        roll -= w.weight;
-        if (roll <= 0) return w.key;
-      }
-      return weights[weights.length - 1].key;
-    }
-
-    default:
-      return active.sort((a, b) => a.vitality - b.vitality)[0].key;
+    return scored[scored.length - 1].key;
   }
+
+  // Deterministic: highest score wins
+  scored.sort((a, b) => b.weight - a.weight);
+  return scored[0].key;
 }
 
 // ═══ WIN PROBABILITY ESTIMATION ═══
