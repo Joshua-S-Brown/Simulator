@@ -23,6 +23,15 @@ export default {
     presence_attr: 1,
     memory: 0,
   },
+  aiContributions: {
+    baseWeights: { Strike: 0.8, Empower: 0.5, Disrupt: 0.8, Counter: 1, Trap: 0.8, Offer: 0.3, Reshape: 0.7, React: 0.3, Test: 0, Energy: 0.5 },
+    preferredTargets: ['resolve', 'presence'],
+    comboAwareness: 0.35,
+    energyEagerness: 0.25,
+    bondAffinity: 0,
+    betrayalAffinity: 0,
+  },
+
   deck: [
     { name: 'Memory Fragment', category: 'Energy', type: 'Social', cost: 0, energyType: 'standard',
       energyGain: 1, description: 'A half-remembered scream crystallizes into energy.' },

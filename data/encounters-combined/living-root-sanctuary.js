@@ -23,6 +23,15 @@ export default {
     presence_attr: 0,
     memory: 0,
   },
+  aiContributions: {
+    baseWeights: { Strike: 0, Empower: 0.2, Disrupt: 0.1, Counter: 0.3, Trap: 0, Offer: 1.8, Reshape: 1, React: 0.3, Test: 1.5, Energy: 0.5 },
+    preferredTargets: ['trust', 'rapport'],
+    comboAwareness: 0.15,
+    energyEagerness: 0.17,
+    bondAffinity: 1,
+    betrayalAffinity: 0,
+  },
+
   deck: [
     { name: 'Root Cradle', category: 'Energy', type: 'Environmental', cost: 0, energyType: 'standard',
       energyGain: 1, description: 'The sanctuary\'s embrace generates gentle warmth.' },

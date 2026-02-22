@@ -24,6 +24,15 @@ export default {
     presence_attr: 0,
     memory: 0,
   },
+  aiContributions: {
+    baseWeights: { Strike: 1.2, Empower: 0.8, Disrupt: 0.5, Counter: 0.5, Trap: 0.5, Offer: 0, Reshape: 0.2, React: 0.3, Test: 0, Energy: 0.5 },
+    preferredTargets: ['vitality', 'nerve'],
+    comboAwareness: 0.25,
+    energyEagerness: 0.22,
+    bondAffinity: 0,
+    betrayalAffinity: 0,
+  },
+
   deck: [
     { name: 'Earthen Focus', category: 'Energy', type: 'Environmental', cost: 0, energyType: 'standard',
       energyGain: 1, description: 'Draw power from the deep stone.' },

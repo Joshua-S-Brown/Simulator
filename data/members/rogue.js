@@ -13,6 +13,14 @@ export default {
   resolveContribution: 4,
   nerveContribution: 5,
   modifierContributions: { strength: 0, cunning: 1, perception: 0, resilience: 0 },
+  aiContributions: {
+    baseWeights: { Strike: 0.5, Empower: 0.4, Disrupt: 0.5, Counter: 0.4, React: 0.3, Trap: 0.6, Offer: 0.2, Reshape: 0.2, Test: 0.3, Energy: 0.5 },
+    preferredTargets: ['veil', 'presence'],
+    comboAwareness: 0.22,
+    bondAffinity: 0,
+    cooperationSensitivity: 0.3,
+  },
+
   deck: [
     { name: 'Quick Fingers', category: 'Energy', type: 'Physical', cost: 0, energyType: 'standard',
       energyGain: 1, member: 'rogue',

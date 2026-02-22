@@ -13,6 +13,14 @@ export default {
   resolveContribution: 4,
   nerveContribution: 6,
   modifierContributions: { strength: 0, cunning: 0, perception: 1, resilience: 0 },
+  aiContributions: {
+    baseWeights: { Strike: 1, Empower: 0.7, Disrupt: 0.3, Counter: 0.2, React: 0.2, Trap: 0.2, Offer: 0.1, Reshape: 0.2, Test: 0.1, Energy: 0.7 },
+    preferredTargets: ['veil'],
+    comboAwareness: 0.25,
+    bondAffinity: 0,
+    cooperationSensitivity: 0.15,
+  },
+
   deck: [
     { name: 'Arcane Focus', category: 'Energy', type: 'Mystical', cost: 0, energyType: 'standard',
       energyGain: 1, member: 'sorcerer', description: 'Channel arcane energy through a crystalline focus.' },

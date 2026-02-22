@@ -66,6 +66,15 @@ export default {
       criticalDesc: 'She collapses inward — a last discordant note — and folds back through the veil. Silence.',
     },
   },
+  aiContributions: {
+    baseWeights: { Strike: 0.5, Empower: 0.4, Disrupt: 1, Counter: 0.7, Trap: 0.5, Offer: 0.5, Reshape: 0.6, React: 0.3, Test: 0.3, Energy: 0.5 },
+    preferredTargets: ['resolve', 'nerve'],
+    comboAwareness: 0.28,
+    energyEagerness: 0.2,
+    bondAffinity: 0.2,
+    betrayalAffinity: 0.3,
+  },
+
   deck: [
 
     // ═══ ENERGY (5) ═══

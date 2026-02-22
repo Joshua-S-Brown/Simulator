@@ -13,6 +13,14 @@ export default {
   resolveContribution: 6,
   nerveContribution: 4,
   modifierContributions: { strength: 1, cunning: 0, perception: 0, resilience: 0 },
+  aiContributions: {
+    baseWeights: { Strike: 0.6, Empower: 0.5, Disrupt: 0.5, Counter: 0.5, React: 0.5, Trap: 0.3, Offer: 0.1, Reshape: 0.4, Test: 0.1, Energy: 0.5 },
+    preferredTargets: ['structure'],
+    comboAwareness: 0.18,
+    bondAffinity: 0.1,
+    cooperationSensitivity: 0.3,
+  },
+
   deck: [
     { name: 'Steadfast Will', category: 'Energy', type: 'Physical', cost: 0, energyType: 'standard',
       energyGain: 1, member: 'warden', description: 'Disciplined resolve fuels the party. Reliable energy.' },

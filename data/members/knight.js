@@ -13,6 +13,14 @@ export default {
   resolveContribution: 7,
   nerveContribution: 5,
   modifierContributions: { strength: 1, cunning: 0, perception: 0, resilience: 0 },
+  aiContributions: {
+    baseWeights: { Strike: 0.8, Empower: 0.6, Disrupt: 0.5, Counter: 0.4, React: 0.5, Trap: 0.3, Offer: 0.1, Reshape: 0.3, Test: 0.1, Energy: 0.5 },
+    preferredTargets: ['structure'],
+    comboAwareness: 0.2,
+    bondAffinity: 0,
+    cooperationSensitivity: 0.2,
+  },
+
   deck: [
     { name: 'Steadfast Resolve', category: 'Energy', type: 'Physical', cost: 0, energyType: 'standard',
       energyGain: 1, member: 'knight',

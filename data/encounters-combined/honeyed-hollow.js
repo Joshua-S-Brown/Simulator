@@ -22,6 +22,15 @@ export default {
     presence_attr: 1,
     memory: 0,
   },
+  aiContributions: {
+    baseWeights: { Strike: 0.3, Empower: 0.3, Disrupt: 0.1, Counter: 0.3, Trap: 0.8, Offer: 1.2, Reshape: 0.5, React: 0.3, Test: 0.8, Energy: 0.5 },
+    preferredTargets: ['trust', 'rapport'],
+    comboAwareness: 0.25,
+    energyEagerness: 0.17,
+    bondAffinity: 0.5,
+    betrayalAffinity: 1,
+  },
+
   deck: [
     { name: 'Amber Glow', category: 'Energy', type: 'Social', cost: 0, energyType: 'standard',
       energyGain: 1, description: 'Warm light pools in the hollow, inviting and constant.' },

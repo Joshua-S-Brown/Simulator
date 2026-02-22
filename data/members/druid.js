@@ -13,6 +13,14 @@ export default {
   resolveContribution: 5,
   nerveContribution: 6,
   modifierContributions: { strength: 0, cunning: 0, perception: 1, resilience: 0 },
+  aiContributions: {
+    baseWeights: { Strike: 0.3, Empower: 0.3, Disrupt: 0.2, Counter: 0.2, React: 0.3, Trap: 0.2, Offer: 0.5, Reshape: 0.8, Test: 0.4, Energy: 0.5 },
+    preferredTargets: ['veil'],
+    comboAwareness: 0.2,
+    bondAffinity: 0.5,
+    cooperationSensitivity: 0.8,
+  },
+
   deck: [
     { name: 'Natural Harmony', category: 'Energy', type: 'Environmental', cost: 0, energyType: 'attune',
       energyGain: 1, attune: { cardType: 'Environmental', discount: 1 }, member: 'druid',

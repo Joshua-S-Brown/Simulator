@@ -13,6 +13,14 @@ export default {
   resolveContribution: 6,
   nerveContribution: 5,
   modifierContributions: { strength: 0, cunning: 0, perception: 0, resilience: 0 },
+  aiContributions: {
+    baseWeights: { Strike: 0.3, Empower: 0.3, Disrupt: 0.4, Counter: 0.4, React: 0.4, Trap: 0.3, Offer: 0.4, Reshape: 0.8, Test: 0.3, Energy: 0.5 },
+    preferredTargets: ['presence'],
+    comboAwareness: 0.18,
+    bondAffinity: 0.3,
+    cooperationSensitivity: 0.6,
+  },
+
   deck: [
     { name: 'Prayer of Devotion', category: 'Energy', type: 'Social', cost: 0, energyType: 'standard',
       energyGain: 1, member: 'cleric',

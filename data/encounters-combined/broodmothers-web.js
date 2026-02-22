@@ -61,6 +61,15 @@ export default {
       criticalDesc: 'She abandons the chamber, dragging egg sacs into the dark tunnels behind her.',
     },
   },
+  aiContributions: {
+    baseWeights: { Strike: 1, Empower: 0.6, Disrupt: 0.4, Counter: 0.6, Trap: 1, Offer: 0, Reshape: 0.3, React: 0.4, Test: 0, Energy: 0.5 },
+    preferredTargets: ['vitality', 'nerve'],
+    comboAwareness: 0.3,
+    energyEagerness: 0.25,
+    bondAffinity: 0,
+    betrayalAffinity: 0,
+  },
+
   deck: [
 
     // ═══ ENERGY (5) ═══

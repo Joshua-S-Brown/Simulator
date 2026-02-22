@@ -23,6 +23,15 @@ export default {
     presence_attr: 0,
     memory: 0,
   },
+  aiContributions: {
+    baseWeights: { Strike: 0.8, Empower: 0.5, Disrupt: 0.7, Counter: 1, Trap: 0.7, Offer: 0.3, Reshape: 0.7, React: 0.4, Test: 0, Energy: 0.5 },
+    preferredTargets: ['nerve', 'veil'],
+    comboAwareness: 0.3,
+    energyEagerness: 0.23,
+    bondAffinity: 0,
+    betrayalAffinity: 0,
+  },
+
   deck: [
     { name: 'Veil Fracture', category: 'Energy', type: 'Mystical', cost: 0, energyType: 'standard',
       energyGain: 1, description: 'Cracks in reality bleed usable power.' },

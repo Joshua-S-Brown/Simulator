@@ -61,6 +61,15 @@ export default {
       criticalDesc: 'The Warden collapses — eight hundred pounds of cooling metal folding in on itself. The hammer falls last.',
     },
   },
+  aiContributions: {
+    baseWeights: { Strike: 0.9, Empower: 1, Disrupt: 0.3, Counter: 0.4, Trap: 0.4, Offer: 0, Reshape: 0.8, React: 0.5, Test: 0, Energy: 0.7 },
+    preferredTargets: ['vitality', 'resolve'],
+    comboAwareness: 0.35,
+    energyEagerness: 0.3,
+    bondAffinity: 0,
+    betrayalAffinity: 0,
+  },
+
   deck: [
 
     // ═══ ENERGY (5) ═══

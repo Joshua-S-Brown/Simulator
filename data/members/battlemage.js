@@ -13,6 +13,14 @@ export default {
   resolveContribution: 5,
   nerveContribution: 5,
   modifierContributions: { strength: 0, cunning: 0, perception: 1, resilience: 0 },
+  aiContributions: {
+    baseWeights: { Strike: 0.9, Empower: 0.7, Disrupt: 0.4, Counter: 0.3, React: 0.3, Trap: 0.3, Offer: 0.1, Reshape: 0.2, Test: 0.1, Energy: 0.6 },
+    preferredTargets: ['veil'],
+    comboAwareness: 0.25,
+    bondAffinity: 0,
+    cooperationSensitivity: 0.2,
+  },
+
   deck: [
     { name: 'Arcane Focus', category: 'Energy', type: 'Mystical', cost: 0, energyType: 'standard',
       energyGain: 1, member: 'battlemage',

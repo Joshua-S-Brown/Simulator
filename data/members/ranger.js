@@ -13,6 +13,14 @@ export default {
   resolveContribution: 5,
   nerveContribution: 5,
   modifierContributions: { strength: 0, cunning: 1, perception: 0, resilience: 0 },
+  aiContributions: {
+    baseWeights: { Strike: 0.7, Empower: 0.5, Disrupt: 0.4, Counter: 0.3, React: 0.3, Trap: 0.4, Offer: 0.2, Reshape: 0.3, Test: 0.2, Energy: 0.5 },
+    preferredTargets: ['structure', 'presence'],
+    comboAwareness: 0.22,
+    bondAffinity: 0.1,
+    cooperationSensitivity: 0.35,
+  },
+
   deck: [
     { name: 'Focused Aim', category: 'Energy', type: 'Physical', cost: 0, energyType: 'standard',
       energyGain: 1, member: 'ranger', description: 'Patient precision generates steady energy.' },
