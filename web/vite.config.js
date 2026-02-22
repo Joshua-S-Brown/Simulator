@@ -8,12 +8,7 @@ export default defineConfig({
   // Allow importing from parent directories (shared engine, data, lib)
   server: {
     fs: {
-      allow: [
-        // The web/ directory itself
-        '.',
-        // Parent project root (engine/, data/, lib/, ai/)
-        '..',
-      ],
+      allow: ['.', '..'],
     },
   },
 
@@ -27,9 +22,6 @@ export default defineConfig({
     },
   },
 
-  // GitHub Pages: adjust base path if deploying to a subdirectory
-  // If your repo is username.github.io/shattered-dungeon, set:
-  // base: '/shattered-dungeon/',
-  // If deploying to root (username.github.io), leave as '/':
-  base: '/',
+  // GitHub Pages deployment
+  base: '/Simulator/',
 });
