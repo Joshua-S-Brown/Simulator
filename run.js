@@ -12,14 +12,16 @@
  *   node run.js --help
  */
 
-const { runBatch, runSequence } = require('./engine/sequence');
-const { createDungeonAI, PROFILES: D_PROFILES } = require('./ai/dungeon-ai');
-const { createVisitorAI, PROFILES: V_PROFILES } = require('./ai/visitor-ai');
-const { createSmartAI, PROFILES: S_PROFILES } = require('./ai/smart-ai');
-const path = require('path');
-const fs = require('fs');
+import { runBatch, runSequence } from './engine/sequence.js';
+import { createDungeonAI, PROFILES as D_PROFILES } from './ai/dungeon-ai.js';
+import { createVisitorAI, PROFILES as V_PROFILES } from './ai/visitor-ai.js';
+import { createSmartAI, PROFILES as S_PROFILES } from './ai/smart-ai.js';
+import path from 'path';
+import fs from 'fs'; // ─── CLI Argument Parsing ───
 
-// ─── CLI Argument Parsing ───
+import { fileURLToPath, pathToFileURL } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function parseArgs(argv) {
   const args = {
@@ -234,13 +236,13 @@ function writeJson(summary, outDir) {
 
 // ─── Main ───
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv);
   if (args.help) { printHelp(); return; }
 
-  const scenarioPath = path.resolve(args.scenario);
+  const scenarioPath = pathToFileURL(path.resolve(args.scenario)).href;
   let scenario;
-  try { scenario = require(scenarioPath); }
+  try { const mod = await import(scenarioPath); scenario = mod.default; }
   catch (e) { console.error(`Error loading scenario: ${scenarioPath}\n${e.message}`); process.exit(1); }
 
   // Create AIs — check smart profiles first, then fall back to legacy

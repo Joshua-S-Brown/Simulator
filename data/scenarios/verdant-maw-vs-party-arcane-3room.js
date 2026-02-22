@@ -27,17 +27,16 @@
  *   node run.js -n 1000 --json -s data/scenarios/verdant-maw-vs-party-arcane-3room -d deceptive -v party_balanced
  *   node run.js --verbose -s data/scenarios/verdant-maw-vs-party-arcane-3room -d tactical -v party_balanced
  */
-const rootHollow = require('../encounters/root-hollow');
-const whisperingGallery = require('../encounters/whispering-gallery');
-const veilBreach = require('../encounters/veil-breach');
-const deckRootHollow = require('../decks/dungeon-root-hollow');
-const deckWhisperingGallery = require('../decks/dungeon-whispering-gallery');
-const deckVeilBreach = require('../decks/dungeon-veil-breach');
-const partyDeck = require('../decks/visitor-party-arcane');
-const party = require('../visitors/arcane-expedition');
-const dungeon = require('../dungeon-verdant-maw');
-
-module.exports = {
+import rootHollow from '../_archive/encounters/root-hollow.js';
+import whisperingGallery from '../_archive/encounters/whispering-gallery.js';
+import veilBreach from '../_archive/encounters/veil-breach.js';
+import deckRootHollow from '../_archive/decks/dungeon-root-hollow.js';
+import deckWhisperingGallery from '../_archive/decks/dungeon-whispering-gallery.js';
+import deckVeilBreach from '../_archive/decks/dungeon-veil-breach.js';
+import partyDeck from '../_archive/decks/visitor-party-arcane.js';
+import party from '../_archive/visitors/arcane-expedition.js';
+import dungeon from '../_archive/dungeon-verdant-maw.js';
+export default {
   name: 'Verdant Maw vs Arcane Expedition (3-Room)',
   description: 'Caster-heavy party gauntlet: Physical → Social → Mystical. Tests multi-room attrition with different vulnerability profile.',
   visitorTemplate: party,

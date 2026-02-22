@@ -6,7 +6,7 @@
  *   data/visitors/arcane-expedition.js (member stats)
  *   data/decks/members/warden.js (deck)
  */
-module.exports = {
+export default {
   name: 'Warden',
   role: 'tank',
   vitality: 11,

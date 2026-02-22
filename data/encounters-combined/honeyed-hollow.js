@@ -6,7 +6,7 @@
  *   data/encounters/honeyed-hollow.js
  *   data/decks/dungeon-honeyed-hollow.js
  */
-module.exports = {
+export default {
   name: 'Honeyed Hollow',
   description: 'A fragrant chamber dripping with amber light. Everything here invites trust.',
   initiative: 'dungeon',

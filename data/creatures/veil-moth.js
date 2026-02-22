@@ -6,7 +6,7 @@
  *   data/visitors/veil-moth.js
  *   data/decks/visitor-veil-moth.js
  */
-module.exports = {
+export default {
   name: 'Veil Moth',
   type: 'creature',
   vitality: 18,

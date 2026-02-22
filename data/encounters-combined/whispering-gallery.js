@@ -6,7 +6,7 @@
  *   data/encounters/whispering-gallery.js
  *   data/decks/dungeon-whispering-gallery.js
  */
-module.exports = {
+export default {
   name: 'Whispering Gallery',
   description: 'A vast domed chamber of polished dark stone where sound behaves wrong. Whispers arrive from nowhere — fragments of old conversations, names spoken by people who aren\'t here. The echoes erode certainty. Even the dungeon loses its voice among the noise.',
   initiative: 'dungeon',

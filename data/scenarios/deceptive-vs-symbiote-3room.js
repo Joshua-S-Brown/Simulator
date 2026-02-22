@@ -15,17 +15,16 @@
  *   node run.js -n 1000 --json -s data/scenarios/deceptive-vs-symbiote-3room -d deceptive -v cooperative
  *   node run.js -n 1000 --json -s data/scenarios/deceptive-vs-symbiote-3room -d nurturing -v cooperative
  */
-const honeyedHollow = require('../encounters/honeyed-hollow');
-const rootHollow = require('../encounters/root-hollow');
-const veilBreach = require('../encounters/veil-breach');
-const deckHoneyed = require('../decks/dungeon-honeyed-hollow');
-const deckRootHollow = require('../decks/dungeon-root-hollow');
-const deckVeilBreach = require('../decks/dungeon-veil-breach');
-const visitorDeck = require('../decks/visitor-drift-symbiote');
-const symbiote = require('../visitors/drift-symbiote');
-const dungeon = require('../dungeon-verdant-maw');
-
-module.exports = {
+import honeyedHollow from '../_archive/encounters/honeyed-hollow.js';
+import rootHollow from '../_archive/encounters/root-hollow.js';
+import veilBreach from '../_archive/encounters/veil-breach.js';
+import deckHoneyed from '../_archive/decks/dungeon-honeyed-hollow.js';
+import deckRootHollow from '../_archive/decks/dungeon-root-hollow.js';
+import deckVeilBreach from '../_archive/decks/dungeon-veil-breach.js';
+import visitorDeck from '../_archive/decks/visitor-drift-symbiote.js';
+import symbiote from '../_archive/visitors/drift-symbiote.js';
+import dungeon from '../_archive/dungeon-verdant-maw.js';
+export default {
   name: 'Deceptive Dungeon vs Drift Symbiote (3-Room)',
   description: 'Honeytrap (8 rnd cap) → Root Hollow (kill) → Veil Breach (panic). Full deceptive arc.',
   visitorTemplate: symbiote,

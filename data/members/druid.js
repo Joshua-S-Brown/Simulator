@@ -6,7 +6,7 @@
  *   data/visitors/arcane-expedition.js (member stats)
  *   data/decks/members/druid.js (deck)
  */
-module.exports = {
+export default {
   name: 'Druid',
   role: 'support',
   vitality: 6,

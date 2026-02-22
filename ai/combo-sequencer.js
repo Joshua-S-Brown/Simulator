@@ -24,10 +24,8 @@
  *   Each decision: { card, action: 'energy'|'play'|'activate'|'restrain' }
  */
 
-const { getEffectiveCost } = require('./ai-utils');
-const { checkSiphonCondition } = require('../engine/energy');
-
-// ═══ MAIN ENTRY POINT ═══
+import { getEffectiveCost } from './ai-utils.js';
+import { checkSiphonCondition } from '../engine/energy.js'; // ═══ MAIN ENTRY POINT ═══
 
 /**
  * Plan an entire turn's card sequence: energy cards first (strategically ordered),
@@ -579,8 +577,7 @@ function addRestraintIfNeeded(decisions, hand, self, opponent, ctx, profile) {
 
 // ═══ EXPORTS ═══
 
-module.exports = {
-  planTurn,
+export { planTurn,
   // Expose internals for testing and smart-ai integration
   evaluateEnergyPlans,
   simulateEnergyPlay,
@@ -588,5 +585,4 @@ module.exports = {
   orderEnergyCards,
   orderActionCards,
   applyWinConditionDiversification,
-  scoreCardHeuristic,
-};
+  scoreCardHeuristic, };

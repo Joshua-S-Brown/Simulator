@@ -6,7 +6,7 @@
  *   data/visitors/thornback-boar.js
  *   data/decks/visitor-thornback-boar.js
  */
-module.exports = {
+export default {
   name: 'Thornback Boar',
   type: 'creature',
   vitality: 28,

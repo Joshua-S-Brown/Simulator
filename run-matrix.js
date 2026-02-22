@@ -17,13 +17,15 @@
  *   node run-matrix.js --help
  */
 
-const gen = require('./lib/composition-generator');
-const runner = require('./lib/matrix-runner');
-const report = require('./lib/matrix-report');
-const fs = require('fs');
-const path = require('path');
+import * as gen from './lib/composition-generator.js';
+import * as runner from './lib/matrix-runner.js';
+import * as report from './lib/matrix-report.js';
+import fs from 'fs';
+import path from 'path'; // ═══════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════════
+import { fileURLToPath, pathToFileURL } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // CLI PARSING
 // ═══════════════════════════════════════════════════════════════
 
@@ -127,7 +129,7 @@ Examples:
 // MAIN
 // ═══════════════════════════════════════════════════════════════
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv);
   if (args.help) { printHelp(); return; }
 

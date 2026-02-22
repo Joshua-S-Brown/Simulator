@@ -6,7 +6,7 @@
  *   data/visitors/standard-adventuring-company.js (member stats)
  *   data/decks/members/rogue.js (deck)
  */
-module.exports = {
+export default {
   name: 'Rogue',
   role: 'flex',
   vitality: 6,

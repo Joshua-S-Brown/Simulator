@@ -27,4 +27,4 @@ function getEffectiveCost(card, self) {
   return Math.max(0, baseCost - (attune.discount || 1));
 }
 
-module.exports = { getEffectiveCost };
+export { getEffectiveCost };

@@ -6,7 +6,7 @@
  *   data/encounters/veil-breach.js
  *   data/decks/dungeon-veil-breach.js
  */
-module.exports = {
+export default {
   name: 'Veil Breach',
   description: 'A wound in reality where the boundary between dimensions has torn open and scarred over badly. Colors shift, the floor is translucent, and shapes press against the membrane from the other side. Neither side fully controls what happens here.',
   initiative: 'visitor',

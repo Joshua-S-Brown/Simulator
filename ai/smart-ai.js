@@ -16,13 +16,11 @@
  * Supports both dungeon and visitor sides via configuration.
  * Matches the pickCards() interface of existing AI modules.
  */
-const { getEffectiveCost } = require('./ai-utils');
-const { evaluateBoard } = require('./board-eval');
-const { evaluateAllCards, estimateCounterProbability, estimateReactProbability } = require('./mc-simulator');
-const { createDeckTracker } = require('./deck-tracker');
-const { planTurn } = require('./combo-sequencer');
-
-// ═══ PROFILES ═══
+import { getEffectiveCost } from './ai-utils.js';
+import { evaluateBoard } from './board-eval.js';
+import { evaluateAllCards, estimateCounterProbability, estimateReactProbability } from './mc-simulator.js';
+import { createDeckTracker } from './deck-tracker.js';
+import { planTurn } from './combo-sequencer.js'; // ═══ PROFILES ═══
 
 const PROFILES = {
   // — Dungeon profiles —
@@ -417,4 +415,4 @@ function getOpponentReducers(opponent, mySide) {
   }
 }
 
-module.exports = { createSmartAI, PROFILES };
+export { createSmartAI, PROFILES };

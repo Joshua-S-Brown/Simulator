@@ -18,8 +18,7 @@
  *   node test-phase2.js --sim          # + Integration (runs ~10 matchups)
  */
 
-const gen = require('./lib/composition-generator');
-
+import * as gen from './lib/composition-generator.js';
 let pass = 0, fail = 0;
 const failures = [];
 

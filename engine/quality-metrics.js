@@ -306,8 +306,7 @@ function assessHealth(metrics) {
   return issues;
 }
 
-module.exports = {
-  // Per-iteration helpers
+export { // Per-iteration helpers
   countLeadChanges,
   computeIterationCloseness,
   // Batch aggregation
@@ -317,5 +316,4 @@ module.exports = {
   computeKnockoutDiversity,
   computeAttritionCurve,
   // Health check
-  assessHealth,
-};
+  assessHealth, };

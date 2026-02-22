@@ -25,9 +25,7 @@
  *   // Win condition:   Bond.checkBondWin(visitor, dungeon)
  */
 
-const R = require('./rules');
-
-// ═══════════════════════════════════════════════════════════════
+import * as R from './rules.js'; // ═══════════════════════════════════════════════════════════════
 // TRUST TIER SYSTEM
 // ═══════════════════════════════════════════════════════════════
 
@@ -786,8 +784,7 @@ function resolveLegacyOffer(card, side, self, opp, ctx) {
 // EXPORTS
 // ═══════════════════════════════════════════════════════════════
 
-module.exports = {
-  // Trust tier system
+export { // Trust tier system
   getTrustTier,
   getTrustTierName,
 
@@ -814,5 +811,4 @@ module.exports = {
   checkExposure,
 
   // Win condition
-  checkBondWin,
-};
+  checkBondWin, };

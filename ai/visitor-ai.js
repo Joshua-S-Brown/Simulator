@@ -15,9 +15,8 @@
  * [ADD] Combo sequencer: strategic energy + action card sequencing (v2.1)
  * [ADD] party_balanced profile with party-aware scoring adjustments (v2.4)
  */
-const { getEffectiveCost } = require('./ai-utils');
-const { planTurn } = require('./combo-sequencer');
-
+import { getEffectiveCost } from './ai-utils.js';
+import { planTurn } from './combo-sequencer.js';
 const PROFILES = {
   feral_aggressive: {
     description: 'Aggressive creature. Fights dungeon directly. Boar-like.',
@@ -402,4 +401,4 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
   }, p);
 }
 
-module.exports = { createVisitorAI, PROFILES };
+export { createVisitorAI, PROFILES };

@@ -157,4 +157,4 @@ function createDeckTracker(fullDeck) {
   };
 }
 
-module.exports = { createDeckTracker };
+export { createDeckTracker };

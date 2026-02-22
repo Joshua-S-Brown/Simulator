@@ -6,7 +6,7 @@
  *   data/encounters/living-root-sanctuary.js
  *   data/decks/dungeon-living-root-sanctuary.js
  */
-module.exports = {
+export default {
   name: 'Living Root Sanctuary',
   description: 'A warm alcove of bioluminescent roots. Both sides feel safe here.',
   initiative: 'dungeon',

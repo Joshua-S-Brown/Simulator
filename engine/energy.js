@@ -11,8 +11,7 @@
  * Returns a result object describing what happened (for logging).
  */
 
-const R = require('./rules');
-
+import * as R from './rules.js';
 /**
  * Check if a siphon condition is met.
  * @param {object} siphon - { condition, target } from card data
@@ -163,4 +162,4 @@ function consumeAttune(card, self) {
   return attune.discount || 1;
 }
 
-module.exports = { resolveEnergy, consumeAttune, checkSiphonCondition };
+export { resolveEnergy, consumeAttune, checkSiphonCondition };

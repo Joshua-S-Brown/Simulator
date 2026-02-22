@@ -53,10 +53,9 @@
  * [ADD] Strike self-cost, Exhaust mechanic
  */
 
-const R = require('./rules');
-const { resolveEnergy, consumeAttune } = require('./energy');
-const Bond = require('./bond');
-
+import * as R from './rules.js';
+import { resolveEnergy, consumeAttune } from './energy.js';
+import * as Bond from './bond.js';
 /**
  * Apply a promoter gain (trust or rapport) with per-round cap.
  * Returns the actual amount applied (may be less than requested).
@@ -1320,4 +1319,4 @@ function getTriggerBonus(trigger, self, opponent, ctx) {
   return trigger.bonus || 0;
 }
 
-module.exports = { runEncounter };
+export { runEncounter };

@@ -22,10 +22,9 @@
  *   lib/scenario-builder.js (v2)
  */
 
-const registry = require('./lib/registry');
-const { buildDungeonTemplate, buildPartyTemplate, buildPartyDeck } = require('./lib/template-builder');
-const { buildScenario } = require('./lib/scenario-builder');
-// Helper: compute expected party stats from member data
+import * as registry from './lib/registry.js';
+import { buildDungeonTemplate, buildPartyTemplate, buildPartyDeck } from './lib/template-builder.js';
+import { buildScenario } from './lib/scenario-builder.js'; // Helper: compute expected party stats from member data
 function expectedPartyStats(memberKeys) {
   let resolve = 0, nerve = 0;
   for (const key of memberKeys) {

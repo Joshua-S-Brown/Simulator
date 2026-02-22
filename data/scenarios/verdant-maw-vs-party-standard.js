@@ -19,13 +19,12 @@
  *   node run.js -n 1000 --json -s data/scenarios/verdant-maw-vs-party-standard -d nurturing -v party_balanced
  *   node run.js -n 1000 --json -s data/scenarios/verdant-maw-vs-party-standard -d deceptive -v party_balanced
  */
-const rootHollow = require('../encounters/root-hollow');
-const dungeonDeck = require('../decks/dungeon-root-hollow');
-const partyDeck = require('../decks/visitor-party-standard');
-const party = require('../visitors/standard-adventuring-company');
-const dungeon = require('../dungeon-verdant-maw');
-
-module.exports = {
+import rootHollow from '../_archive/encounters/root-hollow.js';
+import dungeonDeck from '../_archive/decks/dungeon-root-hollow.js';
+import partyDeck from '../_archive/decks/visitor-party-standard.js';
+import party from '../_archive/visitors/standard-adventuring-company.js';
+import dungeon from '../_archive/dungeon-verdant-maw.js';
+export default {
   name: 'Verdant Maw vs Standard Adventuring Company',
   description: 'Single room test: Root Hollow tactical dungeon vs 4-member party.',
   visitorTemplate: party,

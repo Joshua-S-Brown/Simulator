@@ -19,10 +19,9 @@
  * [ADD] selectMemberTarget: per-profile party member targeting (v2.4)
  * [ADD] Bond v3.0: trust-tier scoring for nurturing/deceptive via applyBondV3Scoring (v2.5)
  */
-const { getEffectiveCost } = require('./ai-utils');
-const { planTurn } = require('./combo-sequencer');
-const { applyBondV3Scoring } = require('./bond-ai-scoring');
-
+import { getEffectiveCost } from './ai-utils.js';
+import { planTurn } from './combo-sequencer.js';
+import { applyBondV3Scoring } from './bond-ai-scoring.js';
 const PROFILES = {
   aggressive: {
     description: 'Maximize damage to reducers. Kill-focused.',
@@ -403,4 +402,4 @@ function pickCards(hand, energy, self, opponent, ctx, p, history) {
   }, p);
 }
 
-module.exports = { createDungeonAI, PROFILES };
+export { createDungeonAI, PROFILES };

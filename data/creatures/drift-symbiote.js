@@ -6,7 +6,7 @@
  *   data/visitors/drift-symbiote.js
  *   data/decks/visitor-drift-symbiote.js
  */
-module.exports = {
+export default {
   name: 'Drift Symbiote',
   type: 'creature',
   vitality: 18,

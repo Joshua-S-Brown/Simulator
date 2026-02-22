@@ -133,4 +133,4 @@ function getReducers(state, side) {
   }
 }
 
-module.exports = { evaluateBoard, getReducers };
+export { evaluateBoard, getReducers };

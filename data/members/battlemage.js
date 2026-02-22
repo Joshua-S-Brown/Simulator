@@ -6,7 +6,7 @@
  *   data/visitors/standard-adventuring-company.js (member stats)
  *   data/decks/members/battlemage.js (deck)
  */
-module.exports = {
+export default {
   name: 'Battlemage',
   role: 'dps',
   vitality: 7,

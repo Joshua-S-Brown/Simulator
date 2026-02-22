@@ -24,7 +24,7 @@
  *   Energy: 5 | Strike: 4 | Empower: 1 | Disrupt: 1 | Counter: 2
  *   React: 2 | Trap: 1 | Reshape: 1
  */
-module.exports = {
+export default {
   name: 'The Broodmother\'s Web',
   description: 'A cavern strung with webs thick as rope. Hundreds of pale spiders the size of dogs click and shift across the ceiling. At the center, the Broodmother hangs — ancient, intelligent, territorial. She communicates through vibration and pheromone. The webs are her nervous system. She feels every footstep, every heartbeat.',
   initiative: 'dungeon',

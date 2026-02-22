@@ -24,7 +24,7 @@
  *   Energy: 5 | Strike: 4 | Empower: 1 | Disrupt: 1 | Counter: 2
  *   React: 2 | Trap: 1 | Reshape: 1
  */
-module.exports = {
+export default {
   name: 'The Construct\'s Forge',
   description: 'A working forge, impossibly active — bellows pumping with no hands, metal glowing in crucibles, hammer strikes ringing from an anvil attended by something made of slag and flame. The Forge Warden. Seven feet of molten iron and purpose. It doesn\'t speak. It makes.',
   initiative: 'dungeon',

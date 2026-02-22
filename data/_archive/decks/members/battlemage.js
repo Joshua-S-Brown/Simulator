@@ -1,0 +1,60 @@
+/**
+ * MEMBER DECK: Battlemage (Standard Adventuring Company)
+ * Role: DPS / Control — 10 cards
+ *
+ * Primary: Veil Strikes + Disrupts
+ * Strengths: Chain Lightning combo off Entangle, Hex deterrence, Spell Amplification burst
+ * Weaknesses: Mid vitality (7), expensive cards, no healing/protection
+ */
+export default [
+  // ── Energy (3) ──
+  { name: 'Arcane Focus', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'standard', energyGain: 1, member: 'battlemage',
+    description: 'Center the mind and draw from the ley lines. Steady arcane power.' },
+
+  { name: 'Mana Surge', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'surge', energyGain: 0, surgeGain: 2, member: 'battlemage',
+    description: 'Crack open the reserves for a single devastating volley. Burns bright, burns fast.' },
+
+  { name: 'Elemental Attunement', category: 'Energy', type: 'Mystical', cost: 0,
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Mystical', discount: 1 }, member: 'battlemage',
+    description: 'Align with the Veil\'s frequency. +1 energy. Next Mystical card costs 1 less.' },
+
+  // ── Strikes (3) ──
+  { name: 'Arcane Bolt', category: 'Strike', type: 'Mystical', cost: 1,
+    power: 2, target: 'veil', keywords: ['Erode'], member: 'battlemage',
+    description: 'A focused lance of raw magic that frays the Veil. Deal 2 veil. Erode: 1 persistent bleed next round.' },
+
+  { name: 'Chain Lightning', category: 'Strike', type: 'Mystical', cost: 2,
+    power: 3, target: 'veil', member: 'battlemage',
+    trigger: { condition: { type: 'has_condition', condition: 'entangled' }, bonus: 2,
+      description: 'Conductor: +2P if opponent is Entangled' },
+    description: 'Arcing electricity seeks grounded targets. Deal 3 veil. Conductor: +2P if opponent is Entangled.' },
+
+  { name: 'Shatter Point', category: 'Strike', type: 'Mystical', cost: 2,
+    power: 2, target: 'structure', member: 'battlemage',
+    trigger: { condition: { type: 'resource_below', target: 'opponent', resource: 'structure', pct: 0.5 }, bonus: 2,
+      description: 'Finishing Blow: +2P if dungeon structure below half' },
+    description: 'Identify the fracture line and strike with precision. Deal 2 structure. Finishing Blow: +2P if structure below half.' },
+
+  // ── Empower (1) ──
+  { name: 'Spell Amplification', category: 'Empower', type: 'Mystical', cost: 1,
+    empowerEffect: { powerBonus: 2, addKeyword: 'Overwhelm' }, member: 'battlemage',
+    description: 'Layer enchantments for maximum devastation. Next Strike gains +2 Power and Overwhelm.' },
+
+  // ── Disrupts (2) ──
+  { name: 'Counterspell', category: 'Disrupt', type: 'Mystical', cost: 1,
+    disruptEffect: { stripKeywords: true }, member: 'battlemage',
+    description: 'Unravel the enchantment before it lands. Strip all keywords from opponent\'s next Strike.' },
+
+  { name: 'Hex', category: 'Disrupt', type: 'Mystical', cost: 1,
+    disruptEffect: { disadvantage: false, onStrike: { selfDamage: { resource: 'veil', amount: 1 } } }, member: 'battlemage',
+    description: 'Curse the dungeon — every act of violence drains its magic. Opponent takes 1 veil when next striking.' },
+
+  // ── React (1) ──
+  { name: 'Arcane Shield', category: 'React', type: 'Mystical', cost: 0,
+    power: 1, member: 'battlemage',
+    reactEffect: { conditionalPower: { condition: 'self_resource_above_half', resource: 'nerve', power: 3 } },
+    description: 'A shimmering barrier fueled by steady nerves. Power 1. If party nerve above half, Power 3.' },
+];

@@ -1,0 +1,79 @@
+/**
+ * MEMBER DECK: Cleric (Standard Adventuring Company)
+ * Role: Support / Bond Path — 10 cards
+ *
+ * Primary: Reshapes, Offers, restoration
+ * Strengths: Only knockout recovery (Healing Word), only Bond pathway, resolve Fortify
+ * Weaknesses: 1 Strike (Holy Light 2P), expensive Healing Word (3 energy), Divine Ward Power 1
+ */
+export default [
+  // ── Energy (3) ──
+  { name: 'Prayer of Devotion', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'standard', energyGain: 1, member: 'cleric',
+    description: 'Quiet words to a distant god. Steady faith, steady power.' },
+
+  { name: 'Sacred Rites', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'attune', energyGain: 1,
+    attune: { cardType: 'Social', discount: 1 }, member: 'cleric',
+    description: 'Ritual invocation channels divine favor. +1 energy. Next Social card costs 1 less.' },
+
+  { name: 'Faith\'s Wellspring', category: 'Energy', type: 'Social', cost: 0,
+    energyType: 'siphon', energyGain: 1, siphonFallback: 1,
+    siphon: { condition: { type: 'resource_above', resource: 'rapport', threshold: 3 }, target: 'opponent' },
+    member: 'cleric',
+    description: 'Draw strength from growing mutual understanding. +1 permanent if rapport > 3, else +1 temp.' },
+
+  // ── Strike (1) ──
+  { name: 'Holy Light', category: 'Strike', type: 'Social', cost: 1,
+    power: 2, target: 'presence', member: 'cleric',
+    trigger: { condition: { type: 'resource_above', target: 'self', resource: 'trust', threshold: 4 }, bonus: 0,
+      description: 'Merciful: if trust > 4, gain Ward after striking',
+      onTrigger: { addKeyword: 'Ward' } },
+    description: 'Divine radiance tests the dungeon\'s will. Deal 2 presence. Merciful: gain Ward if trust > 4.' },
+
+  // ── Reshapes (2) ──
+  { name: 'Healing Word', category: 'Reshape', type: 'Social', cost: 3,
+    reshapeEffect: {
+      restoreMember: true,
+      heal: [{ resource: 'vitality', amount: 4, target: 'select_member' }],
+    }, member: 'cleric',
+    description: 'Speak life back into fallen flesh. Restore a downed ally at 4 vitality, or heal an active ally by 4. Expensive but irreplaceable.' },
+
+  { name: 'Fortify Spirit', category: 'Reshape', type: 'Social', cost: 1,
+    reshapeEffect: {
+      fortify: { resource: 'resolve', reduction: 1, duration: 2 },
+    }, member: 'cleric',
+    description: 'Steel the party\'s will against despair. Fortify resolve: reduce Break damage by 1 for 2 rounds.' },
+
+  // ── Offer (1) ──
+  { name: 'Peaceful Parley', category: 'Offer', type: 'Social', cost: 1,
+    target: 'trust',
+    offerPayload: [
+      { resource: 'trust', amount: 1, target: 'opponent' },
+      { resource: 'rapport', amount: 1, target: 'self' },
+      { resource: 'nerve', amount: 1, target: 'opponent' },
+    ], member: 'cleric',
+    description: 'Extend an open hand and speak without guile. Accept: build mutual trust and soothe the dungeon\'s fear.' },
+
+  // ── Test (1) ──
+  { name: 'Leap of Faith', category: 'Test', type: 'Social', cost: 1,
+    target: 'trust',
+    testReward: { trust: 2, rapport: 2 },
+    defectPenalty: { trustCrash: 0.5, powerGain: 2 },
+    exposureCost: { resource: 'resolve', amount: 1 },
+    member: 'cleric',
+    description: 'Lower all defenses and trust the darkness. Cooperate: +2 trust, +2 rapport, lose 1 resolve. Defect: trust crashes, defector empowered.' },
+
+  // ── Counter (1) ──
+  { name: 'Purifying Light', category: 'Counter', type: 'Social', cost: 1,
+    counterDamage: { resource: 'presence', amount: 0 },
+    counterEffect: { healLowest: 1 },
+    member: 'cleric',
+    description: 'Cleanse the corruption and mend what it touched. Remove condition. Restore 1 to party\'s lowest reducer. No chip damage.' },
+
+  // ── React (1) ──
+  { name: 'Divine Ward', category: 'React', type: 'Social', cost: 0,
+    power: 1, member: 'cleric',
+    reactEffect: { absorb: true, fortifyAmount: 1 },
+    description: 'A prayer answered in the nick of time. Contest Power 1. Gain Fortify 1 regardless of outcome.' },
+];

@@ -18,13 +18,12 @@
  *   node run.js -n 1000 --json -s data/scenarios/verdant-maw-vs-party-arcane -d nurturing -v party_balanced
  *   node run.js -n 1000 --json -s data/scenarios/verdant-maw-vs-party-arcane -d deceptive -v party_balanced
  */
-const rootHollow = require('../encounters/root-hollow');
-const dungeonDeck = require('../decks/dungeon-root-hollow');
-const partyDeck = require('../decks/visitor-party-arcane');
-const party = require('../visitors/arcane-expedition');
-const dungeon = require('../dungeon-verdant-maw');
-
-module.exports = {
+import rootHollow from '../_archive/encounters/root-hollow.js';
+import dungeonDeck from '../_archive/decks/dungeon-root-hollow.js';
+import partyDeck from '../_archive/decks/visitor-party-arcane.js';
+import party from '../_archive/visitors/arcane-expedition.js';
+import dungeon from '../_archive/dungeon-verdant-maw.js';
+export default {
   name: 'Verdant Maw vs Arcane Expedition',
   description: 'Single room test: Root Hollow vs caster-heavy party.',
   visitorTemplate: party,

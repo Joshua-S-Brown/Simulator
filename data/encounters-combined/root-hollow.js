@@ -6,7 +6,7 @@
  *   data/encounters/root-hollow.js
  *   data/decks/dungeon-root-hollow.js
  */
-module.exports = {
+export default {
   name: 'Root Hollow',
   description: 'A low-ceilinged chamber choked with ancient roots that shift and groan. The air is damp, the light is fungal, and the walls press inward in slow waves. Dangerous for both sides — the roots obey no one completely.',
   initiative: 'dungeon',

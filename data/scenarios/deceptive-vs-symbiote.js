@@ -25,15 +25,14 @@
  *   node run.js -n 1000 --json -s data/scenarios/deceptive-vs-symbiote -d deceptive -v cooperative
  *   node run.js -n 1000 --json -s data/scenarios/deceptive-vs-symbiote -d nurturing -v cooperative
  */
-const honeyedHollow = require('../encounters/honeyed-hollow');
-const rootHollow = require('../encounters/root-hollow');
-const deckHoneyed = require('../decks/dungeon-honeyed-hollow');
-const deckRootHollow = require('../decks/dungeon-root-hollow');
-const visitorDeck = require('../decks/visitor-drift-symbiote');
-const symbiote = require('../visitors/drift-symbiote');
-const dungeon = require('../dungeon-verdant-maw');
-
-module.exports = {
+import honeyedHollow from '../_archive/encounters/honeyed-hollow.js';
+import rootHollow from '../_archive/encounters/root-hollow.js';
+import deckHoneyed from '../_archive/decks/dungeon-honeyed-hollow.js';
+import deckRootHollow from '../_archive/decks/dungeon-root-hollow.js';
+import visitorDeck from '../_archive/decks/visitor-drift-symbiote.js';
+import symbiote from '../_archive/visitors/drift-symbiote.js';
+import dungeon from '../_archive/dungeon-verdant-maw.js';
+export default {
   name: 'Deceptive Dungeon vs Drift Symbiote (2-Room)',
   description: 'Room 1: nurturing facade (8 rnd cap). Room 2: tactical closer.',
   visitorTemplate: symbiote,

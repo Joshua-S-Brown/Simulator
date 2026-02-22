@@ -17,9 +17,7 @@
  *   }
  */
 
-const Bond = require('../engine/bond');
-
-// ═══ MAIN ENTRY POINT ═══
+import * as Bond from '../engine/bond.js'; // ═══ MAIN ENTRY POINT ═══
 
 function applyBondV3Scoring(card, baseScore, self, opponent, ctx, profile, extras) {
   const trust = opponent.trust || 0;
@@ -294,8 +292,4 @@ const PROFILES_PATCH = {
   },
 };
 
-module.exports = {
-  applyBondV3Scoring,
-  shouldRestrain,
-  PROFILES_PATCH,
-};
+export { applyBondV3Scoring, shouldRestrain, PROFILES_PATCH };

@@ -451,14 +451,4 @@ function drawCards(drawPile, discard, count) {
 }
 
 // ═══ EXPORTS ═══
-module.exports = {
-  rollD6, contestedRoll, resolveTier,
-  createVisitorState, createPartyVisitorState, createDungeonState,
-  checkWinConditions, createEnergyPool,
-  applyDamage, applyBenefit, applyKeywords,
-  damagePartyMember, restorePartyMember,
-  removeKnockedOutCards, returnMemberCards, selectPartyTarget,
-  resolveErode, getModifierBonus, getEscalation,
-  shuffle, drawOpeningHand, drawCards,
-  hasCondition, findConditionsBy, removeCondition,
-};
+export { rollD6, contestedRoll, resolveTier, createVisitorState, createPartyVisitorState, createDungeonState, checkWinConditions, createEnergyPool, applyDamage, applyBenefit, applyKeywords, damagePartyMember, restorePartyMember, removeKnockedOutCards, returnMemberCards, selectPartyTarget, resolveErode, getModifierBonus, getEscalation, shuffle, drawOpeningHand, drawCards, hasCondition, findConditionsBy, removeCondition };

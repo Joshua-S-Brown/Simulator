@@ -17,11 +17,10 @@
  *       room, visitors carry damage across the gauntlet.
  */
 
-const { runEncounter } = require('./encounter');
-const { createDungeonAI } = require('../ai/dungeon-ai');
-const { createVisitorAI } = require('../ai/visitor-ai');
-const QM = require('./quality-metrics');
-
+import { runEncounter } from './encounter.js';
+import { createDungeonAI } from '../ai/dungeon-ai.js';
+import { createVisitorAI } from '../ai/visitor-ai.js';
+import * as QM from './quality-metrics.js';
 function runSequence(scenario, dungeonAI, visitorAI, config = {}) {
   const results = [];
   let carryover = null;
@@ -404,4 +403,4 @@ function runBatch(scenario, dungeonAI, visitorAI, iterations = 1000, config = {}
   return summary;
 }
 
-module.exports = { runSequence, runBatch };
+export { runSequence, runBatch };

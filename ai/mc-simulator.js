@@ -7,9 +7,8 @@
  * This replaces the hand-tuned heuristic scoring in the AI modules.
  */
 
-const R = require('../engine/rules');
-const { evaluateBoard } = require('./board-eval');
-
+import * as R from '../engine/rules.js';
+import { evaluateBoard } from './board-eval.js';
 /**
  * Apply promoter gain with per-round cap (MC simulation version).
  */
@@ -392,4 +391,4 @@ function evaluateTrigger(trigger, self, opponent) {
   return false;
 }
 
-module.exports = { evaluateAllCards, cloneState, estimateReactProbability, estimateCounterProbability };
+export { evaluateAllCards, cloneState, estimateReactProbability, estimateCounterProbability };

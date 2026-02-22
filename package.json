@@ -1,0 +1,6 @@
+{
+  "name": "shattered-dungeon-sim",
+  "version": "2.9.0",
+  "type": "module",
+  "description": "Shattered Dungeon tactical deckbuilder simulation engine"
+}

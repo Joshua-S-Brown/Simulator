@@ -29,7 +29,7 @@
  *   Energy: 5 | Strike: 4 | Empower: 1 | Disrupt: 1 | Counter: 2
  *   React: 2 | Trap: 1 | Reshape: 1
  */
-module.exports = {
+export default {
   name: 'The Hollow Siren\'s Grotto',
   description: 'A crystalline cavern where every surface is faceted and reflective. Light has no clear source — the crystals glow from within, casting prismatic refractions that make depth perception impossible. At the center, something almost human hovers a foot above the ground. She is singing. She has been singing for a very long time.',
   initiative: 'visitor',
