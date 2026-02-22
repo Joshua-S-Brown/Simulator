@@ -8,26 +8,25 @@ export default function ArchetypeDisplay({ archetype, side }) {
 
   return (
     <div style={{
-      padding: '12px 16px',
+      padding: '16px 20px',
       background: `${P.stone}88`,
       border: `1px solid ${P.border}`,
       borderRadius: isDungeon ? '12px' : '4px',
-      marginTop: '12px',
     }}>
       <div style={{
         color: P.text,
-        fontSize: '14px',
+        fontSize: '17px',
         fontWeight: 700,
         textTransform: 'uppercase',
         letterSpacing: '1px',
-        marginBottom: '4px',
+        marginBottom: '6px',
       }}>
         {archetype.name}
       </div>
       <div style={{
         color: P.muted,
-        fontSize: '12px',
-        lineHeight: 1.4,
+        fontSize: '14px',
+        lineHeight: 1.5,
         fontStyle: 'italic',
       }}>
         {archetype.desc}

@@ -32,7 +32,7 @@ export default function TitleScreen({ onPlay }) {
           onMouseLeave={e => { e.target.style.borderColor = `${P.muted}40`; e.target.style.color = P.text; e.target.style.boxShadow = 'none'; }}
         >Play</button>
         <div style={{ marginTop: '48px', color: P.dim, fontSize: '10px', letterSpacing: '1px' }}>
-          ENGINE v2.9 · DATA v2.7b · PHASE 1
+          ENGINE v2.9c · PHASE 1
         </div>
       </div>
     </div>
