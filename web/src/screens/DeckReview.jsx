@@ -71,10 +71,13 @@ export default function DeckReview({ side, selected, onBack, onReady }) {
           {tabs.reduce((sum, t) => sum + t.cards.length, 0)} total cards across {tabs.length} {isDungeon ? 'rooms' : 'members'}
         </div>
         <button onClick={onReady} style={{
-          padding: '12px 36px', background: P.surface, border: `1px solid ${P.border}`,
-          color: P.muted, borderRadius: isDungeon ? '8px' : '4px', cursor: 'pointer', fontSize: '15px', fontWeight: 600,
+          padding: '12px 36px', background: '#3d998a',
+          border: `1px solid #55c4b0`,
+          color: '#0a0a0f', borderRadius: isDungeon ? '8px' : '4px',
+          cursor: 'pointer', fontSize: '15px', fontWeight: 600,
+          transition: 'all 0.2s',
         }}>
-          Ready — Awaiting Phase 2 ⏳
+          {isDungeon ? 'Defend Your Realm ⚔' : 'Enter the Dungeon ⚔'}
         </button>
       </div>
     </div>

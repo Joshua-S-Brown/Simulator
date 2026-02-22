@@ -1319,4 +1319,22 @@ function getTriggerBonus(trigger, self, opponent, ctx) {
   return trigger.bonus || 0;
 }
 
-export { runEncounter };
+export {
+  // Existing
+  runEncounter,
+
+  // Resolution functions (used by game-adapter.js for step-by-step play)
+  resolveStrike,
+  resolveReshape,
+  resolveOffer,
+  resolveTest,
+  resolveGuardDisrupt,
+  resolveSpreadFortify,
+  checkTraps,
+  tryReact,
+  clearEntangle,
+  applyPromoterGain,
+  evaluateTrigger,
+  getTriggerBonus,
+  executeTurn,
+};

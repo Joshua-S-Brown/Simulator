@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /c/Users/brown/Simulator/web && npx vite build 2>)",
+      "Bash(true:*)"
+    ]
+  }
+}
